@@ -1,3 +1,4 @@
+import cv2
 import numpy as np
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
@@ -24,6 +25,9 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
     Function to estimate the orientation field of each block of size _block_size in _img.
     Idea and algorithm to estimate orientations for each block is from:
     https://biometrics.cse.msu.edu/Publications/Fingerprint/MSU-CPS-97-35fenhance.pdf - section 2.4
+    Idea of applying gaussian filter before estimating orientations is from:
+    https://www.researchgate.net/publication/225820611_Fingerprint_Orientation_Field_Enhancement - section 3
+    and I also optimized and refactor part of code from here (interpolation part):
     :param _img: Input image, should be normalized
     :param _block_size: size of block that image will be divided by
     :param _interpolate: boolean flag whether to interpolate orientations
@@ -77,7 +81,7 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
     # Adjust theta by adding 90 degrees (pi/2) and take modulo pi to ensure it stays within the range [0, pi)
     theta = (theta + np.pi * 0.5) % np.pi
 
-    # TODO: maybe Gaussian Blur will be sufficient
+    # TODO: maybe Gaussian Blur will be sufficient, ?coherence maybe to do?
 
     # Averaging angels based on their neighbours
     theta_averaged = np.empty_like(theta)
@@ -108,7 +112,13 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
     return orientations, coherence
 
 
-def average_orientation(_orientations, _weights=None, _std=False):
+def average_orientation(_orientations, _std=False):
+    """
+    Function that aligns orientations by averaging them
+    :param _orientations: orientations to align(average)
+    :param _std: boolean flag whether to use standard deviation in return
+    :return: aligned input orientations
+    """
     _orientations = np.asarray(_orientations).flatten()  # 2D -> 1D
     angle_reference = _orientations[0]  # Based on this angle, other will be aligned
 
@@ -121,9 +131,9 @@ def average_orientation(_orientations, _weights=None, _std=False):
     )
 
     if _std:
-        return np.average(aligned, weights=_weights) % np.pi, np.std(aligned)
+        return np.average(aligned) % np.pi, np.std(aligned)
     else:
-        return np.average(aligned, weights=_weights) % np.pi
+        return np.average(aligned) % np.pi
 
 
 def bilinear_interpolation(_img_shape, _block_size, theta):
