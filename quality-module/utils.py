@@ -33,7 +33,7 @@ def normalize_image(_img):
     Function that normalizes image to values in range [0, 1]
     with max normalization from: https://research.ijcaonline.org/volume32/number10/pxc3875530.pdf section 4.5
     :param _img: Input fingerprint image
-    :return: Normalized image between [0, 1]
+    :return: Normalized image with values between [0, 1]
     """
     _img = np.copy(_img)
 
@@ -56,17 +56,17 @@ def segment_fingerprint(_img, _block_size=16, _threshold=0.3):
     :param _threshold: Standard deviation threshold for image blocks of size _block_size
     :return: mask, that can be applied to image
     """
-    (y, x) = _img.shape
+    (h, w) = _img.shape
     _threshold *= np.std(_img)
 
     img_var = np.zeros_like(_img)
     mask = np.ones_like(_img)
 
-    for j in range(0, y, _block_size):
-        for i in range(0, x, _block_size):
+    for j in range(0, h, _block_size):
+        for i in range(0, w, _block_size):
             # Avoid Index out of bound
-            end_j = min(j + _block_size, y)
-            end_i = min(i + _block_size, x)
+            end_j = min(j + _block_size, h)
+            end_i = min(i + _block_size, w)
 
             img_block = _img[j:end_j, i:end_i]
             block_std = np.std(img_block)
@@ -81,18 +81,37 @@ def segment_fingerprint(_img, _block_size=16, _threshold=0.3):
     return mask
 
 
+def display_image_and_histogram(image):
+    # Create a figure with two subplots: one for the image, one for the histogram
+    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
+
+    # Display the image
+    axs[0].imshow(image, cmap='gray')
+    axs[0].set_title('Image')
+    axs[0].axis('off')  # Hide the axis
+
+    # Display the histogram
+    axs[1].hist(image.ravel(), bins=256, range=(0, 1), color='black', alpha=0.7)
+    axs[1].set_title('Histogram')
+    axs[1].set_xlabel('Pixel Intensity')
+    axs[1].set_ylabel('Frequency')
+
+    plt.tight_layout()
+    plt.show()
+
+
 folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
 # folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB\images\500\png\plain')
 tif_files = list(folder.glob('*.tif'))
 
 for tif_file in tif_files:
     img = read_image(tif_file)
-    show_image_on_plot(img, tif_file)
+    # show_image_on_plot(img, tif_file)
 
     norm_img = normalize_image(img)
-    show_image_on_plot(norm_img, tif_file)
+    # show_image_on_plot(norm_img, tif_file)
 
     fingerprint = segment_fingerprint(norm_img)
-    show_image_on_plot(fingerprint, tif_file)
+    # show_image_on_plot(fingerprint, tif_file)
 
     plt.show()
