@@ -4,6 +4,7 @@ import cv2
 import imageio
 import numpy as np
 from matplotlib import pyplot as plt
+from skimage.morphology import convex_hull_image
 
 
 def read_image(_img_path):
@@ -44,23 +45,38 @@ def normalize_image(_img):
 
 
 def segment_fingerprint(_img, _block_size=16, _threshold=0.3):
+    """
+    Function that segments foreground(fingerprint itself) and background(rest of image) of fingerprint input _img and
+    returns mask.
+    Function is based on ROI(Region Of Interest) where we define a region of interest based on image's blocks variance
+    if variance is greater than _threshold then it is our ROI, otherwise it is the background. Then ROI is smoothed with
+    morphological operations
+    :param _img: Input normalized image
+    :param _block_size: Size of blocks that image is divided in
+    :param _threshold: Standard deviation threshold for image blocks of size _block_size
+    :return: mask, that can be applied to image
+    """
     (y, x) = _img.shape
     _threshold *= np.std(_img)
 
-    _img_var = np.zeros_like(_img)
+    img_var = np.zeros_like(_img)
     mask = np.ones_like(_img)
 
-    for i in range(0, x, _block_size):
-        for j in range(0, y, _block_size):
-            box = [i, j, min(i + _block_size, x), min(j + _block_size, y)]
-            block_stddev = np.std(_img[box[1]:box[3], box[0]:box[2]])
-            _img_var[box[1]:box[3], box[0]:box[2]] = block_stddev
+    for j in range(0, y, _block_size):
+        for i in range(0, x, _block_size):
+            # Avoid Index out of bound
+            end_j = min(j + _block_size, y)
+            end_i = min(i + _block_size, x)
 
-    mask[_img_var < _threshold] = 0
+            img_block = _img[j:end_j, i:end_i]
+            block_std = np.std(img_block)
+            img_var[j:end_j, i:end_i] = block_std
+
+    mask[img_var < _threshold] = 0
 
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (_block_size * 2, _block_size * 2))
     mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)  # TODO: add padding to mask
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
 
     return mask
 
