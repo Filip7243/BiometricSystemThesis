@@ -1,5 +1,6 @@
 from pathlib import Path
 
+import cv2
 import imageio
 import numpy as np
 from matplotlib import pyplot as plt
@@ -41,9 +42,32 @@ def normalize_image(_img):
 
     return _img
 
-# folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
-folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB\images\500\png\plain')
-tif_files = list(folder.glob('*.png'))
+
+def segment_fingerprint(_img, _block_size=16, _threshold=0.3):
+    (y, x) = _img.shape
+    _threshold *= np.std(_img)
+
+    _img_var = np.zeros_like(_img)
+    mask = np.ones_like(_img)
+
+    for i in range(0, x, _block_size):
+        for j in range(0, y, _block_size):
+            box = [i, j, min(i + _block_size, x), min(j + _block_size, y)]
+            block_stddev = np.std(_img[box[1]:box[3], box[0]:box[2]])
+            _img_var[box[1]:box[3], box[0]:box[2]] = block_stddev
+
+    mask[_img_var < _threshold] = 0
+
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (_block_size * 2, _block_size * 2))
+    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
+    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)  # TODO: add padding to mask
+
+    return mask
+
+
+folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
+# folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB\images\500\png\plain')
+tif_files = list(folder.glob('*.tif'))
 
 for tif_file in tif_files:
     img = read_image(tif_file)
@@ -51,5 +75,8 @@ for tif_file in tif_files:
 
     norm_img = normalize_image(img)
     show_image_on_plot(norm_img, tif_file)
-    print(np.min(norm_img), np.max(norm_img))
+
+    fingerprint = segment_fingerprint(norm_img)
+    show_image_on_plot(fingerprint, tif_file)
+
     plt.show()
