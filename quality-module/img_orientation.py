@@ -63,6 +63,25 @@ def estimate_orientation(_img, _block_size=16, interpolate=False):
             else:
                 coherence[j, i] = numerator / denominator
 
-    # Adjust theta by adding 90 degrees (π/2) and take modulo π to ensure it stays within the range [0, π)
+    # Adjust theta by adding 90 degrees (pi/2) and take modulo pi to ensure it stays within the range [0, pi)
     theta = (theta + np.pi * 0.5) % np.pi
 
+    return theta
+
+
+def average_orientation(_orientations, _weights=None, _std=False):
+    _orientations = np.asarray(_orientations).flatten()  # 2D -> 1D
+    angle_reference = _orientations[0]  # Based on this angle, other will be aligned
+
+    aligned = np.where(
+        # Check if (orientation - reference) is greater than 90deg
+        np.absolute(_orientations - angle_reference) > np.pi * 0.5,
+        # If orientation greater than reference then sub 180deg (pi), else add 180deg
+        np.where(_orientations > angle_reference, _orientations - np.pi, _orientations + np.pi),
+        _orientations
+    )
+
+    if _std:
+        return np.average(aligned, weights=_weights) % np.pi, np.std(aligned)
+    else:
+        return np.average(aligned, weights=_weights) % np.pi
