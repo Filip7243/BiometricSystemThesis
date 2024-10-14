@@ -5,6 +5,7 @@ import imageio
 import numpy as np
 from matplotlib import pyplot as plt
 from skimage.morphology import convex_hull_image
+import img_orientation
 
 
 def read_image(_img_path):
@@ -100,6 +101,33 @@ def display_image_and_histogram(image):
     plt.show()
 
 
+def showOrientations(image, orientations, label, w=32, vmin=0.0, vmax=1.0):
+    show_image_on_plot(image, label)
+    height, width = image.shape
+    for y in range(0, height, w):
+        for x in range(0, width, w):
+            if np.any(orientations[y: y + w, x: x + w] == -1.0):
+                continue
+
+            cy = (y + min(y + w, height)) // 2
+            cx = (x + min(x + w, width)) // 2
+
+            orientation = orientations[y + w // 2, x + w // 2]
+
+            plt.plot(
+                [
+                    cx - w * 0.5 * np.cos(orientation),
+                    cx + w * 0.5 * np.cos(orientation),
+                ],
+                [
+                    cy - w * 0.5 * np.sin(orientation),
+                    cy + w * 0.5 * np.sin(orientation),
+                ],
+                "r-",
+                lw=1.0,
+            )
+
+
 folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
 # folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB\images\500\png\plain')
 tif_files = list(folder.glob('*.tif'))
@@ -111,7 +139,18 @@ for tif_file in tif_files:
     norm_img = normalize_image(img)
     # show_image_on_plot(norm_img, tif_file)
 
-    fingerprint = segment_fingerprint(norm_img)
+    mask = segment_fingerprint(norm_img)
     # show_image_on_plot(fingerprint, tif_file)
+
+    est_orientation, coh = img_orientation.estimate_orientation(norm_img, _interpolate=False)
+    est_orientation2, coh2 = img_orientation.estimate_orientation(norm_img, _interpolate=True)
+
+    orientations = np.where(mask == 1.0, est_orientation, -1.0)
+    orientations2 = np.where(mask == 1.0, est_orientation2, -1.0)
+
+    showOrientations(img, orientations, "or1", 8)
+    showOrientations(img, orientations2, "or2", 8)
+
+    print(np.min(coh), np.max(coh))
 
     plt.show()
