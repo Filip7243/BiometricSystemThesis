@@ -20,11 +20,22 @@ def get_sobel_y():
 
 
 def estimate_orientation(_img, _block_size=16, _interpolate=False):
+    """
+    Function to estimate the orientation field of each block of size _block_size in _img.
+    Idea and algorithm to estimate orientations for each block is from:
+    https://biometrics.cse.msu.edu/Publications/Fingerprint/MSU-CPS-97-35fenhance.pdf - section 2.4
+    :param _img: Input image, should be normalized
+    :param _block_size: size of block that image will be divided by
+    :param _interpolate: boolean flag whether to interpolate orientations
+    :return: nparray with estimated orientations of input image
+    """
+
     (h, w) = _img.shape
 
     # Smooth input image
     _img = ndimage.filters.gaussian_filter(_img, 2.0)
 
+    # Create gradients based on sobel kernels
     gradient_x, gradient_y = convolve(_img, get_sobel_x()), convolve(_img, get_sobel_y())
 
     y_blocks, x_blocks = h // _block_size, w // _block_size
