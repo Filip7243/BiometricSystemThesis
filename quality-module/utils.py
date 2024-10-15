@@ -4,8 +4,9 @@ import cv2
 import imageio
 import numpy as np
 from matplotlib import pyplot as plt
-from skimage.morphology import convex_hull_image
+
 import img_orientation
+import img_segmentation
 
 
 def read_image(_img_path):
@@ -128,9 +129,9 @@ def showOrientations(image, orientations, label, w=32, vmin=0.0, vmax=1.0):
             )
 
 
-folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
-# folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB\images\500\png\plain')
-tif_files = list(folder.glob('*.tif'))
+# folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
+folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB\images\500\png\plain')
+tif_files = list(folder.glob('*.png'))
 
 for tif_file in tif_files:
     img = read_image(tif_file)
@@ -140,17 +141,30 @@ for tif_file in tif_files:
     # show_image_on_plot(norm_img, tif_file)
 
     mask = segment_fingerprint(norm_img)
-    # show_image_on_plot(fingerprint, tif_file)
+    # mask2 = img_segmentation.create_fingerprint_mask(img, k=16)  # TODO: imporve it, it works too long
+    show_image_on_plot(mask, tif_file)
+    # show_image_on_plot(mask2, tif_file)
 
-    est_orientation, coh = img_orientation.estimate_orientation(norm_img, _interpolate=False)
-    est_orientation2, coh2 = img_orientation.estimate_orientation(norm_img, _interpolate=True)
+    est_orientation, coh = img_orientation.estimate_orientation(norm_img, _interpolate=True)
 
     orientations = np.where(mask == 1.0, est_orientation, -1.0)
-    orientations2 = np.where(mask == 1.0, est_orientation2, -1.0)
 
-    showOrientations(img, orientations, "or1", 8)
-    showOrientations(img, orientations2, "or2", 8)
+    cohs = np.where(mask == 1.0, coh, -1.0)
 
-    print(np.min(coh), np.max(coh))
+    valid_coherence = cohs[cohs >= 0]
+    good_regions = np.sum(valid_coherence > 0.65) / len(valid_coherence)
+    mean_coherence = np.mean(valid_coherence)
+    weighted_score = np.sum(valid_coherence ** 2) / len(valid_coherence)
+    combined_score = 0.4 * good_regions + 0.3 * mean_coherence + 0.3 * weighted_score
+
+
+    plt.imshow(cohs, cmap='hot')
+    plt.colorbar(label='Coherence')
+    plt.title('Coherence Map')
+    plt.show()
+
+    showOrientations(img, orientations, "orientations", 8)
+
+    # TODO: estimate frequncie, segmentaion mask, coherence, consistency
 
     plt.show()

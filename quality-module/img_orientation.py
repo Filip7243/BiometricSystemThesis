@@ -1,4 +1,3 @@
-import cv2
 import numpy as np
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
@@ -88,18 +87,20 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
     theta = np.pad(theta, 2, mode='edge')
     for j in range(y_blocks):
         for i in range(x_blocks):
-            neighbours = theta[j: j + 5, i: i + 5]
-            avg_neighbours, std = average_orientation(neighbours, _std=True)
-            if std > 0.5:  # It suggests big noise between angels
+            neighbours_theta = theta[j: j + 5, i: i + 5]
+            avg_neighbours, std = average_orientation(neighbours_theta, _std=True)
+            if std > 0.4:  # It suggests big noise between angels  #TODO: try another threshold for std (lower = better)
                 avg_neighbours = theta[j + 2, i + 2]  # Take center block
             theta_averaged[j, i] = avg_neighbours
 
     theta = theta_averaged
 
-    # Interpolation (back to original shape)
+    # Interpolation (or/and back to original shape)
     orientations = np.full(_img.shape, -1.0)
+    coherences = np.full(_img.shape, -1.0)
     if _interpolate:
         orientations = bilinear_interpolation(_img.shape, _block_size, theta)
+        coherences = bilinear_interpolation_coherence(_img.shape, _block_size, coherence)
     else:
         for j in range(y_blocks):
             for i in range(x_blocks):
@@ -109,12 +110,12 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
                 i_end = (i + 1) * _block_size
                 orientations[j_start:j_end, i_start:i_end] = theta[j, i]
 
-    return orientations, coherence
+    return orientations, coherences
 
 
 def average_orientation(_orientations, _std=False):
     """
-    Function that aligns orientations by averaging them
+    Function that aligns orientations by averaging them in range to 90deg max
     :param _orientations: orientations to align(average)
     :param _std: boolean flag whether to use standard deviation in return
     :return: aligned input orientations
@@ -186,3 +187,49 @@ def bilinear_interpolation(_img_shape, _block_size, theta):
             orientations[j_slice, i_slice] = interpolated_angles
 
     return orientations
+
+
+def bilinear_interpolation_coherence(_img_shape, _block_size, coherence):
+    """
+    Function to interpolate the coherence values using bilinear interpolation.
+    :param _img_shape: Shape of the original image
+    :param _block_size: Size of the blocks in the image
+    :param coherence: nparray with coherence values of each block
+    :return: Interpolated coherence values
+    """
+
+    interpolated_coherence = np.full(_img_shape, -1.0)  # Result array
+
+    y_blocks, x_blocks = _img_shape[0] // _block_size, _img_shape[1] // _block_size
+
+    half_block_size = _block_size // 2
+
+    iy, ix = np.meshgrid(np.arange(_block_size), np.arange(_block_size), indexing='ij')
+
+    # Bilinear Interpolation weights
+    weights = np.array([
+        (_block_size - iy) * (_block_size - ix),  # top-left
+        iy * (_block_size - ix),  # bottom-left
+        (_block_size - iy) * ix,  # top-right
+        iy * ix  # bottom-right
+    ])
+    weights = weights / weights.sum(axis=0)  # normalized weights
+
+    for j in range(y_blocks - 1):
+        for i in range(x_blocks - 1):
+            neighbours = np.array([
+                coherence[j, i],  # top-left
+                coherence[j + 1, i],  # bottom-left
+                coherence[j, i + 1],  # top-right
+                coherence[j + 1, i + 1]  # bottom-right
+            ])
+
+            # Perform weighted interpolation
+            interpolated_values = np.sum(weights * neighbours[:, np.newaxis, np.newaxis], axis=0)
+
+            # Place interpolated values into the output array
+            j_slice = slice(j * _block_size + half_block_size, j * _block_size + half_block_size + _block_size)
+            i_slice = slice(i * _block_size + half_block_size, i * _block_size + half_block_size + _block_size)
+            interpolated_coherence[j_slice, i_slice] = interpolated_values
+
+    return interpolated_coherence
