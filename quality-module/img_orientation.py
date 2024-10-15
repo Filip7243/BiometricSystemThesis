@@ -233,3 +233,18 @@ def bilinear_interpolation_coherence(_img_shape, _block_size, coherence):
             interpolated_coherence[j_slice, i_slice] = interpolated_values
 
     return interpolated_coherence
+
+
+def measure_orientation_consistency(_img, _orientations, _block_size=8):
+    (h, w) = _img.shape
+
+    # consistency = np.zeros((h // _block_size, w // _block_size))
+    consistency = np.zeros((h, w))
+    for j in range(0, h - _block_size, _block_size):
+        for i in range(0, w - _block_size, _block_size):
+            neighbours = _orientations[j: j + _block_size, i: i + _block_size]
+            _, std_dev = average_orientation(neighbours, _std=True)
+            # consistency[j // _block_size, i // _block_size] = 1 - std_dev / np.pi
+            consistency[j:j + _block_size, i:i + _block_size] = 1 - std_dev / np.pi
+
+    return consistency
