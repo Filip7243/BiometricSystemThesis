@@ -6,7 +6,7 @@ import numpy as np
 from matplotlib import pyplot as plt
 
 import img_orientation
-import img_segmentation
+import ridge_frequency
 
 
 def read_image(_img_path):
@@ -90,7 +90,7 @@ def display_image_and_histogram(image):
     # Display the image
     axs[0].imshow(image, cmap='gray')
     axs[0].set_title('Image')
-    axs[0].axis('off')  # Hide the axis
+    axs[0].axis('off')
 
     # Display the histogram
     axs[1].hist(image.ravel(), bins=256, range=(0, 1), color='black', alpha=0.7)
@@ -133,6 +133,32 @@ folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
 # folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB\images\500\png\plain')
 tif_files = list(folder.glob('*.tif'))
 
+
+def visualize_ridge_frequency(original_image, freq_image, mask):
+    # Create a figure with two subplots side by side
+    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
+
+    # Plot original image
+    ax1.imshow(original_image, cmap='gray')
+    ax1.set_title('Original Image')
+    ax1.axis('off')
+
+    # Create a masked frequency image
+    masked_freq = np.ma.masked_where(mask == 0, freq_image)
+
+    # Plot frequency image
+    im = ax2.imshow(masked_freq, cmap='jet', vmin=0, vmax=np.max(freq_image))
+    ax2.set_title(f'Ridge Frequency')
+    ax2.axis('off')
+
+    # Add colorbar
+    cbar = fig.colorbar(im, ax=ax2, orientation='vertical', shrink=0.8)
+    cbar.set_label('Frequency')
+
+    plt.tight_layout()
+    plt.show()
+
+
 for tif_file in tif_files:
     img = read_image(tif_file)
     show_image_on_plot(img, tif_file)
@@ -151,6 +177,22 @@ for tif_file in tif_files:
     where = np.where(mask == 1.0, consistency, -1.0)
     result = np.clip(where, 0, 1)
 
+    # frequencies, median_frequency = ridge_frequency.estimate_ridge_frequency(_img=norm_img, _mask=mask,
+    #                                                                          _orientations=est_orientation,
+    #                                                                          _block_size=32,
+    #                                                                          _window_size=5,
+    #                                                                          _min_wave_len=5, _max_wave_len=15)
+
+    frequencies = np.where(mask == 1.0, ridge_frequency.estimate_frequencies(norm_img, est_orientation), -1.0)
+    show_image_on_plot(normalize_image(frequencies), "frequencies")
+
+    non_zero_freq = frequencies[frequencies > 0]
+    print(f"Min frequency: {non_zero_freq.min()}")
+    print(f"Max frequency: {non_zero_freq.max()}")
+    print(f"Mean frequency: {non_zero_freq.mean()}")
+    print(f"Median frequency: {np.median(non_zero_freq)}")
+
+
     # where = where[where >= 0]
     # mean_consistency = np.mean(where)
     # print(f'mean_consistency: {mean_consistency}')
@@ -163,11 +205,11 @@ for tif_file in tif_files:
     # quality_score = (mean_consistency + proportion_high_consistency) / 2
     # print(f'quality_score: {quality_score}')
 
-    consistency_map = plt.imshow(result, cmap='jet')
-    plt.colorbar(consistency_map)
-    plt.title('Orientation Consistency')
-    plt.axis('off')
-    plt.show()
+    # consistency_map = plt.imshow(result, cmap='jet')
+    # plt.colorbar(consistency_map)
+    # plt.title('Orientation Consistency')
+    # plt.axis('off')
+    # plt.show()
 
     # orientations = np.where(mask == 1.0, est_orientation, -1.0)
 
