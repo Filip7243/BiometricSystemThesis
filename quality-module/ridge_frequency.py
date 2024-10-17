@@ -7,7 +7,8 @@ def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5
 
     y_blocks, x_blocks = h // _block_size, w // _block_size
 
-    frequencies = np.full((y_blocks, x_blocks), -1.0)  # TODO: docs(powiedziec o tych kodach i pracy), quality measure, gabor
+    frequencies = np.full((y_blocks, x_blocks),
+                          -1.0)  # TODO: docs(powiedziec o tych kodach i pracy), quality measure, gabor
 
     for j in range(y_blocks):
         for i in range(x_blocks):
@@ -92,3 +93,10 @@ def normalize_image(_img):
         _img /= max_val
 
     return _img
+
+
+def average_frequencies(_frequencies):
+    frequencies = _frequencies[_frequencies >= 0]
+    if frequencies.size == 0:
+        return -1
+    return np.average(frequencies)
