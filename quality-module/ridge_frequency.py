@@ -7,8 +7,7 @@ def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5
 
     y_blocks, x_blocks = h // _block_size, w // _block_size
 
-    frequencies = np.full((y_blocks, x_blocks),
-                          -1.0)  # TODO: docs(powiedziec o tych kodach i pracy), quality measure, gabor
+    frequencies = np.full((y_blocks, x_blocks), -1.0)
 
     for j in range(y_blocks):
         for i in range(x_blocks):
@@ -34,7 +33,7 @@ def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5
             columns = normalize_image(columns)
 
             # Finding ridges by peaks in columns, min distance=3
-            peaks, _ = signal.find_peaks(columns, distance=3)
+            peaks = signal.find_peaks_cwt(columns, np.array([3]))
             if len(peaks) < 2:
                 continue
 
@@ -69,7 +68,7 @@ def rotate_and_crop(_block_img, _angle):
     else:  # Portrait img
         new_h, new_w = (w * cos - h * sin) / cos2a, (h * cos - w * sin) / cos2a
 
-    rotated_img = ndimage.rotate(_block_img, angle=np.degrees(_angle), reshape=False)
+    rotated_img = ndimage.interpolation.rotate(_block_img, angle=np.degrees(_angle), reshape=False)
 
     # Crop block
     new_h, new_w = int(new_h), int(new_w)

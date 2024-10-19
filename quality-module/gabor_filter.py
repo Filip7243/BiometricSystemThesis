@@ -2,6 +2,7 @@ import numpy as np
 
 import img_orientation
 import ridge_frequency
+from scipy.signal import convolve2d
 
 
 def create_gabor_filter(_kernel_size, _angle, _frequency, x_sigma=4, y_sigma=4):
@@ -43,8 +44,7 @@ def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
 
         if averaged_frequency >= 0.0:
             kernel = create_gabor_filter(16, block_orientation, averaged_frequency)
-            # filtered = convolve(_img, kernel, (y, x), (h, w))
-            filtered = convolve(_img[y:y + h, x:x + w], kernel)
+            filtered = convolve(_img, kernel, (y, x), (h, w))
         else:
             filtered = _img[y: y + h, x: x + w]  # No filter
     else:  # Subdivide region to smaller blocks, then apply filter
@@ -65,67 +65,34 @@ def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
     return filtered
 
 
-def convolve(image, kernel, origin=None, shape=None, pad=True):
-    """
-    Apply a kernel to an image or to a part of an image.
+def convolve(_img, _kernel, _origin=(0, 0), _shape=None):
+    if _shape is None:
+        _shape = (_img.shape[0] - _origin[0], _img.shape[1] - _origin[1])
 
-    :param image:   The source image.
-    :param kernel:  The kernel (an ndarray of black and white, or grayvalues).
-    :param origin:  The origin of the part of the image to be convolved.
-                    Defaults to (0, 0).
-    :param shape:   The shape of the part of the image that is to be convolved.
-                    Defaults to the shape of the image.
-    :param pad:     Whether the image should be padded before applying the
-                    kernel. Passing False here will cause indexing errors if
-                    the kernel is applied at the edge of the image.
-    :returns:       The resulting image.
-    """
-    if not origin:
-        origin = (0, 0)
+    result = np.empty(_shape)
 
-    if not shape:
-        shape = (image.shape[0] - origin[0], image.shape[1] - origin[1])
+    kernel_height, kernel_width = _kernel.shape
 
-    result = np.empty(shape)
+    kernel_origin_y, kernel_origin_x = -(kernel_height // 2), -(kernel_width // 2)
 
-    if callable(kernel):
-        k = kernel(0, 0)
-    else:
-        k = kernel
+    top_pad = max(0, -(_origin[0] + kernel_origin_y))
+    left_pad = max(0, -(_origin[1] + kernel_origin_x))
+    bottom_pad = max(0, (_origin[0] + _shape[0] + kernel_origin_y + kernel_height) - _img.shape[0])
+    right_pad = max(0, (_origin[1] + _shape[1] + kernel_origin_x + kernel_width) - _img.shape[1])
 
-    kernelOrigin = (-k.shape[0] // 2, -k.shape[1] // 2)
-    kernelShape = k.shape
+    padding = (top_pad, bottom_pad), (left_pad, right_pad)
+    if np.any(padding):
+        _img = np.pad(_img, padding, mode='edge')
 
-    topPadding = 0
-    leftPadding = 0
+    padded_origin_y = top_pad + _origin[0] + kernel_origin_y
+    padded_origin_x = left_pad + _origin[1] + kernel_origin_x
 
-    if pad:
-        topPadding = max(0, -(origin[0] + kernelOrigin[0]))
-        leftPadding = max(0, -(origin[1] + kernelOrigin[1]))
-        bottomPadding = max(
-            0,
-            (origin[0] + shape[0] + kernelOrigin[0] + kernelShape[0]) - image.shape[0],
-        )
-        rightPadding = max(
-            0,
-            (origin[1] + shape[1] + kernelOrigin[1] + kernelShape[1]) - image.shape[1],
-        )
+    for j in range(_shape[0]):
+        for i in range(_shape[1]):
+            img_block = _img[padded_origin_y + j:padded_origin_y + j + kernel_height,
+                        padded_origin_x + i:padded_origin_x + i + kernel_width]
 
-        padding = (topPadding, bottomPadding), (leftPadding, rightPadding)
-
-        if np.max(padding) > 0.0:
-            image = np.pad(image, padding, mode="edge")
-
-    for y in range(shape[0]):
-        for x in range(shape[1]):
-            iy = topPadding + origin[0] + y + kernelOrigin[0]
-            ix = leftPadding + origin[1] + x + kernelOrigin[1]
-
-            block = image[iy: iy + kernelShape[0], ix: ix + kernelShape[1]]
-            if callable(kernel):
-                result[y, x] = np.sum(block * kernel(y, x))
-            else:
-                result[y, x] = np.sum(block * kernel)
+            result[j, i] = np.sum(img_block * _kernel)
 
     return result
 
