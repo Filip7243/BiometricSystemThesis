@@ -1,4 +1,5 @@
 import numpy as np
+from matplotlib import pyplot as plt
 from scipy import ndimage
 from scipy.ndimage.filters import convolve
 
@@ -120,6 +121,7 @@ def average_orientation(_orientations, _std=False):
     :param _std: boolean flag whether to use standard deviation in return
     :return: aligned input orientations
     """
+
     _orientations = np.asarray(_orientations).flatten()  # 2D -> 1D
     angle_reference = _orientations[0]  # Based on this angle, other will be aligned
 
@@ -235,16 +237,41 @@ def bilinear_interpolation_coherence(_img_shape, _block_size, coherence):
     return interpolated_coherence
 
 
-def measure_orientation_consistency(_img, _orientations, _block_size=8):
+def measure_orientation_consistency(_img, _orientations, _block_size=12):
+    """
+    Function that measures orientation consistency of fingerprint image.
+    :param _img: Input image
+    :param _orientations: Orientations map of _img (normalized between [0, pi]
+    :param _block_size: Size of block that image is divided of
+    :return: Consistency map of _orientations
+    """
+
     (h, w) = _img.shape
 
-    # consistency = np.zeros((h // _block_size, w // _block_size))
     consistency = np.zeros((h, w))
     for j in range(0, h - _block_size, _block_size):
         for i in range(0, w - _block_size, _block_size):
             neighbours = _orientations[j: j + _block_size, i: i + _block_size]
             _, std_dev = average_orientation(neighbours, _std=True)
-            # consistency[j // _block_size, i // _block_size] = 1 - std_dev / np.pi
             consistency[j:j + _block_size, i:i + _block_size] = 1 - std_dev / np.pi
+
+        # Visualize results
+    plt.figure(figsize=(15, 5))
+
+    # Original image
+    plt.subplot(131)
+    plt.imshow(_img, cmap='gray')
+    plt.title('Original Image')
+    plt.axis('off')
+
+    # # Consistency map
+    plt.subplot(132)
+    consistency_map = plt.imshow(consistency, cmap='jet', vmin=0, vmax=1)
+    plt.colorbar(consistency_map)
+    plt.title('Orientation Consistency')
+    plt.axis('off')
+
+    plt.tight_layout()
+    plt.show()
 
     return consistency

@@ -1,5 +1,3 @@
-from pathlib import Path
-
 import cv2
 import imageio
 import numpy as np
@@ -34,6 +32,7 @@ def normalize_image(_img):
     :param _img: Input fingerprint image
     :return: Normalized image with values between [0, 1]
     """
+
     _img = np.copy(_img)
 
     max_val = np.max(_img)
@@ -55,6 +54,7 @@ def segment_fingerprint(_img, _block_size=16, _threshold=0.3):
     :param _threshold: Standard deviation threshold for image blocks of size _block_size
     :return: mask, that can be applied to image
     """
+
     (h, w) = _img.shape
     _threshold *= np.std(_img)
 
@@ -80,72 +80,28 @@ def segment_fingerprint(_img, _block_size=16, _threshold=0.3):
     return mask
 
 
-def display_image_and_histogram(image):
-    # Create a figure with two subplots: one for the image, one for the histogram
-    fig, axs = plt.subplots(1, 2, figsize=(12, 5))
-
-    # Display the image
-    axs[0].imshow(image, cmap='gray')
-    axs[0].set_title('Image')
-    axs[0].axis('off')
-
-    # Display the histogram
-    axs[1].hist(image.ravel(), bins=256, range=(0, 1), color='black', alpha=0.7)
-    axs[1].set_title('Histogram')
-    axs[1].set_xlabel('Pixel Intensity')
-    axs[1].set_ylabel('Frequency')
-
-    plt.tight_layout()
-    plt.show()
-
-
-def showOrientations(image, orientations, label, w=32, vmin=0.0, vmax=1.0):
-    show_image_on_plot(image, label)
-    height, width = image.shape
-    for y in range(0, height, w):
-        for x in range(0, width, w):
-            if np.any(orientations[y: y + w, x: x + w] == -1.0):
+def showOrientations(_img, _orientations, _label, _block_size=32):
+    show_image_on_plot(_img, _label)
+    height, width = _img.shape
+    for y in range(0, height, _block_size):
+        for x in range(0, width, _block_size):
+            if np.any(_orientations[y: y + _block_size, x: x + _block_size] == -1.0):
                 continue
 
-            cy = (y + min(y + w, height)) // 2
-            cx = (x + min(x + w, width)) // 2
+            cy = (y + min(y + _block_size, height)) // 2
+            cx = (x + min(x + _block_size, width)) // 2
 
-            orientation = orientations[y + w // 2, x + w // 2]
+            orientation = _orientations[y + _block_size // 2, x + _block_size // 2]
 
             plt.plot(
                 [
-                    cx - w * 0.5 * np.cos(orientation),
-                    cx + w * 0.5 * np.cos(orientation),
+                    cx - _block_size * 0.5 * np.cos(orientation),
+                    cx + _block_size * 0.5 * np.cos(orientation),
                 ],
                 [
-                    cy - w * 0.5 * np.sin(orientation),
-                    cy + w * 0.5 * np.sin(orientation),
+                    cy - _block_size * 0.5 * np.sin(orientation),
+                    cy + _block_size * 0.5 * np.sin(orientation),
                 ],
                 "r-",
                 lw=1.0,
             )
-
-
-def visualize_ridge_frequency(original_image, freq_image, mask):
-    # Create a figure with two subplots side by side
-    fig, (ax1, ax2) = plt.subplots(1, 2, figsize=(12, 6))
-
-    # Plot original image
-    ax1.imshow(original_image, cmap='gray')
-    ax1.set_title('Original Image')
-    ax1.axis('off')
-
-    # Create a masked frequency image
-    masked_freq = np.ma.masked_where(mask == 0, freq_image)
-
-    # Plot frequency image
-    im = ax2.imshow(masked_freq, cmap='jet', vmin=0, vmax=np.max(freq_image))
-    ax2.set_title(f'Ridge Frequency')
-    ax2.axis('off')
-
-    # Add colorbar
-    cbar = fig.colorbar(im, ax=ax2, orientation='vertical', shrink=0.8)
-    cbar.set_label('Frequency')
-
-    plt.tight_layout()
-    plt.show()

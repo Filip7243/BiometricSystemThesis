@@ -2,6 +2,7 @@ import numpy as np
 
 import img_orientation
 import ridge_frequency
+import utils
 
 
 # TODO: docs, quality measurement: orient field, orient consistency, ridge freq, gabor filters
@@ -66,7 +67,7 @@ def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
         averaged_frequency = ridge_frequency.average_frequencies(neighbours)
 
         if averaged_frequency >= 0.0:
-            kernel = create_gabor_filter(21, averaged_block_orientation, averaged_frequency)
+            kernel = create_gabor_filter(16, averaged_block_orientation, averaged_frequency)
             filtered = convolve(_img, kernel, (y, x), (h, w))
         else:
             filtered = _img[y: y + h, x: x + w]  # No filter
@@ -83,7 +84,7 @@ def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
                                                             (y, x + half_width, h, w - half_width))
 
     if w > 20 and h > 20:
-        filtered = normalize_image(filtered)
+        filtered = utils.normalize_image(filtered)
 
     return filtered
 
@@ -128,23 +129,6 @@ def convolve(_img, _kernel, _origin=(0, 0), _shape=None):
             result[j, i] = np.sum(img_block * _kernel)
 
     return result
-
-
-def normalize_image(_img):
-    """
-    Function that normalizes image to values in range [0, 1]
-    with max normalization from: https://research.ijcaonline.org/volume32/number10/pxc3875530.pdf section 4.5
-    :param _img: Input fingerprint image
-    :return: Normalized image with values between [0, 1]
-    """
-
-    _img = np.copy(_img)
-
-    max_val = np.max(_img)
-    if max_val > 0.0:
-        _img /= max_val
-
-    return _img
 
 
 def create_gabor_kernel(_kernel_size, function):

@@ -1,8 +1,22 @@
 import numpy as np
 from scipy import signal, ndimage
 
+import utils
+
 
 def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5, _max_wave_length=15):
+    """
+    Estimate _img ridge frequencies based on _orientations. Function created base on matlab code:
+    https://github.com/noureldien/FingerprintRecognition/blob/master/Matlab/RidgeFilter/freqest.m
+    And paper: https://biometrics.cse.msu.edu/Publications/Fingerprint/MSU-CPS-97-35fenhance.pdf
+    :param _img: Input image
+    :param _orientations: Orientations of the image
+    :param _block_size: Block size that we estimate ridge frequency for
+    :param _min_wave_length: Minimum ridge wave length in pixels (default 5 is suggested in matlab code)
+    :param _max_wave_length: Maximum ridge wave length in pixels (default 15 is suggested in matlab code)
+    :return: Frequencies for each block
+    """
+
     (h, w) = _img.shape
 
     y_blocks, x_blocks = h // _block_size, w // _block_size
@@ -30,7 +44,7 @@ def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5
                 continue
 
             columns = np.sum(block_img, axis=0)
-            columns = normalize_image(columns)
+            columns = utils.normalize_image(columns)
 
             # Finding ridges by peaks in columns, min distance=3
             peaks = signal.find_peaks_cwt(columns, np.array([3]))
@@ -58,6 +72,14 @@ def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5
 
 
 def rotate_and_crop(_block_img, _angle):
+    """
+    Rotate given _block_img by _angle in radians.
+    Code taken from: https://github.com/tommythorsen/fingerprints/blob/master/utils.py
+    :param _block_img: Input image
+    :param _angle: Angle of rotation in radians
+    :return: Rotated image
+    """
+
     (h, w) = _block_img.shape
     sin, cos = abs(np.sin(_angle)), abs(np.cos(_angle))
 
@@ -72,29 +94,18 @@ def rotate_and_crop(_block_img, _angle):
 
     # Crop block
     new_h, new_w = int(new_h), int(new_w)
-    y, x = (h - new_h) // 2, (w - new_w) // 2  # Center of copped image
+    h, w = (h - new_h) // 2, (w - new_w) // 2  # Center of copped image
 
-    return rotated_img[y:y + new_h, x:x + new_w]
-
-
-# TODO: usunac to pozniej
-def normalize_image(_img):
-    """
-    Function that normalizes image to values in range [0, 1]
-    with max normalization from: https://research.ijcaonline.org/volume32/number10/pxc3875530.pdf section 4.5
-    :param _img: Input fingerprint image
-    :return: Normalized image with values between [0, 1]
-    """
-    _img = np.copy(_img)
-
-    max_val = np.max(_img)
-    if max_val > 0.0:
-        _img /= max_val
-
-    return _img
+    return rotated_img[h:h + new_h, w:w + new_w]
 
 
 def average_frequencies(_frequencies):
+    """
+    Function that averages ridge frequencies across blocks with np library
+    :param _frequencies: Block frequencies
+    :return: Averaged ridge frequencies
+    """
+
     frequencies = _frequencies[_frequencies >= 0]
     if frequencies.size == 0:
         return -1
