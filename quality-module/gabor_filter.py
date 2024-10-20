@@ -2,10 +2,23 @@ import numpy as np
 
 import img_orientation
 import ridge_frequency
-from scipy.signal import convolve2d
 
+
+# TODO: docs, quality measurement: orient field, orient consistency, ridge freq, gabor filters
 
 def create_gabor_filter(_kernel_size, _angle, _frequency, x_sigma=4, y_sigma=4):
+    """
+    Function that creates gabor filter, based on given parameters estimated before applying the filter.
+    Function created based on the paper: https://link.springer.com/chapter/10.1007/3-540-45344-X_39
+    And GitHub code: https://github.com/tommythorsen/fingerprints/blob/master/gabor
+
+    :param _kernel_size: Size of gabor filter kernel, commonly an odd number
+    :param _angle: Orientation of the gabor filter based on estimated block orientation of fingerprint image (radians)
+    :param _frequency: Sinusoidal wave frequency of the gabor filter based on estimated block ridge frequency
+    :param x_sigma: standard deviation of the gabor filter kernel at x
+    :param y_sigma: standard deviation of the gabor filter kernel at y
+    :return: gabor filter to apply
+    """
     _angle += np.pi * 0.5
     cos = np.cos(_angle)
     sin = -np.sin(_angle)
@@ -26,6 +39,16 @@ def create_gabor_filter(_kernel_size, _angle, _frequency, x_sigma=4, y_sigma=4):
 
 
 def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
+    """
+    Function that uses recursion to apply gabor filters.
+    I took code from: https://github.com/tommythorsen/fingerprints/blob/master/gabor and improved it.
+    :param _img: Input fingerprint image
+    :param _orientations: Orientation map of fingerprint image
+    :param _frequencies: Frequencies of ridges and valleys
+    :param region: Optional region of finger to apply the filter
+    :return: Filtered image
+    """
+
     if region:
         y, x, h, w = region
     else:
@@ -34,7 +57,7 @@ def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
 
     filtered = np.empty((h, w))
 
-    block_orientation, std = img_orientation.average_orientation(_orientations[y: y + h, x: x + w], _std=True)
+    averaged_block_orientation, std = img_orientation.average_orientation(_orientations[y: y + h, x: x + w], _std=True)
 
     std_threshold = 0.2  # Small std = consistence orientation
     # If region to filter is small enough, do filtering
@@ -43,29 +66,38 @@ def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
         averaged_frequency = ridge_frequency.average_frequencies(neighbours)
 
         if averaged_frequency >= 0.0:
-            kernel = create_gabor_filter(16, block_orientation, averaged_frequency)
+            kernel = create_gabor_filter(21, averaged_block_orientation, averaged_frequency)
             filtered = convolve(_img, kernel, (y, x), (h, w))
         else:
             filtered = _img[y: y + h, x: x + w]  # No filter
     else:  # Subdivide region to smaller blocks, then apply filter
         if h > w:  # Portrait
             half_height = h // 2
-            filtered[0:half_height, 0:w] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, half_height, w))
-            filtered[half_height:h, 0:w] = apply_gabor_filter(_img, _orientations, _frequencies,
-                                                              (y + half_height, x, h - half_height, w))
+            filtered[:half_height, :w] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, half_height, w))
+            filtered[half_height:h, :w] = apply_gabor_filter(_img, _orientations, _frequencies,
+                                                             (y + half_height, x, h - half_height, w))
         else:  # Landscape
             half_width = w // 2
-            filtered[0:h, 0:half_width] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, h, half_width))
-            filtered[0:h, half_width:w] = apply_gabor_filter(_img, _orientations, _frequencies,
-                                                             (y, x + half_width, h, w - half_width))
+            filtered[:h, :half_width] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, h, half_width))
+            filtered[:h, half_width:w] = apply_gabor_filter(_img, _orientations, _frequencies,
+                                                            (y, x + half_width, h, w - half_width))
 
     if w > 20 and h > 20:
-        _frequencies = normalize_image(filtered)
+        filtered = normalize_image(filtered)
 
     return filtered
 
 
 def convolve(_img, _kernel, _origin=(0, 0), _shape=None):
+    """
+    Function that convolve image with gabor filter.
+    :param _img: Input image
+    :param _kernel: Gabor filter kernel created from function 'create_gabor_filter()'
+    :param _origin: Starting point of gabor filter
+    :param _shape: Area where gabor will be applied
+    :return: Convolved image
+    """
+
     if _shape is None:
         _shape = (_img.shape[0] - _origin[0], _img.shape[1] - _origin[1])
 
@@ -75,6 +107,7 @@ def convolve(_img, _kernel, _origin=(0, 0), _shape=None):
 
     kernel_origin_y, kernel_origin_x = -(kernel_height // 2), -(kernel_width // 2)
 
+    # Find padding to avoid index out of bound
     top_pad = max(0, -(_origin[0] + kernel_origin_y))
     left_pad = max(0, -(_origin[1] + kernel_origin_x))
     bottom_pad = max(0, (_origin[0] + _shape[0] + kernel_origin_y + kernel_height) - _img.shape[0])
@@ -104,6 +137,7 @@ def normalize_image(_img):
     :param _img: Input fingerprint image
     :return: Normalized image with values between [0, 1]
     """
+
     _img = np.copy(_img)
 
     max_val = np.max(_img)
@@ -114,6 +148,14 @@ def normalize_image(_img):
 
 
 def create_gabor_kernel(_kernel_size, function):
+    """
+    Function that creates a gabor kernel using function passed as argument.
+    Code taken from: https://github.com/tommythorsen/fingerprints/blob/master/utils.py
+    :param _kernel_size: Size of kernel, for example: 3 means matrix size 3x3
+    :param function: Function that creates a gabor kernel
+    :return:
+    """
+
     kernel = np.empty((_kernel_size, _kernel_size))
     for j in range(0, _kernel_size):
         for i in range(0, _kernel_size):
