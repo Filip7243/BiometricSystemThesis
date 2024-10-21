@@ -57,10 +57,8 @@ for tif_file in tif_files:
     image = np.where(mask == 1.0, image, 1.0)
     # utils.show_image_on_plot(image, "Gabor filter")
 
-    # where = np.where(mask == 1.0,
-    #                  img_quality.estimate_quality(orientations, orientation_consistency, frequencies, image), -2.0)
-    img_quality.estimate_quality(orientations, orientation_consistency[orientation_consistency > -1.0],
-                                 frequencies[frequencies > -1.0], image[image < 1.0])
+    where = np.where(mask == 1.0,
+                     img_quality.estimate_quality(orientations, orientation_consistency, frequencies, image), -2.0)
 
     # print(where[where > -2.0][0])
 
