@@ -40,22 +40,21 @@ def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5
 
             # Skip if block is empty
             if block_img.size == 0:
-                frequencies[j, i] = -1
                 continue
 
             columns = np.sum(block_img, axis=0)
             columns = utils.normalize_image(columns)
 
-            # Finding ridges by peaks in columns, min distance=3
+            # Finding ridges by peaks in columns, min distance=3(like in paper)
             peaks = signal.find_peaks_cwt(columns, np.array([3]))
             if len(peaks) < 2:
                 continue
 
-            f = (peaks[-1] - peaks[0]) / (len(peaks) - 1)
+            f = (peaks[-1] - peaks[0]) / (len(peaks) - 1)  # Average spacing between all ridges
             if _min_wave_length <= f <= _max_wave_length:
                 frequencies[j, i] = 1 / f
 
-    temp_freq = np.full(_img.shape, -1.0)
+    result_freq = np.full(_img.shape, -1.0)
     frequencies = np.pad(frequencies, 1, 'edge')
     for j in range(y_blocks):
         for i in range(x_blocks):
@@ -66,9 +65,9 @@ def estimate_frequencies(_img, _orientations, _block_size=32, _min_wave_length=5
                 y_end = (j + 1) * _block_size
                 x_start = i * _block_size
                 x_end = (i + 1) * _block_size
-                temp_freq[y_start: y_end, x_start: x_end] = np.median(valid_neighbours)
+                result_freq[y_start: y_end, x_start: x_end] = np.median(valid_neighbours)
 
-    return temp_freq
+    return result_freq
 
 
 def rotate_and_crop(_block_img, _angle):
@@ -81,22 +80,26 @@ def rotate_and_crop(_block_img, _angle):
     """
 
     (h, w) = _block_img.shape
+
+    is_landscape = w >= h
+    long_side, short_side = (w, h) if is_landscape else (h, w)
+
     sin, cos = abs(np.sin(_angle)), abs(np.cos(_angle))
+    sin2a = 2.0 * sin * cos
 
-    # Calculate crop dimensions
-    cos2a = (cos ** 2 - sin ** 2)
-    if w >= h:  # Landscape img
-        new_h, new_w = (h * cos - w * sin) / cos2a, (w * cos - h * sin) / cos2a
-    else:  # Portrait img
-        new_h, new_w = (w * cos - h * sin) / cos2a, (h * cos - w * sin) / cos2a
+    if short_side <= sin2a * long_side:
+        x = 0.5 * short_side
+        new_w, new_h = (x / sin, x / cos) if is_landscape else (x / cos, x / sin)
+    else:
+        cos_2a = cos * cos - sin * sin
+        new_w, new_h = (w * cos - h * sin) / cos_2a, (h * cos - w * sin) / cos_2a
 
-    rotated_img = ndimage.interpolation.rotate(_block_img, angle=np.degrees(_angle), reshape=False)
+    _block_img = ndimage.interpolation.rotate(_block_img, np.degrees(_angle), reshape=False)
 
-    # Crop block
     new_h, new_w = int(new_h), int(new_w)
-    h, w = (h - new_h) // 2, (w - new_w) // 2  # Center of copped image
+    y, x = (h - new_h) // 2, (w - new_w) // 2
 
-    return rotated_img[h:h + new_h, w:w + new_w]
+    return _block_img[y: y + new_h, x: x + new_w]
 
 
 def average_frequencies(_frequencies):

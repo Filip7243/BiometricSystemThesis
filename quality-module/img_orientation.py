@@ -81,6 +81,8 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
     # Adjust theta by adding 90 degrees (pi/2) and take modulo pi to ensure it stays within the range [0, pi)
     theta = (theta + np.pi * 0.5) % np.pi
 
+    print(f'theta: {np.min(theta)}, {np.max(theta)}')
+
     # TODO: maybe Gaussian Blur will be sufficient, ?coherence maybe to do?
 
     # Averaging angels based on their neighbours
@@ -95,6 +97,8 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
             theta_averaged[j, i] = avg_neighbours
 
     theta = theta_averaged
+
+    print(f'averaged: {np.min(theta)}, {np.max(theta)}')
 
     # Interpolation (or/and back to original shape)
     orientations = np.full(_img.shape, -1.0)
@@ -168,7 +172,7 @@ def bilinear_interpolation(_img_shape, _block_size, theta):
         (_block_size - iy) * ix,  # top-right
         iy * ix  # bottom-right
     ])
-    weights = weights / weights.sum(axis=0)  # normalized to 0, 1
+    weights = weights / weights.sum(axis=0)  # normalized to [0, 1]
 
     for j in range(y_blocks - 1):
         for i in range(x_blocks - 1):
@@ -187,6 +191,8 @@ def bilinear_interpolation(_img_shape, _block_size, theta):
             j_slice = slice(j * _block_size + half_block_size, j * _block_size + half_block_size + _block_size)
             i_slice = slice(i * _block_size + half_block_size, i * _block_size + half_block_size + _block_size)
             orientations[j_slice, i_slice] = interpolated_angles
+
+    print(f'result: {np.min(orientations)}, {np.max(orientations)}')
 
     return orientations
 
@@ -275,3 +281,21 @@ def measure_orientation_consistency(_img, _orientations, _block_size=12):
     plt.show()
 
     return consistency
+
+
+def measure_orientation_consistency2(_orientations, _block_size=16):
+    orientations_padded = np.pad(_orientations, 1, mode='edge')
+    h, w = _orientations.shape
+    orientation_consistency = np.zeros((h, w))
+    neighborhood_offsets = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
+    for j in range(1, h + 1):
+        for i in range(1, w + 1):
+            theta_ij = orientations_padded[j, i]
+            consistency_sum = 0.0
+            for dy, dx in neighborhood_offsets:
+                theta_neighbor = orientations_padded[j + dy, i + dx]
+                consistency_sum += np.cos(2 * (theta_ij - theta_neighbor))
+
+            orientation_consistency[j - 1, i - 1] = consistency_sum / len(neighborhood_offsets)
+
+    return orientation_consistency

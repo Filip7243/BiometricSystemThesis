@@ -2,7 +2,7 @@ import numpy as np
 
 
 def estimate_quality(_orientations, _orientation_consistency, _frequencies, _gabor_response, _block_size=16):
-    (h, w) = _orientations.shape
+    (h, w) = _orientations.shape  # TODO: improve it
 
     y_blocks, x_blocks = h // _block_size, w // _block_size
 
