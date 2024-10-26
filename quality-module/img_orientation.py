@@ -283,7 +283,7 @@ def measure_orientation_consistency(_img, _orientations, _block_size=12):
     return consistency
 
 
-def measure_orientation_consistency2(_orientations, _block_size=16):
+def measure_orientation_consistency2(_orientations):  #TODO: make it main fnuction for consistency
     orientations_padded = np.pad(_orientations, 1, mode='edge')
     h, w = _orientations.shape
     orientation_consistency = np.zeros((h, w))

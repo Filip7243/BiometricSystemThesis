@@ -88,11 +88,12 @@ def rotate_and_crop(_block_img, _angle):
     sin2a = 2.0 * sin * cos
 
     if short_side <= sin2a * long_side:
+        # TODO: maybe to remove
         x = 0.5 * short_side
         new_w, new_h = (x / sin, x / cos) if is_landscape else (x / cos, x / sin)
     else:
-        cos_2a = cos * cos - sin * sin
-        new_w, new_h = (w * cos - h * sin) / cos_2a, (h * cos - w * sin) / cos_2a
+        cos2a = cos ** 2 - sin ** 2
+        new_w, new_h = (w * cos - h * sin) / cos2a, (h * cos - w * sin) / cos2a
 
     _block_img = ndimage.interpolation.rotate(_block_img, np.degrees(_angle), reshape=False)
 
