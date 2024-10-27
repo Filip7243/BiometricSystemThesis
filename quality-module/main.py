@@ -4,8 +4,11 @@ import cv2
 import numpy as np
 from matplotlib import pyplot as plt
 
+import fuzzy_freq
 import img_orientation
 import utils
+import ridge_frequency
+import fuzzy_ridge_frequency_classification
 import fuzzy_orientation_classification
 
 folder = Path(r'C:\Users\Filip\Desktop\STUDIA\inzynierka\CrossMatch_Sample_DB')
@@ -106,29 +109,29 @@ for tif_file in tif_files:
 
     print('Normalization')
     image = utils.normalize_image(image)
-    # utils.show_image_on_plot(image, 'Normalized Image')
+    utils.show_image_on_plot(image, 'Normalized Image')
 
     print('Finding Mask')
     mask = utils.segment_fingerprint(image)
-    utils.show_image_on_plot(mask, 'Mask fingerprint')
+    # utils.show_image_on_plot(mask, 'Mask fingerprint')
 
     print('Estimating orientations/coherence')
     orientations, coherence = np.where(mask == 1.0, img_orientation.estimate_orientation(image, _interpolate=True),
                                        -1.0)
-    print(f'orents: {np.min(orientations)}, {np.max(orientations)}')
-    print(f'orents: {np.min(coherence)}, {np.max(coherence)}')
+    # print(f'orents: {np.min(orientations)}, {np.max(orientations)}')
+    # print(f'orents: {np.min(coherence)}, {np.max(coherence)}')
 
-    utils.showOrientations(image, orientations, 'Orientations', 8)  # TODO: gabor filter
-    plt.show()
+    # utils.showOrientations(image, orientations, 'Orientations', 8)  # TODO: gabor filter
+    # plt.show()
+    #
+    # coh_img = plt.imshow(coherence, cmap='jet')
+    # plt.colorbar(coh_img)
+    # plt.title('coherence')
+    # plt.axis('off')
+    # plt.tight_layout()
+    # plt.show()
 
-    coh_img = plt.imshow(coherence, cmap='jet')
-    plt.colorbar(coh_img)
-    plt.title('coherence')
-    plt.axis('off')
-    plt.tight_layout()
-    plt.show()
-
-    print('Orientation consistency')
+    # print('Orientation consistency')
     # orientation_consistency = np.where(mask == 1.0,
     #                                    img_orientation.measure_orientation_consistency(image, orientations,
     #                                                                                    _block_size=16), -1.0)
@@ -139,26 +142,26 @@ for tif_file in tif_files:
     #
     # # # Consistency map
     # # plt.subplot(131)
-    consistency_map = plt.imshow(orientation_consistency, cmap='jet', vmin=0, vmax=1)
-    plt.colorbar(consistency_map)
-    plt.title('Orientation Consistency')
-    plt.axis('off')
+    # consistency_map = plt.imshow(orientation_consistency, cmap='jet', vmin=0, vmax=1)
+    # plt.colorbar(consistency_map)
+    # plt.title('Orientation Consistency')
+    # plt.axis('off')
+    #
+    # plt.tight_layout()
+    # plt.show()
 
-    plt.tight_layout()
-    plt.show()
+    # print(f'const: {np.min(orientation_consistency)}, {np.max(orientation_consistency)}')
+    #
+    # print(
+    #     f'mean: {np.mean(orientation_consistency[orientation_consistency > -1.0])}, '
+    #     f'median:{np.median(orientation_consistency[orientation_consistency > -1.0])}, '
+    #     f'std: {np.std(orientation_consistency[orientation_consistency > -1.0])}')
 
-    print(f'const: {np.min(orientation_consistency)}, {np.max(orientation_consistency)}')
+    # values = fuzzy_orientation_classification.normalize_input_values(coherence[coherence > -1.0],
+    #                                                                  orientation_consistency[
+    #                                                                      orientation_consistency > -1.0])
 
-    print(
-        f'mean: {np.mean(orientation_consistency[orientation_consistency > -1.0])}, '
-        f'median:{np.median(orientation_consistency[orientation_consistency > -1.0])}, '
-        f'std: {np.std(orientation_consistency[orientation_consistency > -1.0])}')
-
-    values = fuzzy_orientation_classification.normalize_input_values(coherence[coherence > -1.0],
-                                                                     orientation_consistency[
-                                                                         orientation_consistency > -1.0])
-
-    fuzzy_orientation_classification.fuzzy_classification(values[0], values[1])
+    # fuzzy_orientation_classification.fuzzy_classification(values[0], values[1])
     #
     # plt.hist(orientation_consistency[orientation_consistency > -1.0].flatten(), bins=20)
     # plt.title('Histogram of Orientation Consistency')
@@ -170,11 +173,23 @@ for tif_file in tif_files:
     # TODO: otsu segmentation
     # utils.show_image_on_plot(orientation_consistency, 'Orientation consistency')
 
-    # print('Estimating frequencies')
-    # frequencies = np.where(mask == 1.0, ridge_frequency.estimate_frequencies(image, orientations), -1.0)
-    # # utils.show_image_on_plot(utils.normalize_image(frequencies), 'Frequencies')
-    # print(f'freq: {np.min(frequencies)}, {np.max(frequencies)}')
-    # print(f'freq mean: {np.mean(frequencies[frequencies > -1.0])}, freq std: {np.std(frequencies[frequencies > -1.0])}')
+    print('Estimating frequencies')
+    frequencies = np.where(mask == 1.0, ridge_frequency.estimate_frequencies(image, orientations), -1.0)
+    # utils.show_image_on_plot(utils.normalize_image(frequencies), 'Frequencies')
+    print(f'freq: {np.min(frequencies)}, {np.max(frequencies)}')
+    print(f'freq mean: {np.mean(frequencies[frequencies > -1.0])}, freq std: {np.std(frequencies[frequencies > -1.0])}')
+    map, score = fuzzy_ridge_frequency_classification.evaluate_fingerprint_quality(image, frequencies)
+
+    print(
+        f'Score: mean: {np.mean(map[mask == 1.0])}, std: {np.std(map[mask == 1.0])}, min: {np.min(map[mask == 1.0])}, max: {np.max(map[mask == 1.0])}')
+
+    # (h, w) = image.shape
+    # for j in range(0, h - 16 + 1, 16):
+    #     for i in range(0, w - 16 + 1, 16):
+    #         img_block = image[j:j + 16, i:i + 16]
+    #         block_freq = frequencies[j + 16 // 2, i + 16 // 2]
+    #         return_vals = fuzzy_ridge_frequency_classification.analyze_frequency_block(img_block, block_freq)
+    #         print(return_vals)
     # quality_mask = np.full(frequencies.shape, -1)
     # valid_freq = (frequencies >= (1 / 25)) & (frequencies <= (1 / 3))
     # quality_mask[valid_freq] = 1

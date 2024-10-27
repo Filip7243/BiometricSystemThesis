@@ -1,3 +1,4 @@
+import matplotlib.pyplot as plt
 import numpy as np
 import skfuzzy as fuzz
 from skfuzzy import control as ctrl
@@ -154,7 +155,7 @@ def analyze_frequency_block(img_block, frequency):
 
     # Calculate local contrast
     print(f'img_block: {np.min(img_block)}, {np.max(img_block)}')
-    contrast = np.std(img_block) / 128.0  # Normalize by half of max intensity
+    contrast = np.std(img_block)  # Normalize by half of max intensity
 
     # Calculate frequency strength using FFT
     fft = np.fft.fft2(img_block)
@@ -168,11 +169,12 @@ def analyze_frequency_block(img_block, frequency):
     for i in range(0, img_block.shape[0] - 8, 4):
         for j in range(0, img_block.shape[1] - 8, 4):
             sub_block = img_block[i:i + 8, j:j + 8]
-            print(np.std(sub_block))
-            if np.std(sub_block) > 10:  # Skip uniform regions TODO: move it to ridge frequency measuring, while image is cropped and resized
+            print(f'Sub blcok std: {np.std(sub_block)}')
+            if np.std(sub_block) > 0.05:  # Skip uniform regions
                 local_freqs.append(np.mean(np.abs(np.diff(sub_block, axis=0))))
 
     if local_freqs:
+        print("!DUPA!")
         freq_consistency = 1 - np.std(local_freqs) / np.mean(local_freqs)
         freq_consistency = np.clip(freq_consistency, 0, 1)
     else:
@@ -224,155 +226,9 @@ def evaluate_fingerprint_quality(img, frequencies, block_size=32):
             quality = fuzzy_system.evaluate_block_quality(freq_data)
             quality_map[j:j + block_size, i:i + block_size] = quality
 
+    consistency_map = freq_characteristics[:, :, 3]
+    imshow = plt.imshow(consistency_map, cmap='viridis', interpolation='nearest')
+    plt.colorbar(imshow)
+    plt.show()
+
     return quality_map, freq_characteristics
-# import numpy as np
-# import skfuzzy as fuzz
-# from skfuzzy import control as ctrl
-#
-#
-# class FingerprintFuzzySystem:
-#     def __init__(self, min_wave_length=5, max_wave_length=15):
-#         # Input variable - only frequency
-#         self.frequency = ctrl.Antecedent(np.linspace(0, 1 / min_wave_length, 100), 'frequency')
-#
-#         # Output variable
-#         self.quality = ctrl.Consequent(np.linspace(0, 1, 100), 'quality')
-#
-#         # Calculate optimal frequency range
-#         self.optimal_freq = 1 / ((max_wave_length + min_wave_length) / 2)
-#         self.freq_range = 1 / min_wave_length - 1 / max_wave_length
-#
-#         # Membership functions for frequency
-#         self.frequency['very_low'] = fuzz.trimf(self.frequency.universe,
-#                                                 [0, 0, 1 / max_wave_length])
-#         self.frequency['low'] = fuzz.trimf(self.frequency.universe,
-#                                            [0, 1 / max_wave_length, self.optimal_freq])
-#         self.frequency['optimal'] = fuzz.trimf(self.frequency.universe,
-#                                                [1 / max_wave_length, self.optimal_freq, 1 / min_wave_length])
-#         self.frequency['high'] = fuzz.trimf(self.frequency.universe,
-#                                             [self.optimal_freq, 1 / min_wave_length, 1 / min_wave_length * 1.2])
-#         self.frequency['very_high'] = fuzz.trimf(self.frequency.universe,
-#                                                  [1 / min_wave_length, 1 / min_wave_length * 1.2,
-#                                                   1 / min_wave_length * 1.2])
-#
-#         # Membership functions for quality
-#         self.quality['very_poor'] = fuzz.trimf(self.quality.universe, [0, 0, 0.25])
-#         self.quality['poor'] = fuzz.trimf(self.quality.universe, [0, 0.25, 0.5])
-#         self.quality['fair'] = fuzz.trimf(self.quality.universe, [0.25, 0.5, 0.75])
-#         self.quality['good'] = fuzz.trimf(self.quality.universe, [0.5, 0.75, 1.0])
-#         self.quality['excellent'] = fuzz.trimf(self.quality.universe, [0.75, 1.0, 1.0])
-#
-#         # Fuzzy rules based only on frequency
-#         self.rules = [
-#             # Optimal frequency range gets highest quality
-#             ctrl.Rule(self.frequency['optimal'], self.quality['excellent']),
-#
-#             # Slightly off optimal gets good quality
-#             ctrl.Rule(self.frequency['low'], self.quality['good']),
-#             ctrl.Rule(self.frequency['high'], self.quality['good']),
-#
-#             # Very low/high frequencies indicate poor quality
-#             ctrl.Rule(self.frequency['very_low'], self.quality['very_poor']),
-#             ctrl.Rule(self.frequency['very_high'], self.quality['very_poor'])
-#         ]
-#
-#         # Create control system
-#         self.quality_ctrl = ctrl.ControlSystem(self.rules)
-#         self.quality_simulator = ctrl.ControlSystemSimulation(self.quality_ctrl)
-#
-#     def evaluate_frequency_quality(self, frequency):
-#         """
-#         Evaluate the quality based solely on ridge frequency
-#
-#         Args:
-#             frequency: Ridge frequency value
-#
-#         Returns:
-#             float: Quality score between 0 and 1
-#         """
-#         if frequency <= 0:  # Invalid frequency
-#             return 0.0
-#
-#         try:
-#             self.quality_simulator.input['frequency'] = frequency
-#             self.quality_simulator.compute()
-#             return self.quality_simulator.output['quality']
-#         except:
-#             return 0.0
-#
-#
-# def evaluate_fingerprint_quality(frequencies, block_size=32):
-#     """
-#     Evaluate the quality of an entire fingerprint image using frequency-based fuzzy logic
-#
-#     Args:
-#         frequencies: Ridge frequencies from estimate_frequencies()
-#         block_size: Size of blocks used in analysis
-#
-#     Returns:
-#         numpy.ndarray: Quality map of the same size as input
-#     """
-#     fuzzy_system = FingerprintFuzzySystem()
-#
-#     quality_map = np.zeros_like(frequencies)
-#     h, w = frequencies.shape
-#
-#     for j in range(0, h - block_size + 1, block_size):
-#         for i in range(0, w - block_size + 1, block_size):
-#             block_freq = frequencies[j + block_size // 2, i + block_size // 2]
-#             quality = fuzzy_system.evaluate_frequency_quality(block_freq)
-#             quality_map[j:j + block_size, i:i + block_size] = quality
-#
-#     return quality_map
-#
-#
-# def get_fingerprint_quality_score(quality_map):
-#     """
-#     Calculate overall quality score for the fingerprint
-#
-#     Args:
-#         quality_map: Quality map from evaluate_fingerprint_quality()
-#
-#     Returns:
-#         float: Overall quality score between 0 and 1
-#     """
-#     valid_qualities = quality_map[quality_map > 0]
-#     if len(valid_qualities) == 0:
-#         return 0.0
-#
-#     # Calculate weighted average, giving more weight to higher quality regions
-#     weights = np.exp(valid_qualities)  # Exponential weighting
-#     weighted_avg = np.average(valid_qualities, weights=weights)
-#
-#     return weighted_avg
-#
-#
-# def visualize_quality_distribution(quality_map):
-#     """
-#     Generate statistics about quality distribution
-#
-#     Args:
-#         quality_map: Quality map from evaluate_fingerprint_quality()
-#
-#     Returns:
-#         dict: Quality statistics
-#     """
-#     valid_qualities = quality_map[quality_map > 0]
-#     if len(valid_qualities) == 0:
-#         return {
-#             'min_quality': 0,
-#             'max_quality': 0,
-#             'mean_quality': 0,
-#             'median_quality': 0,
-#             'std_quality': 0,
-#             'quality_percentiles': [0, 0, 0]
-#         }
-#
-#     return {
-#         'min_quality': np.min(valid_qualities),
-#         'max_quality': np.max(valid_qualities),
-#         'mean_quality': np.mean(valid_qualities),
-#         'median_quality': np.median(valid_qualities),
-#         'std_quality': np.std(valid_qualities),
-#         'quality_percentiles': np.percentile(valid_qualities, [25, 50, 75])
-#     }
