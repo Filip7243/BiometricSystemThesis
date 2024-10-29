@@ -53,6 +53,10 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
             G_x_sum, G_y_sum = 0.0, 0.0
             G_x_y_sum = 0.0
 
+            # VX = 0.0
+            # VY = 0.0
+            # VZ = 0.0
+
             for v in range(_block_size):
                 for u in range(_block_size):
                     y_slice = j * _block_size + v
@@ -68,10 +72,16 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
                     G_y_sum += G_y ** 2
                     G_x_y_sum += G_x * G_y
 
+                    # VX += (G_x ** 2 - G_y ** 2)
+                    # VY += 2 * G_x * G_y
+                    # VZ += (G_x ** 2 + G_y ** 2)
+
             theta[j, i] = np.arctan2(V_x, V_y) * 0.5
 
             numerator = np.sqrt((G_x_sum - G_y_sum) ** 2 + 4 * (G_x_y_sum ** 2))
             denominator = G_x_sum + G_y_sum
+            # numerator = np.sqrt(VX ** 2 + VY ** 2)
+            # denominator = VZ
 
             if denominator == 0:
                 coherence[j, i] = 0

@@ -8,7 +8,22 @@ LABEL_MEDIUM = 'MEDIUM'
 LABEL_HIGH = 'HIGH'
 
 
-# TODO: add weights based on distance to center!
+
+class FingerprintOrientationClassifier:
+    def __init__(self):
+        # Input values
+        self.coherence = ctrl.Antecedent(np.arange(0, 1.01, 0.01), 'coherence')
+        self.consistency = ctrl.Antecedent(np.arange(0, 1.01, 0.01), 'coherence')
+
+        # Output value
+        self.quality = ctrl.Consequent(np.arange(0, 1.01, 0.01), 'Quality')
+
+
+
+
+
+
+# TODO: add weights based on distance to center! and create class like on ridge freq
 def normalize_input_values(_coherences, _orientations_consistency):
     min_coherence = np.min(_coherences)
     max_coherence = np.max(_coherences)
