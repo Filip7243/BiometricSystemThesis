@@ -34,6 +34,7 @@ def normalize_image(_img):
     """
 
     _img = np.copy(_img)
+    _img -= np.min(_img)
 
     max_val = np.max(_img)
     if max_val > 0.0:

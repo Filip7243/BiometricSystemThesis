@@ -74,14 +74,14 @@ def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
     else:  # Subdivide region to smaller blocks, then apply filter
         if h > w:  # Portrait
             half_height = h // 2
-            filtered[:half_height, :w] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, half_height, w))
-            filtered[half_height:h, :w] = apply_gabor_filter(_img, _orientations, _frequencies,
-                                                             (y + half_height, x, h - half_height, w))
+            filtered[0:half_height, 0:w] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, half_height, w))
+            filtered[half_height:h, 0:w] = apply_gabor_filter(_img, _orientations, _frequencies,
+                                                              (y + half_height, x, h - half_height, w))
         else:  # Landscape
             half_width = w // 2
-            filtered[:h, :half_width] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, h, half_width))
-            filtered[:h, half_width:w] = apply_gabor_filter(_img, _orientations, _frequencies,
-                                                            (y, x + half_width, h, w - half_width))
+            filtered[0:h, 0:half_width] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, h, half_width))
+            filtered[0:h, half_width:w] = apply_gabor_filter(_img, _orientations, _frequencies,
+                                                             (y, x + half_width, h, w - half_width))
 
     if w > 20 and h > 20:
         filtered = utils.normalize_image(filtered)
