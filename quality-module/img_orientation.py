@@ -20,6 +20,29 @@ def get_sobel_y():
     ])
 
 
+def clarity_and_strength(_img, _mask, _block_size=16):
+    (h, w) = _img.shape
+    y_blocks, x_blocks = h // _block_size, w // _block_size
+
+    clarity_scores = []
+    freq_strengths = []
+    for j in range(y_blocks):
+        for i in range(x_blocks):
+            block_image = _img[j * _block_size:(j + 1) * _block_size, i * _block_size:(i + 1) * _block_size]
+            block_mask = _mask[j * _block_size:(j + 1) * _block_size, i * _block_size:(i + 1) * _block_size]
+
+            if np.all(block_mask == 1.0):
+                clarity_scores.append(np.std(block_image))
+
+                fft = np.fft.fft2(block_image)
+                fft_mag = np.abs(np.fft.fftshift(fft))
+                freq_strength = np.max(fft_mag) / np.mean(fft_mag)
+                freq_strength = np.clip(freq_strength / 100.0, 0, 1)  # Normalize and clip
+                freq_strengths.append(freq_strength)
+
+    return np.mean(clarity_scores), np.std(clarity_scores), freq_strengths
+
+
 def estimate_orientation(_img, _block_size=16, _interpolate=False):
     """
     Function to estimate the orientation field of each block of size _block_size in _img.
@@ -293,7 +316,7 @@ def measure_orientation_consistency(_img, _orientations, _block_size=12):
     return consistency
 
 
-def measure_orientation_consistency2(_orientations):  #TODO: make it main fnuction for consistency
+def measure_orientation_consistency2(_orientations):  # TODO: make it main fnuction for consistency
     orientations_padded = np.pad(_orientations, 1, mode='edge')
     h, w = _orientations.shape
     orientation_consistency = np.zeros((h, w))

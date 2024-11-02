@@ -3,6 +3,9 @@ import os
 from pathlib import Path
 
 import numpy as np
+import seaborn
+from matplotlib import pyplot as plt
+import seaborn as sns
 
 import gabor_filter
 import img_orientation
@@ -20,6 +23,9 @@ for quality_folder in quality_folders:
     coherences_values = []
     frequency_values = []
     gabor_values = []
+    clarity_means = []
+    clarity_stds = []
+    freq_strenghts = []
 
     for file in files:
         print(f'Reading: {file}')
@@ -32,19 +38,30 @@ for quality_folder in quality_folders:
         mask = utils.segment_fingerprint(image)
 
         print('Orient coh')
-        orientations, coherence = np.where(mask == 1.0, img_orientation.estimate_orientation(image, _interpolate=True),
-                                           -1.0)
+        # orientations, coherence, clarity_mean, clarity_std, freq_strength = np.where(mask == 1.0,
+        #                                                                              img_orientation.estimate_orientation(
+        #                                                                                  image,
+        #                                                                                  _interpolate=True),
+        #                                                                              -1.0)
+        orientations, coherence = img_orientation.estimate_orientation(image, _interpolate=True)
 
         coherences_values.append(np.mean(coherence[mask == 1.0]))
 
+        clarity_mean, clarity_std, freq_strengths = img_orientation.clarity_and_strength(image, mask)
+        clarity_means.append(clarity_mean)
+        clarity_stds.append(clarity_std)
+        freq_strenghts.append(freq_strengths)
+
         print('Orient const')
-        orientation_consistency = np.where(mask == 1.0,
-                                           img_orientation.measure_orientation_consistency2(orientations), -1.0)
+        # orientation_consistency = np.where(mask == 1.0,
+        #                                    img_orientation.measure_orientation_consistency2(orientations), -1.0)
+        orientation_consistency = img_orientation.measure_orientation_consistency2(orientations)
 
         consistencies_values.append(np.mean(orientation_consistency[mask == 1.0]))
 
         print('Frequencies')
-        frequencies = np.where(mask == 1.0, ridge_frequency.estimate_frequencies(image, orientations), -1.0)
+        # frequencies = np.where(mask == 1.0, ridge_frequency.estimate_frequencies(image, orientations), -1.0)
+        frequencies = ridge_frequency.estimate_frequencies(image, orientations)
         frequencies = utils.normalize_image(frequencies)
 
         frequency_values.append(frequencies[mask == 1.0])
@@ -59,6 +76,15 @@ for quality_folder in quality_folders:
     print(f'Variance: {np.var(coherences_values)}')
     print(f'Median: {np.median(coherences_values)}')
     print(f'Std: {np.std(coherences_values)}')
+
+    print('Clarity')
+    print(f'Mean: {np.mean(clarity_means)}')
+    print(f'Std: {np.mean(clarity_stds)}')
+
+    print("Freq Strnegth")
+    flat_freq_strenghts = np.concatenate(freq_strenghts)
+    print(f'Mean: {np.mean(flat_freq_strenghts)}')
+    print(f'Std: {np.std(flat_freq_strenghts)}')
 
     print('ORIENTATION CONSISTENCY')
     print(f'Mean: {np.mean(consistencies_values)}')
@@ -80,7 +106,8 @@ for quality_folder in quality_folders:
     print(f'Median: {np.median(flat_gabor)}')
     print(f'Std: {np.std(flat_gabor)}')
 
-    headers = ["quality_class", "metric", "mean", "variance", "median", "std_dev", "min", "max"]
+    headers = ["quality_class", "metric", "mean", "variance", "median", "std_dev", "min", "max", "clarity_mean",
+               "clarity_std", "freq_strength_mean", "freq_strength_std"]
     data = []
     data_coherence = {
         'quality_class': quality_class,
@@ -90,7 +117,11 @@ for quality_folder in quality_folders:
         'median': np.median(coherences_values),
         'std_dev': np.std(coherences_values),
         'min': np.min(coherences_values),
-        'max': np.max(coherences_values)
+        'max': np.max(coherences_values),
+        'clarity_mean': np.mean(clarity_means),
+        'clarity_std': np.mean(clarity_stds),
+        'freq_strength_mean': np.mean(flat_freq_strenghts),
+        'freq_strength_std': np.std(flat_freq_strenghts),
     }
     data_orient_const = {
         'quality_class': quality_class,
@@ -100,7 +131,11 @@ for quality_folder in quality_folders:
         'median': np.median(consistencies_values),
         'std_dev': np.std(consistencies_values),
         'min': np.min(consistencies_values),
-        'max': np.max(consistencies_values)
+        'max': np.max(consistencies_values),
+        'clarity_mean': "NaN",
+        'clarity_std': "NaN",
+        'freq_strength_mean': "NaN",
+        'freq_strength_std': "NaN"
     }
     data_ridge = {
         'quality_class': quality_class,
@@ -110,7 +145,11 @@ for quality_folder in quality_folders:
         'median': np.median(flat_frequency_values),
         'std_dev': np.std(flat_frequency_values),
         'min': np.min(flat_frequency_values),
-        'max': np.max(flat_frequency_values)
+        'max': np.max(flat_frequency_values),
+        'clarity_mean': "NaN",
+        'clarity_std': "NaN",
+        'freq_strength_mean': "NaN",
+        'freq_strength_std': "NaN"
     }
     data_gabor = {
         'quality_class': quality_class,
@@ -120,14 +159,18 @@ for quality_folder in quality_folders:
         'median': np.median(flat_gabor),
         'std_dev': np.std(flat_gabor),
         'min': np.min(flat_gabor),
-        'max': np.max(flat_gabor)
+        'max': np.max(flat_gabor),
+        'clarity_mean': "NaN",
+        'clarity_std': "NaN",
+        'freq_strength_mean': "NaN",
+        'freq_strength_std': "NaN"
     }
     data.append(data_coherence)
     data.append(data_orient_const)
     data.append(data_ridge)
     data.append(data_gabor)
 
-    csv_output_file_path = os.path.join(folder, 'quality_metrics.csv')
+    csv_output_file_path = os.path.join(folder, 'quality_metrics_v2.csv')
     file_exists = os.path.isfile(csv_output_file_path)
     with open(csv_output_file_path, mode='a', newline='', encoding='utf-8') as csv_file:
         print('Saving to csv!')
@@ -140,6 +183,66 @@ for quality_folder in quality_folders:
         writer.writerows(data)
 
         print('Data saved')
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(coherences_values, bins=20, color='blue', alpha=0.7)
+    plt.title(f'Coherence Distribution for Quality Class: {quality_class}')
+    plt.xlabel('Coherence')
+    plt.ylabel('Density')
+    coherence_plt_name = f'coherence_{quality_class}.png'
+    plot_file_path = os.path.join(folder, coherence_plt_name)
+    plt.savefig(plot_file_path, bbox_inches='tight')
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(consistencies_values, bins=20, color='green', alpha=0.7)
+    plt.title(f'Consistency Distribution for Quality Class: {quality_class}')
+    plt.xlabel('Consistency')
+    plt.ylabel('Density')
+    consistency_plt_name = f'consistency_{quality_class}.png'
+    plot_file_path = os.path.join(folder, consistency_plt_name)
+    plt.savefig(plot_file_path, bbox_inches='tight')
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(flat_frequency_values, bins=20, color='red', alpha=0.7)
+    plt.title(f'Frequency Distribution for Quality Class: {quality_class}')
+    plt.xlabel('Frequency')
+    plt.ylabel('Density')
+    freq_plt_name = f'freq_{quality_class}.png'
+    plot_file_path = os.path.join(folder, freq_plt_name)
+    plt.savefig(plot_file_path, bbox_inches='tight')
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(flat_gabor, bins=20, color='pink', alpha=0.7)
+    plt.title(f'Gabor Distribution for Quality Class: {quality_class}')
+    plt.xlabel('Gabor')
+    plt.ylabel('Density')
+    gabor_plt_name = f'gabor_{quality_class}.png'
+    plot_file_path = os.path.join(folder, gabor_plt_name)
+    plt.savefig(plot_file_path, bbox_inches='tight')
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(clarity_means, bins=20, color='black', alpha=0.4)
+    plt.title(f'Clarity Means Distribution for Quality Class: {quality_class}')
+    plt.xlabel('Clarity Means')
+    plt.ylabel('Density')
+    clarity_means_plt_name = f'clarity_means_{quality_class}.png'
+    plot_file_path = os.path.join(folder, clarity_means_plt_name)
+    plt.savefig(plot_file_path, bbox_inches='tight')
+    plt.close()
+
+    plt.figure(figsize=(10, 6))
+    plt.hist(flat_freq_strenghts, bins=20, color='brown', alpha=0.7)
+    plt.title(f'Freq Strength Distribution for Quality Class: {quality_class}')
+    plt.xlabel('Freq Strength')
+    plt.ylabel('Density')
+    freq_strength_plt_name = f'freq_strength_{quality_class}.png'
+    plot_file_path = os.path.join(folder, freq_strength_plt_name)
+    plt.savefig(plot_file_path, bbox_inches='tight')
+    plt.close()
 
 # consistencies_values = []
 # coherences_values = []
