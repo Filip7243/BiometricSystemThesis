@@ -1,23 +1,75 @@
+import cv2
 import numpy as np
-from matplotlib import pyplot as plt
 from scipy import ndimage
-from scipy.ndimage.filters import convolve
+from scipy.stats import norm
 
 
-def get_sobel_x():
-    return np.array([
-        [-1, 0, 1],
-        [-2, 0, 2],
-        [-1, 0, 1]
-    ])
+def compute_snr(image: np.ndarray, filtered_image: np.ndarray, mask: np.ndarray) -> float:
+    """
+    Compute the Signal-to-Noise Ratio (SNR) of the fingerprint image.
+
+    Parameters:
+    image (numpy.ndarray): The original fingerprint image.
+    filtered_image (numpy.ndarray): The filtered fingerprint image.
+    mask (numpy.ndarray): The mask indicating the fingerprint region.
+
+    Returns:
+    float: The SNR value.
+    """
+    signal = image[mask == 1.0]
+    noise = (image[mask == 1.0] - filtered_image[mask == 1.0])
+    signal_power = np.mean(signal ** 2)
+    noise_power = np.mean(noise ** 2)
+
+    if noise_power == 0:
+        return float('inf')  # Avoid division by zero
+
+    snr = 10 * np.log10(signal_power / noise_power)
+    return snr
 
 
-def get_sobel_y():
-    return np.array([
-        [-1, -2, -1],
-        [0, 0, 0],
-        [1, 2, 1]
-    ])
+def compute_cnr(image: np.ndarray, mask: np.ndarray) -> float:
+    """
+    Compute the Contrast-to-Noise Ratio (CNR) of the fingerprint image.
+
+    Parameters:
+    image (numpy.ndarray): The original fingerprint image.
+    mask (numpy.ndarray): The mask indicating the fingerprint region.
+
+    Returns:
+    float: The CNR value.
+    """
+    foreground = image[mask == 1.0]
+    background = image[mask == 0.0]
+    contrast = np.abs(np.mean(foreground) - np.mean(background))
+    noise = np.std(background)
+    cnr = contrast / noise
+    return cnr
+
+
+def compute_metric_error_pdf(metric_map):
+    """
+    Compute the probability density function (PDF) of errors within the metric map.
+
+    Parameters:
+    metric_map (numpy.ndarray): The metric map (e.g., ridge frequency or Gabor filter response).
+
+    Returns:
+    float: The error PDF score.
+    """
+    block_size = 16
+    metric_errors = []
+
+    for y in range(0, metric_map.shape[0], block_size):
+        for x in range(0, metric_map.shape[1], block_size):
+            block_metric = metric_map[y:y + block_size, x:x + block_size]
+            block_mean = np.mean(block_metric)
+            block_errors = np.abs(block_metric - block_mean)
+            metric_errors.extend(block_errors.ravel())
+
+    metric_errors = np.array(metric_errors)
+    metric_error_pdf = norm.pdf(metric_errors, loc=0, scale=np.std(metric_errors)).mean()
+    return metric_error_pdf
 
 
 def clarity_and_strength(_img, _mask, _block_size=16):
@@ -28,8 +80,10 @@ def clarity_and_strength(_img, _mask, _block_size=16):
     freq_strengths = []
     for j in range(y_blocks):
         for i in range(x_blocks):
-            block_image = _img[j * _block_size:(j + 1) * _block_size, i * _block_size:(i + 1) * _block_size]
-            block_mask = _mask[j * _block_size:(j + 1) * _block_size, i * _block_size:(i + 1) * _block_size]
+            y_start, y_end = j * _block_size, (j + 1) * _block_size
+            x_start, x_end = i * _block_size, (i + 1) * _block_size
+            block_image = _img[y_start:y_end, x_start:x_end]
+            block_mask = _mask[y_start:y_end, x_start:x_end]
 
             if np.all(block_mask == 1.0):
                 clarity_scores.append(np.std(block_image))
@@ -63,7 +117,8 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
     _img = ndimage.filters.gaussian_filter(_img, 2.0)
 
     # Create gradients based on sobel kernels
-    gradient_x, gradient_y = convolve(_img, get_sobel_x()), convolve(_img, get_sobel_y())
+    gx, gy = (cv2.Sobel(_img, cv2.CV_64F, 1, 0, ksize=3),
+              cv2.Sobel(_img, cv2.CV_64F, 0, 1, ksize=3))
 
     y_blocks, x_blocks = h // _block_size, w // _block_size
 
@@ -72,51 +127,31 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
 
     for j in range(y_blocks):
         for i in range(x_blocks):
-            V_y, V_x = 0.0, 0.0
-            G_x_sum, G_y_sum = 0.0, 0.0
-            G_x_y_sum = 0.0
+            y_start, y_end = j * _block_size, (j + 1) * _block_size
+            x_start, x_end = i * _block_size, (i + 1) * _block_size
 
-            # VX = 0.0
-            # VY = 0.0
-            # VZ = 0.0
+            gx_block = gx[y_start: y_end, x_start: x_end]
+            gy_block = gy[y_start: y_end, x_start: x_end]
 
-            for v in range(_block_size):
-                for u in range(_block_size):
-                    y_slice = j * _block_size + v
-                    x_slice = i * _block_size + u
+            root_gradient_x = gx_block ** 2
+            root_gradient_y = gy_block ** 2
 
-                    G_x = gradient_x[y_slice, x_slice]
-                    G_y = gradient_y[y_slice, x_slice]
+            g_xx = np.sum(root_gradient_x)
+            g_yy = np.sum(root_gradient_y)
+            g_xy = np.sum(gx_block * gy_block)
 
-                    V_x += 2 * G_x * G_y
-                    V_y += (G_x ** 2 - G_y ** 2)
+            v_x = 2 * g_xy
+            v_y = np.sum(root_gradient_x - root_gradient_y)
 
-                    G_x_sum += G_x ** 2
-                    G_y_sum += G_y ** 2
-                    G_x_y_sum += G_x * G_y
+            theta[j, i] = np.arctan2(v_x, v_y) * 0.5
 
-                    # VX += (G_x ** 2 - G_y ** 2)
-                    # VY += 2 * G_x * G_y
-                    # VZ += (G_x ** 2 + G_y ** 2)
+            numerator = np.sqrt((g_xx - g_yy) ** 2 + 4 * (g_xy ** 2))
+            denominator = g_xx + g_yy
 
-            theta[j, i] = np.arctan2(V_x, V_y) * 0.5
-
-            numerator = np.sqrt((G_x_sum - G_y_sum) ** 2 + 4 * (G_x_y_sum ** 2))
-            denominator = G_x_sum + G_y_sum
-            # numerator = np.sqrt(VX ** 2 + VY ** 2)
-            # denominator = VZ
-
-            if denominator == 0:
-                coherence[j, i] = 0
-            else:
-                coherence[j, i] = numerator / denominator
+            coherence[j, i] = 0 if denominator == 0 else numerator / denominator
 
     # Adjust theta by adding 90 degrees (pi/2) and take modulo pi to ensure it stays within the range [0, pi)
     theta = (theta + np.pi * 0.5) % np.pi
-
-    print(f'theta: {np.min(theta)}, {np.max(theta)}')
-
-    # TODO: maybe Gaussian Blur will be sufficient, ?coherence maybe to do?
 
     # Averaging angels based on their neighbours
     theta_averaged = np.empty_like(theta)
@@ -125,20 +160,17 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
         for i in range(x_blocks):
             neighbours_theta = theta[j: j + 5, i: i + 5]
             avg_neighbours, std = average_orientation(neighbours_theta, _std=True)
-            if std > 0.4:  # It suggests big noise between angels  #TODO: try another threshold for std (lower = better)
+            if std > 0.3:  # It suggests big noise between angels  #TODO: try another threshold for std (lower = better)
                 avg_neighbours = theta[j + 2, i + 2]  # Take center block
             theta_averaged[j, i] = avg_neighbours
 
     theta = theta_averaged
 
-    print(f'averaged: {np.min(theta)}, {np.max(theta)}')
-
     # Interpolation (or/and back to original shape)
     orientations = np.full(_img.shape, -1.0)
     coherences = np.full(_img.shape, -1.0)
     if _interpolate:
-        orientations = bilinear_interpolation(_img.shape, _block_size, theta)
-        coherences = bilinear_interpolation_coherence(_img.shape, _block_size, coherence)
+        orientations, coherences = interpolate(_img.shape, _block_size, theta, coherence)
     else:
         for j in range(y_blocks):
             for i in range(x_blocks):
@@ -147,6 +179,7 @@ def estimate_orientation(_img, _block_size=16, _interpolate=False):
                 i_start = i * _block_size
                 i_end = (i + 1) * _block_size
                 orientations[j_start:j_end, i_start:i_end] = theta[j, i]
+                coherences[j_start:j_end, i_start:i_end] = coherences[j, i]
 
     return orientations, coherences
 
@@ -176,7 +209,7 @@ def average_orientation(_orientations, _std=False):
         return np.average(aligned) % np.pi
 
 
-def bilinear_interpolation(_img_shape, _block_size, theta):
+def interpolate(_img_shape, _block_size, _theta, _coherence):
     """
     Function that uses bilinear interpolation,
     papers: https://www.researchgate.net/publication/366816309_Performance_Analysis_on_Interpolation-based_Methods_for_Fingerprint_Images,
@@ -186,11 +219,13 @@ def bilinear_interpolation(_img_shape, _block_size, theta):
     Second paper gave me just the idea of interpolation based on neighbouring blocks (Section 2.5, point 5)
     :param _img_shape: Shape of image
     :param _block_size: Size of block that image is divided of
-    :param theta: nparray with orientations of each block
+    :param _theta: nparray with orientations of each block
+    :param _coherence: coherence values
     :return: Interpolated orientations
     """
 
     orientations = np.full(_img_shape, -1.0)  # Result array
+    coherences = np.full(_img_shape, -1.0)  # Result array
 
     y_blocks, x_blocks = _img_shape[0] // _block_size, _img_shape[1] // _block_size
 
@@ -209,126 +244,30 @@ def bilinear_interpolation(_img_shape, _block_size, theta):
 
     for j in range(y_blocks - 1):
         for i in range(x_blocks - 1):
-            neighbours = np.array([
-                theta[j, i],  # top-left
-                theta[j + 1, i],  # bottom-left
-                theta[j, i + 1],  # top-right
-                theta[j + 1, i + 1]  # bottom-right
+            orientations_neighbours = np.array([
+                _theta[j, i],  # top-left
+                _theta[j + 1, i],  # bottom-left
+                _theta[j, i + 1],  # top-right
+                _theta[j + 1, i + 1]  # bottom-right
             ])
 
-            complex_orientations = np.exp(2j * neighbours)
-            interpolated_complex = np.sum(weights * complex_orientations[:, np.newaxis, np.newaxis], axis=0)
+            coherences_neighbours = np.array([
+                _coherence[j, i],  # top-left
+                _coherence[j + 1, i],  # bottom-left
+                _coherence[j, i + 1],  # top-right
+                _coherence[j + 1, i + 1]  # bottom-right
+            ])
 
+            complex_orientations = np.exp(2j * orientations_neighbours)
+            interpolated_complex = np.sum(weights * complex_orientations[:, np.newaxis, np.newaxis], axis=0)
             interpolated_angles = np.angle(interpolated_complex) / 2
 
+            interpolated_coherences = np.sum(weights * coherences_neighbours[:, np.newaxis, np.newaxis], axis=0)
+
             j_slice = slice(j * _block_size + half_block_size, j * _block_size + half_block_size + _block_size)
             i_slice = slice(i * _block_size + half_block_size, i * _block_size + half_block_size + _block_size)
+
             orientations[j_slice, i_slice] = interpolated_angles
+            coherences[j_slice, i_slice] = interpolated_coherences
 
-    print(f'result: {np.min(orientations)}, {np.max(orientations)}')
-
-    return orientations
-
-
-def bilinear_interpolation_coherence(_img_shape, _block_size, coherence):
-    """
-    Function to interpolate the coherence values using bilinear interpolation.
-    :param _img_shape: Shape of the original image
-    :param _block_size: Size of the blocks in the image
-    :param coherence: nparray with coherence values of each block
-    :return: Interpolated coherence values
-    """
-
-    interpolated_coherence = np.full(_img_shape, -1.0)  # Result array
-
-    y_blocks, x_blocks = _img_shape[0] // _block_size, _img_shape[1] // _block_size
-
-    half_block_size = _block_size // 2
-
-    iy, ix = np.meshgrid(np.arange(_block_size), np.arange(_block_size), indexing='ij')
-
-    # Bilinear Interpolation weights
-    weights = np.array([
-        (_block_size - iy) * (_block_size - ix),  # top-left
-        iy * (_block_size - ix),  # bottom-left
-        (_block_size - iy) * ix,  # top-right
-        iy * ix  # bottom-right
-    ])
-    weights = weights / weights.sum(axis=0)  # normalized weights
-
-    for j in range(y_blocks - 1):
-        for i in range(x_blocks - 1):
-            neighbours = np.array([
-                coherence[j, i],  # top-left
-                coherence[j + 1, i],  # bottom-left
-                coherence[j, i + 1],  # top-right
-                coherence[j + 1, i + 1]  # bottom-right
-            ])
-
-            # Perform weighted interpolation
-            interpolated_values = np.sum(weights * neighbours[:, np.newaxis, np.newaxis], axis=0)
-
-            # Place interpolated values into the output array
-            j_slice = slice(j * _block_size + half_block_size, j * _block_size + half_block_size + _block_size)
-            i_slice = slice(i * _block_size + half_block_size, i * _block_size + half_block_size + _block_size)
-            interpolated_coherence[j_slice, i_slice] = interpolated_values
-
-    return interpolated_coherence
-
-
-def measure_orientation_consistency(_img, _orientations, _block_size=12):
-    """
-    Function that measures orientation consistency of fingerprint image.
-    :param _img: Input image
-    :param _orientations: Orientations map of _img (normalized between [0, pi]
-    :param _block_size: Size of block that image is divided of
-    :return: Consistency map of _orientations
-    """
-
-    (h, w) = _img.shape
-
-    consistency = np.zeros((h, w))
-    for j in range(0, h - _block_size, _block_size):
-        for i in range(0, w - _block_size, _block_size):
-            neighbours = _orientations[j: j + _block_size, i: i + _block_size]
-            _, std_dev = average_orientation(neighbours, _std=True)
-            consistency[j:j + _block_size, i:i + _block_size] = 1 - std_dev / np.pi
-
-        # Visualize results
-    plt.figure(figsize=(15, 5))
-
-    # Original image
-    plt.subplot(131)
-    plt.imshow(_img, cmap='gray')
-    plt.title('Original Image')
-    plt.axis('off')
-
-    # # Consistency map
-    plt.subplot(132)
-    consistency_map = plt.imshow(consistency, cmap='jet', vmin=0, vmax=1)
-    plt.colorbar(consistency_map)
-    plt.title('Orientation Consistency')
-    plt.axis('off')
-
-    plt.tight_layout()
-    plt.show()
-
-    return consistency
-
-
-def measure_orientation_consistency2(_orientations):  # TODO: make it main fnuction for consistency
-    orientations_padded = np.pad(_orientations, 1, mode='edge')
-    h, w = _orientations.shape
-    orientation_consistency = np.zeros((h, w))
-    neighborhood_offsets = [(-1, -1), (-1, 0), (-1, 1), (0, -1), (0, 1), (1, -1), (1, 0), (1, 1)]
-    for j in range(1, h + 1):
-        for i in range(1, w + 1):
-            theta_ij = orientations_padded[j, i]
-            consistency_sum = 0.0
-            for dy, dx in neighborhood_offsets:
-                theta_neighbor = orientations_padded[j + dy, i + dx]
-                consistency_sum += np.cos(2 * (theta_ij - theta_neighbor))
-
-            orientation_consistency[j - 1, i - 1] = consistency_sum / len(neighborhood_offsets)
-
-    return orientation_consistency
+    return orientations, coherences

@@ -11,7 +11,7 @@ def read_image(_img_path):
     :return: numpy array of floats
     """
 
-    return imageio.v3.imread(_img_path).astype(np.float64)
+    return cv2.imread(_img_path, cv2.IMREAD_GRAYSCALE)
 
 
 def show_image_on_plot(_img, _title=None):
@@ -25,60 +25,61 @@ def show_image_on_plot(_img, _title=None):
     plt.imshow(_img, cmap='gray')
 
 
-def normalize_image(_img):
+def normalize(data):
     """
     Function that normalizes image to values in range [0, 1]
     with max normalization from: https://research.ijcaonline.org/volume32/number10/pxc3875530.pdf section 4.5
-    :param _img: Input fingerprint image
+    :param data: data like orientations etc.
     :return: Normalized image with values between [0, 1]
     """
 
-    _img = np.copy(_img)
-    _img -= np.min(_img)
+    data = np.copy(data)
+    data -= np.min(data)
 
-    max_val = np.max(_img)
+    max_val = np.max(data)
     if max_val > 0.0:
-        _img /= max_val
+        data /= max_val
 
-    return _img
+    return data
 
 
-def segment_fingerprint(_img, _block_size=16, _threshold=0.3):
+def normalize_image(_img):
+    return cv2.normalize(_img.astype('float64'), None, 0.0, 1.0, cv2.NORM_MINMAX)
+
+
+def segment_fingerprint(image):
     """
-    Function that segments foreground(fingerprint itself) and background(rest of image) of fingerprint input _img and
-    returns mask.
-    Function is based on ROI(Region Of Interest) where we define a region of interest based on image's blocks variance
-    if variance is greater than _threshold then it is our ROI, otherwise it is the background. Then ROI is smoothed with
-    morphological operations
-    :param _img: Input normalized image
-    :param _block_size: Size of blocks that image is divided in
-    :param _threshold: Standard deviation threshold for image blocks of size _block_size
-    :return: mask, that can be applied to image
+    Segment the foreground (fingerprint) from the background using Otsu's method and morphological operations.
+
+    Parameters:
+    image (numpy.ndarray): Input grayscale image
+
+    Returns:
+    numpy.ndarray: Binary mask with the foreground segmented
     """
+    # Apply Gaussian blur to the image to reduce noise
+    blurred_image = cv2.GaussianBlur(image, (5, 5), 0)
 
-    (h, w) = _img.shape
-    _threshold *= np.std(_img)
+    # Apply Otsu's thresholding
+    _, binary_mask = cv2.threshold(blurred_image, 0, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
 
-    img_var = np.zeros_like(_img)
-    mask = np.ones_like(_img)
+    # Invert the binary mask
+    binary_mask = cv2.bitwise_not(binary_mask)
 
-    for j in range(0, h, _block_size):
-        for i in range(0, w, _block_size):
-            # Avoid Index out of bound
-            end_j = min(j + _block_size, h)
-            end_i = min(i + _block_size, w)
+    # Apply morphological operations to remove small noise and fill gaps
+    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
+    binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, kernel, iterations=3)
 
-            img_block = _img[j:end_j, i:end_i]
-            block_std = np.std(img_block)
-            img_var[j:end_j, i:end_i] = block_std
+    # Ensure there are no gaps in the mask
+    binary_mask = cv2.dilate(binary_mask, kernel, iterations=3)
 
-    mask[img_var < _threshold] = 0
+    binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
 
-    kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (_block_size * 2, _block_size * 2))
-    mask = cv2.morphologyEx(mask, cv2.MORPH_OPEN, kernel)
-    mask = cv2.morphologyEx(mask, cv2.MORPH_CLOSE, kernel)
+    # Convert mask to binary (0 and 1)
+    binary_mask = binary_mask // 255
 
-    return mask
+    return binary_mask
 
 
 def showOrientations(_img, _orientations, _label, _block_size=32):

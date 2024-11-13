@@ -1,11 +1,11 @@
+import cv2
 import numpy as np
+from scipy.signal import convolve2d
 
 import img_orientation
 import ridge_frequency
 import utils
 
-
-# TODO: docs, quality measurement: orient field, orient consistency, ridge freq, gabor filters
 
 def create_gabor_filter(_kernel_size, _angle, _frequency, x_sigma=4, y_sigma=4):
     """
@@ -39,52 +39,40 @@ def create_gabor_filter(_kernel_size, _angle, _frequency, x_sigma=4, y_sigma=4):
     return create_gabor_kernel(_kernel_size, gabor)
 
 
-def apply_gabor_filter(_img, _orientations, _frequencies, region=None):
-    """
-    Function that uses recursion to apply gabor filters.
-    I took code from: https://github.com/tommythorsen/fingerprints/blob/master/gabor and improved it.
-    :param _img: Input fingerprint image
-    :param _orientations: Orientation map of fingerprint image
-    :param _frequencies: Frequencies of ridges and valleys
-    :param region: Optional region of finger to apply the filter
-    :return: Filtered image
-    """
-
-    if region:
-        y, x, h, w = region
-    else:
-        (h, w) = _img.shape
-        y, x = 0, 0
+def apply_gabor_filter(_img, _orientations, _frequencies):
+    h, w = _img.shape
+    y, x = 0, 0
 
     filtered = np.empty((h, w))
+    stack = [(y, x, h, w)]
 
-    averaged_block_orientation, std = img_orientation.average_orientation(_orientations[y: y + h, x: x + w], _std=True)
+    while stack:
+        y, x, h, w = stack.pop()
+        averaged_block_orientation, std = img_orientation.average_orientation(_orientations[y: y + h, x: x + w],
+                                                                              _std=True)
 
-    std_threshold = 0.2  # Small std = consistence orientation
-    # If region to filter is small enough, do filtering
-    if (std < std_threshold and h < 50 and w < 50) or h < 6 or w < 6:
-        neighbours = _frequencies[y: y + h, x: x + w]
-        averaged_frequency = ridge_frequency.average_frequencies(neighbours)
+        std_threshold = 0.2
+        if (std < std_threshold and h < 50 and w < 50) or h < 6 or w < 6:
+            neighbours = _frequencies[y: y + h, x: x + w]
+            averaged_frequency = ridge_frequency.average_frequencies(neighbours)
 
-        if averaged_frequency >= 0.0:
-            kernel = create_gabor_filter(16, averaged_block_orientation, averaged_frequency)
-            filtered = convolve(_img, kernel, (y, x), (h, w))
+            if averaged_frequency >= 0.0:
+                kernel = create_gabor_filter(16, averaged_block_orientation, averaged_frequency)
+                filtered[y: y + h, x: x + w] = convolve(_img, kernel, (y, x), (h, w))
+            else:
+                filtered[y: y + h, x: x + w] = _img[y: y + h, x: x + w]
         else:
-            filtered = _img[y: y + h, x: x + w]  # No filter
-    else:  # Subdivide region to smaller blocks, then apply filter
-        if h > w:  # Portrait
-            half_height = h // 2
-            filtered[0:half_height, 0:w] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, half_height, w))
-            filtered[half_height:h, 0:w] = apply_gabor_filter(_img, _orientations, _frequencies,
-                                                              (y + half_height, x, h - half_height, w))
-        else:  # Landscape
-            half_width = w // 2
-            filtered[0:h, 0:half_width] = apply_gabor_filter(_img, _orientations, _frequencies, (y, x, h, half_width))
-            filtered[0:h, half_width:w] = apply_gabor_filter(_img, _orientations, _frequencies,
-                                                             (y, x + half_width, h, w - half_width))
+            if h > w:
+                mid_h = h // 2
+                stack.append((y, x, mid_h, w))
+                stack.append((y + mid_h, x, h - mid_h, w))
+            else:
+                mid_w = w // 2
+                stack.append((y, x, h, mid_w))
+                stack.append((y, x + mid_w, h, w - mid_w))
 
     if w > 20 and h > 20:
-        filtered = utils.normalize_image(filtered)
+        filtered = utils.normalize(filtered)
 
     return filtered
 
@@ -98,34 +86,34 @@ def convolve(_img, _kernel, _origin=(0, 0), _shape=None):
     :param _shape: Area where gabor will be applied
     :return: Convolved image
     """
-
     if _shape is None:
         _shape = (_img.shape[0] - _origin[0], _img.shape[1] - _origin[1])
 
-    result = np.empty(_shape)
-
-    kernel_height, kernel_width = _kernel.shape
-
-    kernel_origin_y, kernel_origin_x = -(kernel_height // 2), -(kernel_width // 2)
+    kernel_h, kernel_w = _kernel.shape
+    kernel_y, kernel_x = -(kernel_h // 2), -(kernel_w // 2)
 
     # Find padding to avoid index out of bound
-    top_pad = max(0, -(_origin[0] + kernel_origin_y))
-    left_pad = max(0, -(_origin[1] + kernel_origin_x))
-    bottom_pad = max(0, (_origin[0] + _shape[0] + kernel_origin_y + kernel_height) - _img.shape[0])
-    right_pad = max(0, (_origin[1] + _shape[1] + kernel_origin_x + kernel_width) - _img.shape[1])
+    top_pad = max(0, -(_origin[0] + kernel_y))
+    left_pad = max(0, -(_origin[1] + kernel_x))
+    bottom_pad = max(0, (_origin[0] + _shape[0] + kernel_y + kernel_h) - _img.shape[0])
+    right_pad = max(0, (_origin[1] + _shape[1] + kernel_x + kernel_w) - _img.shape[1])
 
     padding = (top_pad, bottom_pad), (left_pad, right_pad)
     if np.any(padding):
         _img = np.pad(_img, padding, mode='edge')
 
-    padded_origin_y = top_pad + _origin[0] + kernel_origin_y
-    padded_origin_x = left_pad + _origin[1] + kernel_origin_x
+    padded_y = top_pad + _origin[0] + kernel_y
+    padded_x = left_pad + _origin[1] + kernel_x
 
+    result = np.empty(_shape)
     for j in range(_shape[0]):
+        row_start = padded_y + j
+        row_end = row_start + kernel_h
         for i in range(_shape[1]):
-            img_block = _img[padded_origin_y + j:padded_origin_y + j + kernel_height,
-                        padded_origin_x + i:padded_origin_x + i + kernel_width]
+            col_start = padded_x + i
+            col_end = col_start + kernel_w
 
+            img_block = _img[row_start:row_end, col_start:col_end]
             result[j, i] = np.sum(img_block * _kernel)
 
     return result
