@@ -17,6 +17,7 @@ import ridge_frequency
 import utils
 
 folder = Path(r'C:\Users\Filip\Desktop\STUDIA\PracaInzynierska\fingerprints\analized_data')
+folderv4 = Path(r'C:\Users\Filip\Desktop\STUDIA\PracaInzynierska\fingerprints\analized_data\v4')
 quality_folders = [f for f in folder.iterdir() if f.is_dir()]
 
 
@@ -25,29 +26,64 @@ def create_folder(folder_path):
         os.makedirs(folder_path)
 
 
-clarity_path = os.path.join(folder, 'clarity_plots')
-coherence_path = os.path.join(folder, 'coherence_plots')
-frequency_path = os.path.join(folder, 'frequency_plots')
-gabor_path = os.path.join(folder, 'gabor_plots')
+def save_to_single_csv(data_dict, filename, folder):
+    file_path = os.path.join(folder, filename)
 
-snr_path = os.path.join(folder, 'snr_plots')
-cnr_path = os.path.join(folder, 'cnr_plots')
-local_noise_path = os.path.join(folder, 'local_noise_plots')
+    # Find the maximum length of the lists
+    max_length = max(len(v) for v in data_dict.values() if isinstance(v, list))
 
-freq_uniformity_path = os.path.join(folder, 'freq_uniformity_plots')
-orientation_consistency_path = os.path.join(folder, 'orientation_consistency_plots')
+    # Pad lists with NaN to make them the same length
+    for key, value in data_dict.items():
+        if isinstance(value, list):
+            data_dict[key] = value + [np.nan] * (max_length - len(value))
+        elif isinstance(value, dict):
+            data_dict[key] = pd.Series(value)
 
-glcm_path = os.path.join(folder, 'glcm_plots')
+    combined_df = pd.DataFrame(data_dict)
+    combined_df.to_csv(str(file_path), index=False)
 
-statistical_properties_path = os.path.join(folder, 'statistical_properties_plots')
 
-global_properties_path = os.path.join(folder, 'global_properties_plots')
+clarity_path = os.path.join(folderv4, 'clarity_plots')
+coherence_path = os.path.join(folderv4, 'coherence_plots')
+frequency_path = os.path.join(folderv4, 'frequency_plots')
+gabor_path = os.path.join(folderv4, 'gabor_plots')
 
-clarity_error_path = os.path.join(folder, 'clarity_error_plots')
-orientation_error_path = os.path.join(folder, 'orientation_error_plots')
-coherence_error_path = os.path.join(folder, 'coherence_error_plots')
-frequency_error_path = os.path.join(folder, 'frequency_error_plots')
-gabor_error_path = os.path.join(folder, 'gabor_error_plots')
+snr_path = os.path.join(folderv4, 'snr_plots')
+cnr_path = os.path.join(folderv4, 'cnr_plots')
+local_noise_path = os.path.join(folderv4, 'local_noise_plots')
+
+freq_uniformity_path = os.path.join(folderv4, 'freq_uniformity_plots')
+orientation_consistency_path = os.path.join(folderv4, 'orientation_consistency_plots')
+
+glcm_path = os.path.join(folderv4, 'glcm_plots')
+
+statistical_properties_path = os.path.join(folderv4, 'statistical_properties_plots')
+
+global_properties_path = os.path.join(folderv4, 'global_properties_plots')
+
+clarity_error_path = os.path.join(folderv4, 'clarity_error_plots')
+orientation_error_path = os.path.join(folderv4, 'orientation_error_plots')
+coherence_error_path = os.path.join(folderv4, 'coherence_error_plots')
+frequency_error_path = os.path.join(folderv4, 'frequency_error_plots')
+gabor_error_path = os.path.join(folderv4, 'gabor_error_plots')
+
+shannon_entropy_path = os.path.join(folderv4, 'shannon_entropy_plots')
+
+ridge_frequency_path = os.path.join(folderv4, 'ridge_frequency_plots')
+
+freq_energy_path = os.path.join(folderv4, 'freq_energy_plots')
+
+background_properties_path = os.path.join(folderv4, 'background_properties_plots')
+
+energy_map_path = os.path.join(folderv4, 'energy_map_plots')
+eigenvalues_ratios_path = os.path.join(folderv4, 'eigenvalues_ratios_plots')
+pixel_intensity_path = os.path.join(folderv4, 'pixel_intensity_plots')
+
+global_analysis_path = os.path.join(folderv4, 'global_analysis_plots')
+
+lbp_path = os.path.join(folderv4, 'lbp_plots')
+
+reliability_path = os.path.join(folderv4, 'reliability_plots')
 
 create_folder(clarity_path)
 create_folder(coherence_path)
@@ -73,10 +109,30 @@ create_folder(coherence_error_path)
 create_folder(frequency_error_path)
 create_folder(gabor_error_path)
 
+create_folder(shannon_entropy_path)
+
+create_folder(ridge_frequency_path)
+
+create_folder(freq_energy_path)
+
+create_folder(background_properties_path)
+
+create_folder(energy_map_path)
+create_folder(eigenvalues_ratios_path)
+create_folder(pixel_intensity_path)
+
+create_folder(global_analysis_path)
+
+create_folder(lbp_path)
+
+create_folder(reliability_path)
+
 
 def save_fig(data, title, x_label, plt_name, folder):
+    data = data[np.isfinite(data)]
+
     plt.figure(figsize=(10, 6))
-    plt.hist(data, bins=20, color='blue', alpha=0.7)
+    plt.hist(data, bins=20, color='blue', alpha=0.4)
     plt.title(title)
     plt.xlabel(x_label)
     plt.ylabel('Density')
@@ -88,12 +144,21 @@ def save_fig(data, title, x_label, plt_name, folder):
 def save_basic_metrics_plots(basic_metric_df, quality_class, save_path):
     for column in basic_metric_df.columns:
         basic_metric = basic_metric_df[column]
-        save_fig(basic_metric, f'Clarity distribution of data: {column} in class: {quality_class}',
+        save_fig(basic_metric, f'Distribution of data: {column} in class: {quality_class}',
                  column, f'{quality_class}_clarity_{column}', save_path)
         # TODO: save to csv
 
 
 def get_basic_metrics(data):
+    if len(data) == 0:
+        return {
+            'mean': np.nan,
+            'std': np.nan,
+            'var': np.nan,
+            'median': np.nan,
+            'min': np.nan,
+            'max': np.nan
+        }
     return {
         'mean': np.mean(data),
         'std': np.std(data),
@@ -457,10 +522,9 @@ def lbp_analysis(image, radius=1, n_points=8):
 #
 #     return vis_img
 
-
 for quality_folder in quality_folders[:]:
     quality_class = quality_folder.name
-    if quality_class == 'v3':
+    if quality_class == 'v3' or quality_class == 'v4':
         continue
     files = list(quality_folder.glob('*.png'))
 
@@ -508,7 +572,7 @@ for quality_folder in quality_folders[:]:
 
     relability_means = []
 
-    for file in files[4:6]:
+    for file in files[:]:
         print(file)
 
         print('Reading image')
@@ -597,10 +661,10 @@ for quality_folder in quality_folders[:]:
         frequency_error = compute_metric_error(frequencies)
         frequency_error_values.append(frequency_error)
 
-        freq_uniformity, orientation_consistency = compute_ridge_properties(frequencies, orientations)
+        ridge_properties = compute_ridge_properties(frequencies, orientations)
 
-        freq_uniformity_values.append(freq_uniformity)
-        orientation_consistency_values.append(orientation_consistency)
+        freq_uniformity_values.append(ridge_properties['freq_uniformity'])
+        orientation_consistency_values.append(ridge_properties['orientation_consistency'])
 
         print('Computing Gabor Filter')
         gbr = utils.normalize(gabor_filter.apply_gabor_filter(normalized_image, orientations, frequencies))
@@ -670,6 +734,7 @@ for quality_folder in quality_folders[:]:
 
     frequency_error_basic_metrics = get_basic_metrics(frequency_error_values)
     frequency_error_basic_metrics = pd.DataFrame([frequency_error_basic_metrics])
+    print('BASIC METRICS!!!\n', frequency_error_basic_metrics)
 
     gabor_error_basic_metrics = get_basic_metrics(gabor_error_values)
     gabor_error_basic_metrics = pd.DataFrame([gabor_error_basic_metrics])
@@ -677,5 +742,80 @@ for quality_folder in quality_folders[:]:
     save_basic_metrics_plots(clarity_error_basic_metrics, quality_class, clarity_error_path)
     save_basic_metrics_plots(orientation_error_basic_metrics, quality_class, orientation_error_path)
     save_basic_metrics_plots(coherence_error_basic_metrics, quality_class, coherence_error_path)
-    save_basic_metrics_plots(frequency_error_basic_metrics, quality_class, frequency_error_path)
+    # save_basic_metrics_plots(frequency_error_basic_metrics, quality_class, frequency_error_path)
     save_basic_metrics_plots(gabor_error_basic_metrics, quality_class, gabor_error_path)
+
+    shannon_entropy_metrics = get_basic_metrics(shannon_entropy_values)
+    shannon_entropy_metrics = pd.DataFrame([shannon_entropy_metrics])
+
+    save_basic_metrics_plots(shannon_entropy_metrics, quality_class, shannon_entropy_path)
+
+    save_basic_metrics_plots(ridge_frequency_metrics_df, quality_class, ridge_frequency_path)
+
+    freq_energy_basic_metrics = get_basic_metrics(freq_energy_values)
+    freq_energy_basic_metrics = pd.DataFrame([freq_energy_basic_metrics])
+
+    save_basic_metrics_plots(freq_energy_basic_metrics, quality_class, freq_energy_path)
+
+    save_basic_metrics_plots(background_properties_df, quality_class, background_properties_path)
+
+    energy_map_basic_metrics = get_basic_metrics(energy_map_means)
+    energy_map_basic_metrics = pd.DataFrame([energy_map_basic_metrics])
+
+    eigenvalues_ratios_basic_metrics = get_basic_metrics(eigenvalues_ratios)
+    eigenvalues_ratios_basic_metrics = pd.DataFrame([eigenvalues_ratios_basic_metrics])
+
+    pixel_intensity_basic_metrics = get_basic_metrics(pixel_intensity_values)
+    pixel_intensity_basic_metrics = pd.DataFrame([pixel_intensity_basic_metrics])
+
+    save_basic_metrics_plots(energy_map_basic_metrics, quality_class, energy_map_path)
+    save_basic_metrics_plots(eigenvalues_ratios_basic_metrics, quality_class, eigenvalues_ratios_path)
+    save_basic_metrics_plots(pixel_intensity_basic_metrics, quality_class, pixel_intensity_path)
+
+    save_basic_metrics_plots(global_analysis_df, quality_class, global_analysis_path)
+
+    lbp_basic_metrics = get_basic_metrics(lbp_means)
+    lbp_basic_metrics = pd.DataFrame([lbp_basic_metrics])
+
+    save_basic_metrics_plots(lbp_basic_metrics, quality_class, lbp_path)
+
+    reliability_basic_metrics = get_basic_metrics(relability_means)
+    reliability_basic_metrics = pd.DataFrame([reliability_basic_metrics])
+
+    save_basic_metrics_plots(reliability_basic_metrics, quality_class, reliability_path)
+
+    data_dict = {
+        'snr_values': snr_values,
+        'cnr_values': cnr_values,
+        'local_noise_values': local_noise_values,
+        'freq_uniformity_values': freq_uniformity_values,
+        'orientation_consistency_values': orientation_consistency_values,
+        'clarity_error_values': clarity_error_values,
+        'orientation_error_values': orientation_error_values,
+        'coherence_error_values': coherence_error_values,
+        'frequency_error_values': frequency_error_values,
+        'gabor_error_values': gabor_error_values,
+        'shannon_entropy_values': shannon_entropy_values,
+        'freq_energy_values': freq_energy_values,
+        'energy_map_means': energy_map_means,
+        'eigenvalues_ratios': eigenvalues_ratios,
+        'pixel_intensity_values': pixel_intensity_values,
+        'lbp_means': lbp_means,
+        'relability_means': relability_means
+    }
+
+    data_dict.update({
+        'basic_metrics_clarity': basic_metrics_clarity.mean().to_dict(),
+        'basic_metrics_coherence': basic_metrics_coherence.mean().to_dict(),
+        'basic_metrics_frequency': basic_metrics_frequency.mean().to_dict(),
+        'basic_metrics_gabor': basic_metrics_gabor.mean().to_dict(),
+        'glcm_features_df': glcm_features_df.mean().to_dict(),
+        'statistical_properties_df': statistical_properties_df.mean().to_dict(),
+        'global_properties_df': global_properties_df.mean().to_dict(),
+        'ridge_frequency_metrics_df': ridge_frequency_metrics_df.mean().to_dict(),
+        'background_properties_df': background_properties_df.mean().to_dict(),
+        'global_analysis_df': global_analysis_df.mean().to_dict()
+    })
+
+    # save_to_single_csv(data_dict, f'{quality_class}_combined_metrics.csv', folderv4)  # TODO: save to csv
+    # TODO: zapisac dane do csv i tam gdzie sa wykresy jedno slupkowe zrobic wykresy z dystrubucja per image a nie z gotowej srenidej ze wszystkiego
