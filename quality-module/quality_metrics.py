@@ -26,21 +26,15 @@ def create_folder(folder_path):
         os.makedirs(folder_path)
 
 
-def save_to_single_csv(data_dict, filename, folder):
+def save_dataframe_to_csv(dataframe, filename, folder):
     file_path = os.path.join(folder, filename)
+    dataframe.to_csv(file_path, index=False)
 
-    # Find the maximum length of the lists
-    max_length = max(len(v) for v in data_dict.values() if isinstance(v, list))
 
-    # Pad lists with NaN to make them the same length
-    for key, value in data_dict.items():
-        if isinstance(value, list):
-            data_dict[key] = value + [np.nan] * (max_length - len(value))
-        elif isinstance(value, dict):
-            data_dict[key] = pd.Series(value)
-
-    combined_df = pd.DataFrame(data_dict)
-    combined_df.to_csv(str(file_path), index=False)
+def save_metrics_to_csv(metrics_dict, filename, folder):
+    file_path = os.path.join(folder, filename)
+    metrics_df = pd.DataFrame(metrics_dict)
+    metrics_df.to_csv(str(file_path), index=False)
 
 
 clarity_path = os.path.join(folderv4, 'clarity_plots')
@@ -129,6 +123,7 @@ create_folder(reliability_path)
 
 
 def save_fig(data, title, x_label, plt_name, folder):
+    data = np.array(data)  # Convert list to NumPy array
     data = data[np.isfinite(data)]
 
     plt.figure(figsize=(10, 6))
@@ -141,7 +136,7 @@ def save_fig(data, title, x_label, plt_name, folder):
     plt.close()
 
 
-def save_basic_metrics_plots(basic_metric_df, quality_class, save_path):
+def save_basic_metrics_plots_df(basic_metric_df, quality_class, save_path):
     for column in basic_metric_df.columns:
         basic_metric = basic_metric_df[column]
         save_fig(basic_metric, f'Distribution of data: {column} in class: {quality_class}',
@@ -522,6 +517,37 @@ def lbp_analysis(image, radius=1, n_points=8):
 #
 #     return vis_img
 
+combined_clarity_metrics = pd.DataFrame()
+combined_coherence_metrics = pd.DataFrame()
+combined_frequency_metrics = pd.DataFrame()
+combined_gabor_metrics = pd.DataFrame()
+combined_glcm_metrics = pd.DataFrame()
+combined_statistical_properties_metrics = pd.DataFrame()
+combined_global_properties_metrics = pd.DataFrame()
+combined_ridge_freq_metrics = pd.DataFrame()
+combined_background_metrics = pd.DataFrame()
+combined_global_analyses_metrics = pd.DataFrame()
+
+combined_metrics = {
+    'snr': [],
+    'cnr': [],
+    'local_noise': [],
+    'freq_uniformity': [],
+    'orientation_consistency': [],
+    'clarity_error': [],
+    'orientation_error': [],
+    'coherence_error': [],
+    'frequency_error': [],
+    'gabor_error': [],
+    'shannon_entropy': [],
+    'freq_energy': [],
+    'energy_map': [],
+    'eigenvalues_ratios': [],
+    'pixel_intensity': [],
+    'lbp': [],
+    'reliability': []
+}
+
 for quality_folder in quality_folders[:]:
     quality_class = quality_folder.name
     if quality_class == 'v3' or quality_class == 'v4':
@@ -689,133 +715,103 @@ for quality_folder in quality_folders[:]:
 
         # TODO: std of mean values of basic metrics
 
-    save_basic_metrics_plots(basic_metrics_clarity, quality_class, clarity_path)
-    save_basic_metrics_plots(basic_metrics_coherence, quality_class, coherence_path)
-    save_basic_metrics_plots(basic_metrics_frequency, quality_class, frequency_path)
-    save_basic_metrics_plots(basic_metrics_gabor, quality_class, gabor_path)
+    save_fig(snr_values, f'SNR_{quality_class}_values', 'SNR', f'{quality_class}_snr', snr_path)
+    save_fig(cnr_values, f'CNR_{quality_class}_values', 'CNR', f'{quality_class}_cnr', cnr_path)
+    save_fig(local_noise_values, f'Local noise_{quality_class}_values', 'Local noise', f'{quality_class}_local_noise',
+             local_noise_path)
+    save_fig(freq_uniformity_values, f'Frequency uniformity_{quality_class}_values', 'Frequency uniformity',
+             f'{quality_class}_freq_uniformity', freq_uniformity_path)
+    save_fig(orientation_consistency_values, f'Orientation consistency_{quality_class}_values',
+             'Orientation consistency', f'{quality_class}_orientation_consistency', orientation_consistency_path)
+    save_fig(clarity_error_values, f'Clarity error_{quality_class}_values', 'Clarity error',
+             f'{quality_class}_clarity_error', clarity_error_path)
+    save_fig(orientation_error_values, f'Orientation error_{quality_class}_values', 'Orientation error',
+             f'{quality_class}_orientation_error', orientation_error_path)
+    save_fig(coherence_error_values, f'Coherence error_{quality_class}_values', 'Coherence error',
+             f'{quality_class}_coherence_error', coherence_error_path)
+    save_fig(frequency_error_values, f'Frequency error_{quality_class}_values', 'Frequency error',
+             f'{quality_class}_frequency_error', frequency_error_path)
+    save_fig(gabor_error_values, f'Gabor error_{quality_class}_values', 'Gabor error', f'{quality_class}_gabor_error',
+             gabor_error_path)
+    save_fig(shannon_entropy_values, f'Shannon entropy_{quality_class}_values', 'Shannon entropy',
+             f'{quality_class}_shannon_entropy', shannon_entropy_path)
+    save_fig(energy_map_means, f'Energy map mean_{quality_class}_values', 'Energy map mean',
+             f'{quality_class}_energy_map', energy_map_path)
+    save_fig(eigenvalues_ratios, f'Eigenvalues ratios_{quality_class}_values', 'Eigenvalues ratios',
+             f'{quality_class}_eigenvalues_ratios', eigenvalues_ratios_path)
+    save_fig(pixel_intensity_values, f'Pixel intensity_{quality_class}_values', 'Pixel intensity',
+             f'{quality_class}_pixel_intensity', pixel_intensity_path)
+    save_fig(freq_energy_values, f'Frequency energy_{quality_class}_values', 'Frequency energy',
+             f'{quality_class}_freq_energy', freq_energy_path)
+    save_fig(lbp_means, f'LBP_{quality_class}_values', 'LBP', f'{quality_class}_lbp', lbp_path)
+    save_fig(relability_means, f'Reliability_{quality_class}_values', 'Reliability', f'{quality_class}_reliability',
+             reliability_path)
 
-    snr_basic_metrics = get_basic_metrics(snr_values)
-    snr_basic_metrics = pd.DataFrame([snr_basic_metrics])
+    basic_metrics_clarity['quality_class'] = quality_class
+    basic_metrics_coherence['quality_class'] = quality_class
+    basic_metrics_frequency['quality_class'] = quality_class
+    basic_metrics_gabor['quality_class'] = quality_class
+    glcm_features_df['quality_class'] = quality_class
+    statistical_properties_df['quality_class'] = quality_class
+    global_properties_df['quality_class'] = quality_class
+    ridge_frequency_metrics_df['quality_class'] = quality_class
+    background_properties_df['quality_class'] = quality_class
+    global_analysis_df['quality_class'] = quality_class
 
-    cnr_basic_metrics = get_basic_metrics(cnr_values)
-    cnr_basic_metrics = pd.DataFrame([cnr_basic_metrics])
+    combined_clarity_metrics = pd.concat([combined_clarity_metrics, basic_metrics_clarity], ignore_index=True)
+    combined_coherence_metrics = pd.concat([combined_coherence_metrics, basic_metrics_coherence], ignore_index=True)
+    combined_frequency_metrics = pd.concat([combined_frequency_metrics, basic_metrics_frequency], ignore_index=True)
+    combined_gabor_metrics = pd.concat([combined_gabor_metrics, basic_metrics_gabor], ignore_index=True)
+    combined_glcm_metrics = pd.concat([combined_glcm_metrics, glcm_features_df], ignore_index=True)
+    combined_statistical_properties_metrics = pd.concat(
+        [combined_statistical_properties_metrics, statistical_properties_df], ignore_index=True)
+    combined_global_properties_metrics = pd.concat([combined_global_properties_metrics, global_properties_df],
+                                                   ignore_index=True)
+    combined_ridge_freq_metrics = pd.concat([combined_ridge_freq_metrics, ridge_frequency_metrics_df],
+                                            ignore_index=True)
+    combined_background_metrics = pd.concat([combined_background_metrics, background_properties_df], ignore_index=True)
+    combined_global_analyses_metrics = pd.concat([combined_global_analyses_metrics, global_analysis_df],
+                                                 ignore_index=True)
 
-    local_noise_basic_metrics = get_basic_metrics(local_noise_values)
-    local_noise_basic_metrics = pd.DataFrame([local_noise_basic_metrics])
+    combined_metrics['snr'].append({'quality_class': quality_class, **get_basic_metrics(snr_values)})
+    combined_metrics['cnr'].append({'quality_class': quality_class, **get_basic_metrics(cnr_values)})
+    combined_metrics['local_noise'].append({'quality_class': quality_class, **get_basic_metrics(local_noise_values)})
+    combined_metrics['freq_uniformity'].append(
+        {'quality_class': quality_class, **get_basic_metrics(freq_uniformity_values)})
+    combined_metrics['orientation_consistency'].append(
+        {'quality_class': quality_class, **get_basic_metrics(orientation_consistency_values)})
+    combined_metrics['clarity_error'].append(
+        {'quality_class': quality_class, **get_basic_metrics(clarity_error_values)})
+    combined_metrics['orientation_error'].append(
+        {'quality_class': quality_class, **get_basic_metrics(orientation_error_values)})
+    combined_metrics['coherence_error'].append(
+        {'quality_class': quality_class, **get_basic_metrics(coherence_error_values)})
+    combined_metrics['frequency_error'].append(
+        {'quality_class': quality_class, **get_basic_metrics(frequency_error_values)})
+    combined_metrics['gabor_error'].append({'quality_class': quality_class, **get_basic_metrics(gabor_error_values)})
+    combined_metrics['shannon_entropy'].append(
+        {'quality_class': quality_class, **get_basic_metrics(shannon_entropy_values)})
+    combined_metrics['freq_energy'].append({'quality_class': quality_class, **get_basic_metrics(freq_energy_values)})
+    combined_metrics['energy_map'].append({'quality_class': quality_class, **get_basic_metrics(energy_map_means)})
+    combined_metrics['eigenvalues_ratios'].append(
+        {'quality_class': quality_class, **get_basic_metrics(eigenvalues_ratios)})
+    combined_metrics['pixel_intensity'].append(
+        {'quality_class': quality_class, **get_basic_metrics(pixel_intensity_values)})
+    combined_metrics['lbp'].append({'quality_class': quality_class, **get_basic_metrics(lbp_means)})
+    combined_metrics['reliability'].append({'quality_class': quality_class, **get_basic_metrics(relability_means)})
 
-    save_basic_metrics_plots(snr_basic_metrics, quality_class, snr_path)
-    save_basic_metrics_plots(cnr_basic_metrics, quality_class, cnr_path)
-    save_basic_metrics_plots(local_noise_basic_metrics, quality_class, local_noise_path)
+save_dataframe_to_csv(combined_clarity_metrics, 'combined_clarity_metrics.csv', clarity_path)
+save_dataframe_to_csv(combined_coherence_metrics, 'combined_coherence_metrics.csv', coherence_path)
+save_dataframe_to_csv(combined_frequency_metrics, 'combined_frequency_metrics.csv', frequency_path)
+save_dataframe_to_csv(combined_gabor_metrics, 'combined_gabor_metrics.csv', gabor_path)
+save_dataframe_to_csv(combined_glcm_metrics, 'combined_glcm_metrics.csv', glcm_path)
+save_dataframe_to_csv(combined_statistical_properties_metrics, 'combined_statistical_properties_metrics.csv',
+                      statistical_properties_path)
+save_dataframe_to_csv(combined_global_properties_metrics, 'combined_global_properties_metrics.csv',
+                      global_properties_path)
+save_dataframe_to_csv(combined_ridge_freq_metrics, 'combined_ridge_freq_metrics.csv', ridge_frequency_path)
+save_dataframe_to_csv(combined_background_metrics, 'combined_background_metrics.csv', background_properties_path)
+save_dataframe_to_csv(combined_global_analyses_metrics, 'combined_global_analyses_metrics.csv', global_analysis_path)
 
-    freq_uniformity_basic_metrics = get_basic_metrics(freq_uniformity_values)
-    freq_uniformity_basic_metrics = pd.DataFrame([freq_uniformity_basic_metrics])
-
-    orientation_consistency_basic_metrics = get_basic_metrics(orientation_consistency_values)
-    orientation_consistency_basic_metrics = pd.DataFrame([orientation_consistency_basic_metrics])
-
-    save_basic_metrics_plots(freq_uniformity_basic_metrics, quality_class, freq_uniformity_path)
-    save_basic_metrics_plots(orientation_consistency_basic_metrics, quality_class, orientation_consistency_path)
-
-    # TODO: WHEN in csv add mean values of each metric
-    save_basic_metrics_plots(glcm_features_df, quality_class, glcm_path)
-
-    save_basic_metrics_plots(statistical_properties_df, quality_class, statistical_properties_path)
-
-    save_basic_metrics_plots(global_properties_df, quality_class, global_properties_path)
-
-    clarity_error_basic_metrics = get_basic_metrics(clarity_error_values)
-    clarity_error_basic_metrics = pd.DataFrame([clarity_error_basic_metrics])
-
-    orientation_error_basic_metrics = get_basic_metrics(orientation_error_values)
-    orientation_error_basic_metrics = pd.DataFrame([orientation_error_basic_metrics])
-
-    coherence_error_basic_metrics = get_basic_metrics(coherence_error_values)
-    coherence_error_basic_metrics = pd.DataFrame([coherence_error_basic_metrics])
-
-    frequency_error_basic_metrics = get_basic_metrics(frequency_error_values)
-    frequency_error_basic_metrics = pd.DataFrame([frequency_error_basic_metrics])
-    print('BASIC METRICS!!!\n', frequency_error_basic_metrics)
-
-    gabor_error_basic_metrics = get_basic_metrics(gabor_error_values)
-    gabor_error_basic_metrics = pd.DataFrame([gabor_error_basic_metrics])
-
-    save_basic_metrics_plots(clarity_error_basic_metrics, quality_class, clarity_error_path)
-    save_basic_metrics_plots(orientation_error_basic_metrics, quality_class, orientation_error_path)
-    save_basic_metrics_plots(coherence_error_basic_metrics, quality_class, coherence_error_path)
-    # save_basic_metrics_plots(frequency_error_basic_metrics, quality_class, frequency_error_path)
-    save_basic_metrics_plots(gabor_error_basic_metrics, quality_class, gabor_error_path)
-
-    shannon_entropy_metrics = get_basic_metrics(shannon_entropy_values)
-    shannon_entropy_metrics = pd.DataFrame([shannon_entropy_metrics])
-
-    save_basic_metrics_plots(shannon_entropy_metrics, quality_class, shannon_entropy_path)
-
-    save_basic_metrics_plots(ridge_frequency_metrics_df, quality_class, ridge_frequency_path)
-
-    freq_energy_basic_metrics = get_basic_metrics(freq_energy_values)
-    freq_energy_basic_metrics = pd.DataFrame([freq_energy_basic_metrics])
-
-    save_basic_metrics_plots(freq_energy_basic_metrics, quality_class, freq_energy_path)
-
-    save_basic_metrics_plots(background_properties_df, quality_class, background_properties_path)
-
-    energy_map_basic_metrics = get_basic_metrics(energy_map_means)
-    energy_map_basic_metrics = pd.DataFrame([energy_map_basic_metrics])
-
-    eigenvalues_ratios_basic_metrics = get_basic_metrics(eigenvalues_ratios)
-    eigenvalues_ratios_basic_metrics = pd.DataFrame([eigenvalues_ratios_basic_metrics])
-
-    pixel_intensity_basic_metrics = get_basic_metrics(pixel_intensity_values)
-    pixel_intensity_basic_metrics = pd.DataFrame([pixel_intensity_basic_metrics])
-
-    save_basic_metrics_plots(energy_map_basic_metrics, quality_class, energy_map_path)
-    save_basic_metrics_plots(eigenvalues_ratios_basic_metrics, quality_class, eigenvalues_ratios_path)
-    save_basic_metrics_plots(pixel_intensity_basic_metrics, quality_class, pixel_intensity_path)
-
-    save_basic_metrics_plots(global_analysis_df, quality_class, global_analysis_path)
-
-    lbp_basic_metrics = get_basic_metrics(lbp_means)
-    lbp_basic_metrics = pd.DataFrame([lbp_basic_metrics])
-
-    save_basic_metrics_plots(lbp_basic_metrics, quality_class, lbp_path)
-
-    reliability_basic_metrics = get_basic_metrics(relability_means)
-    reliability_basic_metrics = pd.DataFrame([reliability_basic_metrics])
-
-    save_basic_metrics_plots(reliability_basic_metrics, quality_class, reliability_path)
-
-    data_dict = {
-        'snr_values': snr_values,
-        'cnr_values': cnr_values,
-        'local_noise_values': local_noise_values,
-        'freq_uniformity_values': freq_uniformity_values,
-        'orientation_consistency_values': orientation_consistency_values,
-        'clarity_error_values': clarity_error_values,
-        'orientation_error_values': orientation_error_values,
-        'coherence_error_values': coherence_error_values,
-        'frequency_error_values': frequency_error_values,
-        'gabor_error_values': gabor_error_values,
-        'shannon_entropy_values': shannon_entropy_values,
-        'freq_energy_values': freq_energy_values,
-        'energy_map_means': energy_map_means,
-        'eigenvalues_ratios': eigenvalues_ratios,
-        'pixel_intensity_values': pixel_intensity_values,
-        'lbp_means': lbp_means,
-        'relability_means': relability_means
-    }
-
-    data_dict.update({
-        'basic_metrics_clarity': basic_metrics_clarity.mean().to_dict(),
-        'basic_metrics_coherence': basic_metrics_coherence.mean().to_dict(),
-        'basic_metrics_frequency': basic_metrics_frequency.mean().to_dict(),
-        'basic_metrics_gabor': basic_metrics_gabor.mean().to_dict(),
-        'glcm_features_df': glcm_features_df.mean().to_dict(),
-        'statistical_properties_df': statistical_properties_df.mean().to_dict(),
-        'global_properties_df': global_properties_df.mean().to_dict(),
-        'ridge_frequency_metrics_df': ridge_frequency_metrics_df.mean().to_dict(),
-        'background_properties_df': background_properties_df.mean().to_dict(),
-        'global_analysis_df': global_analysis_df.mean().to_dict()
-    })
-
-    # save_to_single_csv(data_dict, f'{quality_class}_combined_metrics.csv', folderv4)  # TODO: save to csv
-    # TODO: zapisac dane do csv i tam gdzie sa wykresy jedno slupkowe zrobic wykresy z dystrubucja per image a nie z gotowej srenidej ze wszystkiego
+for metric_name, metric_data in combined_metrics.items():
+    save_metrics_to_csv(metric_data, f'combined_{metric_name}_metrics.csv', folderv4)
