@@ -36,3 +36,8 @@ build/
 
 ### Mac OS ###
 .DS_Store
+
+### MM ###
+/src/main/resources/native/
+/src/main/resources/libs/
+/src/main/resources/mm-data/
