@@ -86,6 +86,12 @@
             <artifactId>jna</artifactId>
             <version>5.10.0</version> <!-- Choose an appropriate version -->
         </dependency>
+        <dependency>
+            <groupId>com.formdev</groupId>
+            <artifactId>flatlaf</artifactId>
+            <version>3.5.2</version>
+            <scope>runtime</scope>
+        </dependency>
     </dependencies>
 
 </project>
