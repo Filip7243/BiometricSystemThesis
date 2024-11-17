@@ -7,7 +7,7 @@ import java.awt.*;
 
 import static javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT;
 
-public class MainPanel extends JPanel implements ChangeListener {
+public final class MainPanel extends JPanel implements ChangeListener {
 
     private JTabbedPane tabbedPane;
     private RegisterUserTab registerUserTab;
@@ -31,7 +31,7 @@ public class MainPanel extends JPanel implements ChangeListener {
 
 
         add(tabbedPane);
-        setPreferredSize(new Dimension(680, 600));
+        setPreferredSize(new Dimension(880, 780));
     }
 
     @Override
