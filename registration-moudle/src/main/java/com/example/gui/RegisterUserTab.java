@@ -13,8 +13,6 @@ import javax.swing.event.DocumentListener;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.ItemEvent;
-import java.awt.event.ItemListener;
 import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.List;
@@ -27,7 +25,7 @@ import static java.awt.BorderLayout.*;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 
-public final class RegisterUserTab extends BasePanel implements ActionListener, ItemListener {
+public final class RegisterUserTab extends BasePanel implements ActionListener {
 
     private final CaptureHandler captureHandler = new CaptureHandler();
     private final List<NSubject> scannedFingers;
@@ -46,6 +44,8 @@ public final class RegisterUserTab extends BasePanel implements ActionListener, 
 
     private PersonalDataFormPanel personalDataFormPanel;
     private FingerViewPanel fingerViewPanel;
+    private ScannersListPanel scannersListPanel;
+    private BuildingRoomsPanel buildingRoomsPanel;
 
     public RegisterUserTab() {
         super();
@@ -64,6 +64,14 @@ public final class RegisterUserTab extends BasePanel implements ActionListener, 
         lblInfo.setText(status);
     }
 
+    ScannersListPanel getScannersListPanel() {
+        return scannersListPanel;
+    }
+
+    BuildingRoomsPanel getBuildingRoomsPanel() {
+        return buildingRoomsPanel;
+    }
+
     @Override
     protected void initGUI() {
         setLayout(new BorderLayout());
@@ -74,7 +82,7 @@ public final class RegisterUserTab extends BasePanel implements ActionListener, 
         JPanel mainPanel = new JPanel(new BorderLayout());
         add(mainPanel, CENTER);
 
-        ScannersListPanel scannersListPanel = new ScannersListPanel();
+        scannersListPanel = new ScannersListPanel();
 
         personalDataFormPanel = new PersonalDataFormPanel(new DocumentListenerImpl());
 
@@ -84,7 +92,7 @@ public final class RegisterUserTab extends BasePanel implements ActionListener, 
 
         mainPanel.add(northPanel, NORTH);
 
-        BuildingRoomsPanel buildingRoomsPanel = new BuildingRoomsPanel();
+        buildingRoomsPanel = new BuildingRoomsPanel();
         fingerViewPanel = new FingerViewPanel();
 
         JPanel centerPanel = new JPanel(new BorderLayout());
@@ -110,23 +118,6 @@ public final class RegisterUserTab extends BasePanel implements ActionListener, 
         btnSubmitForm.addActionListener(this);
 
         mainPanel.add(btnSubmitForm, SOUTH);
-    }
-
-    @Override
-    protected void setDefaultValues() {
-        // No default values
-    }
-
-    @Override
-    protected void updateControls() {
-        btnScan.setEnabled(!scanning);
-        btnCancelScan.setEnabled(scanning);
-
-        btnRefreshLists.setEnabled(!scanning);
-        btnAddRooms.setEnabled(!scanning);
-        btnRemoveRooms.setEnabled(!scanning);
-
-        btnSubmitForm.setEnabled(!scanning && subject != null && subject.getStatus() == OK && scannedFingers.size() == 3);
     }
 
     private void startCapturing() {
@@ -171,6 +162,23 @@ public final class RegisterUserTab extends BasePanel implements ActionListener, 
     }
 
     @Override
+    protected void setDefaultValues() {
+        // No default values
+    }
+
+    @Override
+    protected void updateControls() {
+        btnScan.setEnabled(!scanning);
+        btnCancelScan.setEnabled(scanning);
+
+        btnRefreshLists.setEnabled(!scanning);
+        btnAddRooms.setEnabled(!scanning);
+        btnRemoveRooms.setEnabled(!scanning);
+
+        btnSubmitForm.setEnabled(!scanning && subject != null && subject.getStatus() == OK && scannedFingers.size() == 3);
+    }
+
+    @Override
     protected void updateFingersTools() {
         FingersTools.getInstance().getClient().reset();
         FingersTools.getInstance().getClient().setUseDeviceManager(true);
@@ -187,11 +195,6 @@ public final class RegisterUserTab extends BasePanel implements ActionListener, 
         } else if (source.equals(btnSubmitForm)) {
             saveToDatabase();
         }
-    }
-
-    @Override
-    public void itemStateChanged(ItemEvent e) {
-
     }
 
     private final class CaptureHandler implements CompletionHandler<NBiometricTask, Object> {

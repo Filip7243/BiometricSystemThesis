@@ -59,6 +59,7 @@ public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSe
         add(lblButtons, gbc);
 
         listBuildings = new JList<>(new String[]{"Building 1", "Building 2", "Building 3"});
+        listBuildings.setModel(new DefaultListModel<>());
         listBuildings.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane buildingScrollPane = new JScrollPane(listBuildings);
         buildingScrollPane.setPreferredSize(new Dimension(150, 80));
@@ -67,6 +68,7 @@ public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSe
         add(buildingScrollPane, gbc);
 
         listRooms = new JList<>(new String[]{});
+        listRooms.setModel(new DefaultListModel<>());
         listRooms.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         JScrollPane roomScrollPane = new JScrollPane(listRooms);
         roomScrollPane.setPreferredSize(new Dimension(150, 80));
@@ -94,6 +96,17 @@ public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSe
         btnRefreshLists.addActionListener(this);
 
         listBuildings.addListSelectionListener(this);
+    }
+
+    // TODO: maybe one method not two!
+    void updateBuildingList() {
+        DefaultListModel<String> model = (DefaultListModel<String>) listBuildings.getModel();
+        model.clear();
+    }
+
+    void updateRoomList() {
+        DefaultListModel<String> model = (DefaultListModel<String>) listRooms.getModel();
+        model.clear();
     }
 
     JButton getBtnAddRooms() {

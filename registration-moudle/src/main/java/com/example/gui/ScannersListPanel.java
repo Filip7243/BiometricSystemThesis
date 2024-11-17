@@ -75,8 +75,7 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         return (NFingerScanner) listScanners.getSelectedValue();
     }
 
-    private void updateScannerList() {
-        System.out.println("ESSA");
+    void updateScannerList() {
         DefaultListModel<NDevice> model = (DefaultListModel<NDevice>) listScanners.getModel();
         model.clear();
 

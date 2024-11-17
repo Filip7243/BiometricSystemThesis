@@ -33,6 +33,10 @@ public abstract class BasePanel extends JPanel {
         obtained = status;
     }
 
+    public final LicensingPanel getLicensingPanel() {
+        return panelLicensing;
+    }
+
     public void showError(Throwable e) {
         if (e instanceof AggregateExecutionException) {
             StringBuilder sb = new StringBuilder(64);
