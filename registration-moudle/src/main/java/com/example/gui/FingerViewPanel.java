@@ -4,8 +4,6 @@ import com.neurotec.biometrics.swing.NFingerView;
 
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 import java.awt.image.BufferedImage;
 
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
@@ -17,7 +15,6 @@ import static javax.swing.JLabel.LEFT;
 
 public final class FingerViewPanel extends JPanel {
 
-    private JScrollPane scrollPane;
     private NFingerView currentView;
     private JPanel previousFingersPanel;
     private JButton btnScan;
@@ -38,7 +35,7 @@ public final class FingerViewPanel extends JPanel {
         setLayout(new BorderLayout(10, 10));
         setBorder(createTitledBorder("Finger View"));
 
-        scrollPane = new JScrollPane();
+        JScrollPane scrollPane = new JScrollPane();
         add(scrollPane, BorderLayout.CENTER);
 
         currentView = new NFingerView();

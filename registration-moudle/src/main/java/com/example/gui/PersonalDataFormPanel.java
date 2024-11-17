@@ -6,7 +6,7 @@ import java.awt.*;
 
 import static javax.swing.BorderFactory.createTitledBorder;
 
-public final class PersonalDataFormPanel extends JPanel {
+public class PersonalDataFormPanel extends JPanel {
 
     private JTextField txtFirstName;
     private JTextField txtLastName;
@@ -33,36 +33,36 @@ public final class PersonalDataFormPanel extends JPanel {
         JLabel lblFirstName = new JLabel("First name:");
         add(lblFirstName, gbc);
         gbc.gridy++;
-        this.txtFirstName = new JTextField(20);
-        this.txtFirstName.getDocument().addDocumentListener(documentListener);
-        add(this.txtFirstName, gbc);
+        txtFirstName = new JTextField(20);
+        txtFirstName.getDocument().addDocumentListener(documentListener);
+        add(txtFirstName, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 0;
         JLabel lblLastName = new JLabel("Last name:");
         add(lblLastName, gbc);
         gbc.gridy++;
-        this.txtLastName = new JTextField(20);
-        this.txtLastName.getDocument().addDocumentListener(documentListener);
-        add(this.txtLastName, gbc);
+        txtLastName = new JTextField(20);
+        txtLastName.getDocument().addDocumentListener(documentListener);
+        add(txtLastName, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
         JLabel lblPesel = new JLabel("PESEL:");
         add(lblPesel, gbc);
         gbc.gridy++;
-        this.txtPesel = new JTextField(20);
-        this.txtPesel.getDocument().addDocumentListener(documentListener);
-        add(this.txtPesel, gbc);
+        txtPesel = new JTextField(20);
+        txtPesel.getDocument().addDocumentListener(documentListener);
+        add(txtPesel, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 2;
         JLabel lblRoles = new JLabel("Roles:");
         add(lblRoles, gbc);
         gbc.gridy++;
-        this.cmbRoles = new JComboBox<>(new String[]{"Admin", "User"});
-        this.cmbRoles.setPreferredSize(new Dimension(150, 20));
-        add(this.cmbRoles, gbc);
+        cmbRoles = new JComboBox<>(new String[]{"Admin", "User"});
+        cmbRoles.setPreferredSize(new Dimension(150, 20));
+        add(cmbRoles, gbc);
     }
 
     String getFirstName() {
@@ -79,9 +79,5 @@ public final class PersonalDataFormPanel extends JPanel {
 
     JComboBox<String> getCmbRoles() {
         return cmbRoles;
-    }
-
-    String getRoleString() {
-        return (String) cmbRoles.getSelectedItem();  // TODO: change to ENUM
     }
 }

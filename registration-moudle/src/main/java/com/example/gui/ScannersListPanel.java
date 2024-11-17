@@ -26,9 +26,9 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         super();
 
         FingersTools.getInstance().getClient().setUseDeviceManager(true);
-        this.deviceManager = FingersTools.getInstance().getClient().getDeviceManager();
-        this.deviceManager.setDeviceTypes(EnumSet.of(FINGER_SCANNER));
-        this.deviceManager.initialize();
+        deviceManager = FingersTools.getInstance().getClient().getDeviceManager();
+        deviceManager.setDeviceTypes(EnumSet.of(FINGER_SCANNER));
+        deviceManager.initialize();
 
         initGUI();
     }
@@ -75,17 +75,6 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         return (NFingerScanner) listScanners.getSelectedValue();
     }
 
-    JList<NDevice> getListScanners() {
-        return listScanners;
-    }
-
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        if (e.getSource() == btnRefresh) {
-            updateScannerList();
-        }
-    }
-
     private void updateScannerList() {
         System.out.println("ESSA");
         DefaultListModel<NDevice> model = (DefaultListModel<NDevice>) listScanners.getModel();
@@ -100,6 +89,13 @@ public class ScannersListPanel extends JPanel implements ActionListener {
             listScanners.setSelectedIndex(0);
         } else if (scanner != null) {
             listScanners.setSelectedValue(scanner, true);
+        }
+    }
+
+    @Override
+    public void actionPerformed(ActionEvent e) {
+        if (e.getSource() == btnRefresh) {
+            updateScannerList();
         }
     }
 
