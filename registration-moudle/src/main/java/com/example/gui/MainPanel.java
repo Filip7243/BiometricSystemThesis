@@ -16,6 +16,7 @@ public final class MainPanel extends JPanel implements ChangeListener {
     private JTabbedPane tabbedPane;
     private RegisterUserTab registerUserTab;
     private MenageDevicesTab menageDevicesTab;
+    private MenageBuildingsRoomsTab menageBuildingsRoomsTab;
 
     public MainPanel() {
         super(new GridLayout(1, 1));
@@ -46,6 +47,11 @@ public final class MainPanel extends JPanel implements ChangeListener {
         this.menageDevicesTab = new MenageDevicesTab();
         this.menageDevicesTab.init();
         this.tabbedPane.addTab("Menage Devices", this.menageDevicesTab);
+
+        // Manage buildings and rooms
+        this.menageBuildingsRoomsTab = new MenageBuildingsRoomsTab();
+        this.menageBuildingsRoomsTab.init();
+        this.tabbedPane.addTab("Menage Buildings", this.menageBuildingsRoomsTab);
 
         add(tabbedPane);
         setPreferredSize(new Dimension(880, 780));

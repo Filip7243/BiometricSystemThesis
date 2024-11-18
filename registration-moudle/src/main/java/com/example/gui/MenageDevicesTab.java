@@ -13,6 +13,7 @@ public class MenageDevicesTab extends BasePanel implements ActionListener {
     private JButton btnSaveAddDevice;
     private ScannersListPanel scannersListPanel;
     private BuildingRoomsPanel buildingRoomsPanel;
+    private RemoveScannerFromRoomPanel removeScannerFromRoomPanel;
 
     public MenageDevicesTab() {
         super();
@@ -44,15 +45,24 @@ public class MenageDevicesTab extends BasePanel implements ActionListener {
         JPanel northPanel = new JPanel(new BorderLayout());
 
         scannersListPanel = new ScannersListPanel();
+        scannersListPanel.hideFingersCombo();
         northPanel.add(scannersListPanel, NORTH);
 
         buildingRoomsPanel = new BuildingRoomsPanel();
+        buildingRoomsPanel.setListRoomsSingleSelectionModel();
+        buildingRoomsPanel.removeDefaultListeners();
+        buildingRoomsPanel.hideButtons();
+        buildingRoomsPanel.getBtnAddRooms().addActionListener(this);
+        buildingRoomsPanel.getBtnRefreshLists().addActionListener(this);
         northPanel.add(buildingRoomsPanel, CENTER);
+
+        removeScannerFromRoomPanel = new RemoveScannerFromRoomPanel();
+        northPanel.add(removeScannerFromRoomPanel, SOUTH);
 
         btnSaveAddDevice = new JButton("Save");
         btnSaveAddDevice.addActionListener(this);
         btnSaveAddDevice.setPreferredSize(new Dimension(btnSaveAddDevice.getPreferredSize().width, 40));
-        northPanel.add(btnSaveAddDevice, SOUTH);
+        mainPanel.add(btnSaveAddDevice, SOUTH);
 
         mainPanel.add(northPanel, NORTH);
     }

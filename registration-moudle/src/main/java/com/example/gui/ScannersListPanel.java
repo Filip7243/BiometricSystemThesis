@@ -20,6 +20,7 @@ public class ScannersListPanel extends JPanel implements ActionListener {
     private final NDeviceManager deviceManager;
 
     private JList<NDevice> listScanners;
+    private JComboBox<String> cmbFingers;
     private JButton btnRefresh;
 
     public ScannersListPanel() {
@@ -43,7 +44,7 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         listScanners.setBorder(BorderFactory.createLineBorder(Color.BLACK));
         listScanners.addListSelectionListener(new ScannerSelectionListener());
 
-        JComboBox<String> cmbScanners = new JComboBox<>(new String[]{"THUMB", "POINTING", "MIDDLE", "RING"});
+        cmbFingers = new JComboBox<>(new String[]{"THUMB", "POINTING", "MIDDLE", "RING"});
 
         btnRefresh = new JButton("Refresh");
         btnRefresh.setPreferredSize(new Dimension(100, 30));
@@ -63,7 +64,7 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 1;
-        add(cmbScanners, gbc);
+        add(cmbFingers, gbc);
 
         gbc.gridx = 1;
         gbc.gridy = 1;
@@ -103,5 +104,9 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         public void valueChanged(ListSelectionEvent e) {
             FingersTools.getInstance().getClient().setFingerScanner(getSelectedScanner());
         }
+    }
+
+    void hideFingersCombo() {
+        cmbFingers.setVisible(false);
     }
 }

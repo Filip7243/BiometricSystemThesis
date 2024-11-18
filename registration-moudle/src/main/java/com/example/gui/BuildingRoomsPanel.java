@@ -9,6 +9,9 @@ import java.awt.event.ActionListener;
 import java.util.List;
 import java.util.*;
 
+import static javax.swing.ListSelectionModel.MULTIPLE_INTERVAL_SELECTION;
+import static javax.swing.ListSelectionModel.SINGLE_INTERVAL_SELECTION;
+
 public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSelectionListener {
 
     private JList<String> listBuildings;
@@ -32,6 +35,8 @@ public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSe
         buildingToRoomsMap.put("Building 1", new String[]{"Room 101", "Room 102", "Room 103"});
         buildingToRoomsMap.put("Building 2", new String[]{"Room 201", "Room 202", "Room 203"});
         buildingToRoomsMap.put("Building 3", new String[]{"Room 301", "Room 302", "Room 303"});
+
+        System.out.println(buildingToRoomsMap);
 
         selectedRoomsSet = new HashSet<>();
     }
@@ -58,9 +63,9 @@ public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSe
         gbc.gridy = 0;
         add(lblButtons, gbc);
 
-        listBuildings = new JList<>(new String[]{"Building 1", "Building 2", "Building 3"});
+        listBuildings = new JList<>();
         listBuildings.setModel(new DefaultListModel<>());
-        listBuildings.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        listBuildings.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
         JScrollPane buildingScrollPane = new JScrollPane(listBuildings);
         buildingScrollPane.setPreferredSize(new Dimension(150, 80));
         gbc.gridx = 0;
@@ -69,7 +74,7 @@ public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSe
 
         listRooms = new JList<>(new String[]{});
         listRooms.setModel(new DefaultListModel<>());
-        listRooms.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        listRooms.setSelectionMode(MULTIPLE_INTERVAL_SELECTION);
         JScrollPane roomScrollPane = new JScrollPane(listRooms);
         roomScrollPane.setPreferredSize(new Dimension(150, 80));
         gbc.gridx = 1;
@@ -98,15 +103,28 @@ public class BuildingRoomsPanel extends JPanel implements ActionListener, ListSe
         listBuildings.addListSelectionListener(this);
     }
 
+    void hideButtons() {
+        btnRemoveRooms.setVisible(false);
+    }
+
+    void removeDefaultListeners() {
+        btnAddRooms.removeActionListener(this);
+        btnRefreshLists.removeActionListener(this);
+    }
+
     // TODO: maybe one method not two!
     void updateBuildingList() {
         DefaultListModel<String> model = (DefaultListModel<String>) listBuildings.getModel();
-        model.clear();
+        //        model.clear();
     }
 
     void updateRoomList() {
         DefaultListModel<String> model = (DefaultListModel<String>) listRooms.getModel();
-        model.clear();
+        //        model.clear();
+    }
+
+    void setListRoomsSingleSelectionModel() {
+        listRooms.setSelectionMode(SINGLE_INTERVAL_SELECTION);
     }
 
     JButton getBtnAddRooms() {
