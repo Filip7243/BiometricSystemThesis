@@ -3,11 +3,27 @@ package com.example.utils;
 import java.net.URISyntaxException;
 import java.net.URL;
 
+import static com.neurotec.samples.util.Utils.PATH_SEPARATOR;
+import static com.neurotec.samples.util.Utils.isNullOrEmpty;
+import static java.lang.String.format;
+import static java.lang.System.getProperty;
+
 public final class LibraryManager {
     private final static String LIBS_FOLDER_NAME = "libs";
 
     public static void initLibraryPath() {
         String libraryPath = getLibraryPath();
+        String jnaLibraryPath = getProperty("jna.library.path");
+        if (isNullOrEmpty(libraryPath)) {
+            return;
+        }
+
+        if (isNullOrEmpty(jnaLibraryPath)) {
+            System.setProperty("jna.library.path", libraryPath);
+        } else {
+            System.setProperty("jna.library.path", format("%s%s%s", jnaLibraryPath, PATH_SEPARATOR, libraryPath));
+        }
+        System.setProperty("java.library.path", format("%s%s%s", getProperty("java.library.path"), PATH_SEPARATOR, libraryPath));
     }
 
     private static String getLibraryPath() {
