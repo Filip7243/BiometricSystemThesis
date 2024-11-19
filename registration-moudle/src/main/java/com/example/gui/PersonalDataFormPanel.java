@@ -1,5 +1,7 @@
 package com.example.gui;
 
+import com.example.model.Role;
+
 import javax.swing.*;
 import javax.swing.event.DocumentListener;
 import java.awt.*;
@@ -11,7 +13,7 @@ public class PersonalDataFormPanel extends JPanel {
     private JTextField txtFirstName;
     private JTextField txtLastName;
     private JTextField txtPesel;
-    private JComboBox<String> cmbRoles;
+    private JComboBox<Role> cmbRoles;
 
     public PersonalDataFormPanel(DocumentListener documentListener) {
         super();
@@ -60,7 +62,7 @@ public class PersonalDataFormPanel extends JPanel {
         JLabel lblRoles = new JLabel("Roles:");
         add(lblRoles, gbc);
         gbc.gridy++;
-        cmbRoles = new JComboBox<>(new String[]{"Admin", "User"});
+        cmbRoles = new JComboBox<>(Role.values());
         cmbRoles.setPreferredSize(new Dimension(150, 20));
         add(cmbRoles, gbc);
     }
@@ -77,7 +79,7 @@ public class PersonalDataFormPanel extends JPanel {
         return txtPesel.getText().trim();
     }
 
-    JComboBox<String> getCmbRoles() {
+    JComboBox<Role> getCmbRoles() {
         return cmbRoles;
     }
 }

@@ -1,7 +1,9 @@
 package com.example.gui;
 
 import com.example.FingersTools;
+import com.example.model.Role;
 import com.neurotec.biometrics.NBiometricTask;
+import com.neurotec.biometrics.NFRecord;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
 import com.neurotec.biometrics.swing.NFingerView;
@@ -157,6 +159,18 @@ public final class RegisterUserTab extends BasePanel implements ActionListener {
     }
 
     private void saveToDatabase() {
+        // Get data from inputs
+        String firstName = personalDataFormPanel.getFirstName();
+        String lastName = personalDataFormPanel.getLastName();
+        String pesel = personalDataFormPanel.getPesel();
+        Role role = (Role) personalDataFormPanel.getCmbRoles().getSelectedItem();
+
+        // Get fingerprints
+        scannedFingers.forEach(subject -> {
+            // Save fingerprint to database
+            subject.getTemplate().getFingers().getRecords().get(0); // TODO: this is how we take teplate from finger and saves in token filed in db
+        });
+
         scannedFingers.clear();
         updateControls();
     }
