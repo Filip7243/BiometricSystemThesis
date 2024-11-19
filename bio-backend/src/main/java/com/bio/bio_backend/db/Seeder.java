@@ -133,14 +133,32 @@ public class Seeder implements CommandLineRunner {
         fingerprintRepository.save(f15);
 
         Device d1 = new Device(1L, 1L, r1);
+        d1.setRoom(r1);
+        r1.setDevice(d1);
         Device d2 = new Device(2L, 2L, r2);
+        d2.setRoom(r2);
+        r2.setDevice(d2);
         Device d3 = new Device(3L, 3L, r3);
+        d3.setRoom(r3);
+        r3.setDevice(d3);
         Device d4 = new Device(4L, 4L, r4);
+        d4.setRoom(r4);
+        r4.setDevice(d4);
         Device d5 = new Device(5L, 5L, r5);
+        d5.setRoom(r5);
+        r5.setDevice(d5);
         Device d6 = new Device(6L, 6L, r6);
+        d6.setRoom(r6);
+        r6.setDevice(d6);
         Device d7 = new Device(7L, 7L, r7);
+        d7.setRoom(r7);
+        r7.setDevice(d7);
         Device d8 = new Device(8L, 8L, r8);
+        d8.setRoom(r8);
+        r8.setDevice(d8);
         Device d9 = new Device(9L, 9L, r9);
+        d9.setRoom(r9);
+        r9.setDevice(d9);
 
         deviceRepository.save(d1);
         deviceRepository.save(d2);
@@ -151,5 +169,17 @@ public class Seeder implements CommandLineRunner {
         deviceRepository.save(d7);
         deviceRepository.save(d8);
         deviceRepository.save(d9);
+
+        roomRepository.save(r1);
+        roomRepository.save(r2);
+        roomRepository.save(r3);
+        roomRepository.save(r4);
+        roomRepository.save(r5);
+        roomRepository.save(r6);
+        roomRepository.save(r7);
+        roomRepository.save(r8);
+        roomRepository.save(r9);
+
+        System.out.println("Seeded database");
     }
 }

@@ -19,17 +19,23 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public class User {
 
     @Id
-    @GeneratedValue(strategy = IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "first_name")
     private String firstName;
+    @Column(name = "last_name")
     private String lastName;
+    @Column(name = "pesel", unique = true)
     private String pesel;
-    @Enumerated(STRING)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "role")
     private Role role;
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private Set<Fingerprint> fingerprints = new HashSet<>();
 
-    @ManyToMany(cascade = {PERSIST, MERGE})
+    @ManyToMany
     @JoinTable(
-            name = "user_rooms",
+            name = "users_rooms",
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "room_id")
     )

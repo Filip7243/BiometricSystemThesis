@@ -1,15 +1,10 @@
 package com.bio.bio_backend.model;
 
-import jakarta.persistence.Entity;
-import jakarta.persistence.Id;
-import jakarta.persistence.MapsId;
-import jakarta.persistence.OneToOne;
+import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
-
-import static jakarta.persistence.FetchType.LAZY;
 
 @Getter
 @Setter
@@ -19,14 +14,22 @@ import static jakarta.persistence.FetchType.LAZY;
 public class Device {
 
     @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "hardware_device_id")
     private Long deviceHardwareId;
-    @MapsId
-    @OneToOne(fetch = LAZY)
+    @OneToOne(mappedBy = "device")
     private Room room;
 
     public Device(Long deviceHardwareId, Room room) {
         this.deviceHardwareId = deviceHardwareId;
         this.room = room;
+    }
+
+    public void removeRoom() {
+        if (this.room != null) {
+            this.room.removeDevice();
+            this.room = null;
+        }
     }
 }

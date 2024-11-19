@@ -1,11 +1,10 @@
 package com.bio.bio_backend.model;
 
 import jakarta.persistence.*;
-import lombok.*;
-
-import static jakarta.persistence.EnumType.STRING;
-import static jakarta.persistence.FetchType.LAZY;
-import static jakarta.persistence.GenerationType.IDENTITY;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 @Getter
 @Setter
@@ -15,13 +14,14 @@ import static jakarta.persistence.GenerationType.IDENTITY;
 public class Fingerprint {
 
     @Id
-    @GeneratedValue(strategy = IDENTITY)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
+    @Column(name = "token")
     private String token;
-    @Enumerated(STRING)
+    @Enumerated(EnumType.STRING)
+    @Column(name = "type")
     private FingerType fingerType;
-
-    @ManyToOne(fetch = LAZY)
+    @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "user_id")
     private User user;
 
