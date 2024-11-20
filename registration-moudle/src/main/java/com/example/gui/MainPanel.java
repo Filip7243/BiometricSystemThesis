@@ -1,6 +1,8 @@
 package com.example.gui;
 
 import com.example.FingersTools;
+import com.example.gui.tabs.AddUserTab;
+import com.example.gui.tabs.RoomAssignmentForm;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -52,6 +54,10 @@ public final class MainPanel extends JPanel implements ChangeListener {
         this.menageBuildingsRoomsTab = new MenageBuildingsRoomsTab();
         this.menageBuildingsRoomsTab.init();
         this.tabbedPane.addTab("Menage Buildings", this.menageBuildingsRoomsTab);
+
+        AddUserTab uif = new AddUserTab();
+        uif.init();
+        this.tabbedPane.addTab("Add User", uif);
 
         add(tabbedPane);
         setPreferredSize(new Dimension(880, 780));
