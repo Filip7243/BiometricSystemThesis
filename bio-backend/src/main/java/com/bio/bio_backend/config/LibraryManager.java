@@ -1,14 +1,24 @@
 package com.bio.bio_backend.config;
 
+import org.springframework.core.io.ClassPathResource;
+import org.springframework.core.io.Resource;
+
+import java.io.IOException;
+import java.io.InputStream;
 import java.lang.reflect.Field;
 import java.net.URISyntaxException;
 import java.net.URL;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.StandardCopyOption;
+import java.util.Arrays;
 
 import static com.neurotec.samples.util.Utils.PATH_SEPARATOR;
 import static com.neurotec.samples.util.Utils.isNullOrEmpty;
 import static java.lang.String.format;
 import static java.lang.System.getProperty;
 import static java.lang.System.setProperty;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public final class LibraryManager {
     private final static String NATIVE_FOLDER_NAME = "native";

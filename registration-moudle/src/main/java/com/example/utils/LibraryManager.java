@@ -9,7 +9,7 @@ import static java.lang.String.format;
 import static java.lang.System.getProperty;
 
 public final class LibraryManager {
-    private final static String LIBS_FOLDER_NAME = "libs";
+    private final static String NATIVE_FOLDER_NAME = "native";
 
     public static void initLibraryPath() {
         String libraryPath = getLibraryPath();
@@ -28,7 +28,7 @@ public final class LibraryManager {
 
     private static String getLibraryPath() {
         try {
-            URL resourceUrl = LibraryManager.class.getClassLoader().getResource(LIBS_FOLDER_NAME);
+            URL resourceUrl = LibraryManager.class.getClassLoader().getResource(NATIVE_FOLDER_NAME);
             if (resourceUrl != null) {
                 return resourceUrl.toURI().getPath();
             }
