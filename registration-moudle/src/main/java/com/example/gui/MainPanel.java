@@ -2,7 +2,7 @@ package com.example.gui;
 
 import com.example.FingersTools;
 import com.example.gui.tabs.AddUserTab;
-import com.example.gui.tabs.RoomAssignmentForm;
+import com.example.gui.tabs.ManageBuildingsRoomsTab;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -19,7 +19,8 @@ public final class MainPanel extends JPanel implements ChangeListener {
     private RegisterUserTab registerUserTab;
     private MenageDevicesTab menageDevicesTab;
     private MenageBuildingsRoomsTab menageBuildingsRoomsTab;
-    private AddUserTab uif;
+    private AddUserTab addUserTab;
+    private ManageBuildingsRoomsTab manageBuildingsRoomsTab;
 
     public MainPanel() {
         super(new GridLayout(1, 1));
@@ -56,9 +57,13 @@ public final class MainPanel extends JPanel implements ChangeListener {
         this.menageBuildingsRoomsTab.init();
         this.tabbedPane.addTab("Menage Buildings", this.menageBuildingsRoomsTab);
 
-        uif = new AddUserTab();
-        uif.init();
-        this.tabbedPane.addTab("Add User", uif);
+        addUserTab = new AddUserTab();
+        addUserTab.init();
+        this.tabbedPane.addTab("Add User", addUserTab);
+
+        manageBuildingsRoomsTab = new ManageBuildingsRoomsTab((JFrame) (getParent()));
+        manageBuildingsRoomsTab.init();
+        this.tabbedPane.addTab("Manage Buildings and Rooms", manageBuildingsRoomsTab);
 
         add(tabbedPane);
         setPreferredSize(new Dimension(880, 780));
@@ -81,9 +86,9 @@ public final class MainPanel extends JPanel implements ChangeListener {
                     menageDevicesTab.getBuildingRoomsPanel().updateBuildingList();
                     menageDevicesTab.getBuildingRoomsPanel().updateRoomList();
                 } else if (pane.getSelectedComponent() instanceof AddUserTab) {
-                    obtainLicenses(menageDevicesTab);
-                    uif.updateFingersTools();
-                    uif.getScannersListPanel().updateScannerList();
+                    obtainLicenses(addUserTab);
+                    addUserTab.updateFingersTools();
+                    addUserTab.getScannersListPanel().updateScannerList();
 //                    uif.getBuildingRoomsPanel().updateBuildingList();
 //                    uif.getBuildingRoomsPanel().updateRoomList();
                 }
