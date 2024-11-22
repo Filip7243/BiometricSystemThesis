@@ -51,19 +51,25 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         btnRefresh.addActionListener(this);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(5, 5, 5, 5);
 
         gbc.gridx = 0;
         gbc.gridy = 0;
         gbc.gridwidth = 2;
+        gbc.fill = GridBagConstraints.BOTH;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+
         JScrollPane scrollPaneList = new JScrollPane(listScanners);
-        scrollPaneList.setPreferredSize(new Dimension(0, 90));
+        scrollPaneList.setPreferredSize(new Dimension(scrollPaneList.getPreferredSize().width, 50));
         add(scrollPaneList, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 1;
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+        gbc.weightx = 0;
+        gbc.weighty = 0;
         add(cmbFingers, gbc);
 
         gbc.gridx = 1;
@@ -72,11 +78,7 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         add(btnRefresh, gbc);
     }
 
-    private NFingerScanner getSelectedScanner() {
-        return (NFingerScanner) listScanners.getSelectedValue();
-    }
-
-    void updateScannerList() {
+    public void updateScannerList() {
         DefaultListModel<NDevice> model = (DefaultListModel<NDevice>) listScanners.getModel();
         model.clear();
 
@@ -92,6 +94,14 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         }
     }
 
+    public void hideFingersCombo() {
+        cmbFingers.setVisible(false);
+    }
+
+    private NFingerScanner getSelectedScanner() {
+        return (NFingerScanner) listScanners.getSelectedValue();
+    }
+
     @Override
     public void actionPerformed(ActionEvent e) {
         if (e.getSource() == btnRefresh) {
@@ -104,9 +114,5 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         public void valueChanged(ListSelectionEvent e) {
             FingersTools.getInstance().getClient().setFingerScanner(getSelectedScanner());
         }
-    }
-
-    void hideFingersCombo() {
-        cmbFingers.setVisible(false);
     }
 }

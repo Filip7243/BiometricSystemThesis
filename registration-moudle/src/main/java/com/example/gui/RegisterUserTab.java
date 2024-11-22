@@ -233,6 +233,7 @@ public final class RegisterUserTab extends BasePanel implements ActionListener {
 
         @Override
         public void failed(final Throwable throwable, final Object attachment) {
+            System.out.println("ESSSA!");
             SwingUtilities.invokeLater(() -> {
                 scanning = false;
                 fingerViewPanel.updateShownImage();

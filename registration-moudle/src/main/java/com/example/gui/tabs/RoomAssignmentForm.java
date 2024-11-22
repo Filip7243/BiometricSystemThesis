@@ -1,5 +1,13 @@
 package com.example.gui.tabs;
 
+import com.example.FingersTools;
+import com.example.client.dto.BuildingDTO;
+import com.example.client.dto.RoomDTO;
+import com.example.model.Building;
+import com.example.model.Room;
+import com.neurotec.devices.NDevice;
+import com.neurotec.devices.NFingerScanner;
+
 import javax.swing.*;
 import java.awt.*;
 import java.awt.event.ActionEvent;
@@ -10,28 +18,32 @@ import java.util.List;
 import java.util.Map;
 
 public class RoomAssignmentForm extends JPanel {
-    private JList<String> buildingList;
-    private JList<String> roomList;
+    // TODO: change to models
+    private JList<BuildingDTO> buildingList;
+    private JList<RoomDTO> roomList;
     private JTextArea selectionSummary;
     private JButton btnAssignRoom, btnRemoveRoom;
 
-    private Map<String, List<String>> buildingRoomMap, selectedRooms;
+    private Map<BuildingDTO, List<RoomDTO>> buildingRoomMap, selectedRooms;
 
-    public RoomAssignmentForm() {
+    public RoomAssignmentForm(List<BuildingDTO> buildingsWithRooms) {
         setLayout(new BorderLayout());
-
-        initializeData();
 
         selectedRooms = new HashMap<>();
 
-        buildingList = new JList<>(buildingRoomMap.keySet().toArray(new String[0]));
+        initializeData(buildingsWithRooms);
+
+        buildingList = new JList<>(buildingRoomMap.keySet().toArray(new BuildingDTO[0]));
+//        buildingList = new JList<>();
         buildingList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         buildingList.addListSelectionListener(e -> updateRoomList());
+        buildingList.setCellRenderer(new BuildingRenderer());
         JScrollPane buildingScrollPane = new JScrollPane(buildingList);
         buildingScrollPane.setBorder(BorderFactory.createTitledBorder("Buildings"));
 
         roomList = new JList<>();
         roomList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
+        roomList.setCellRenderer(new RoomRenderer());
         JScrollPane roomScrollPane = new JScrollPane(roomList);
         roomScrollPane.setBorder(BorderFactory.createTitledBorder("Rooms"));
 
@@ -71,34 +83,47 @@ public class RoomAssignmentForm extends JPanel {
         return btnRemoveRoom;
     }
 
-    Map<String, List<String>> getBuildingRoomMap() {
+    Map<BuildingDTO, List<RoomDTO>> getBuildingRoomMap() {
         return buildingRoomMap;
     }
 
-    Map<String, List<String>> getSelectedRooms() {
+    Map<BuildingDTO, List<RoomDTO>> getSelectedRooms() {
         return selectedRooms;
     }
 
-    private void initializeData() {
+    private void initializeData(List<BuildingDTO> buildingsWithRooms) {
         buildingRoomMap = new HashMap<>();
-        buildingRoomMap.put("Building A", List.of("Room 101", "Room 102", "Room 103"));
-        buildingRoomMap.put("Building B", List.of("Room 201", "Room 202", "Room 203", "Room 204"));
-        buildingRoomMap.put("Building C", List.of("Room 301", "Room 302"));
+
+        buildingsWithRooms.forEach(building -> buildingRoomMap.put(building, building.rooms()));
     }
 
     private void updateRoomList() {
-        String selectedBuilding = buildingList.getSelectedValue();
+        BuildingDTO selectedBuilding = buildingList.getSelectedValue();
         if (selectedBuilding != null) {
-            List<String> rooms = buildingRoomMap.get(selectedBuilding);
-            roomList.setListData(rooms.toArray(new String[0]));
+            List<RoomDTO> rooms = buildingRoomMap.get(selectedBuilding);
+            roomList.setListData(rooms.toArray(new RoomDTO[0]));
         }
     }
+
+    private void updateSelectionSummary() {
+        StringBuilder summary = new StringBuilder();
+        for (Map.Entry<BuildingDTO, List<RoomDTO>> entry : selectedRooms.entrySet()) {
+            summary.append(entry.getKey().buildingNumber()).append(": ");
+            for (RoomDTO room : entry.getValue()) {
+                summary.append(room.roomNumber()).append(", ");
+            }
+            summary.setLength(summary.length() - 2); // Remove last comma
+            summary.append("\n");
+        }
+        selectionSummary.setText(summary.toString());
+    }
+
 
     private class AssignButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String selectedBuilding = buildingList.getSelectedValue();
-            List<String> selectedRoomList = roomList.getSelectedValuesList();
+            BuildingDTO selectedBuilding = buildingList.getSelectedValue();
+            List<RoomDTO> selectedRoomList = roomList.getSelectedValuesList();
 
             if (selectedBuilding == null || selectedRoomList.isEmpty()) {
                 JOptionPane.showMessageDialog(RoomAssignmentForm.this,
@@ -116,19 +141,19 @@ public class RoomAssignmentForm extends JPanel {
     private class RemoveButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
-            String selectedBuilding = buildingList.getSelectedValue();
-            List<String> selectedRoom = roomList.getSelectedValuesList();
+            BuildingDTO selectedBuilding = buildingList.getSelectedValue();
+            List<RoomDTO> selectedRoomList = roomList.getSelectedValuesList();
 
-            if (selectedBuilding == null || selectedRoom == null || selectedRoom.isEmpty()) {
+            if (selectedBuilding == null || selectedRoomList.isEmpty()) {
                 JOptionPane.showMessageDialog(RoomAssignmentForm.this,
-                        "Please select a room from the selection summary to remove.",
+                        "Please select a room to remove.",
                         "Error", JOptionPane.ERROR_MESSAGE);
                 return;
             }
 
-            List<String> roomsInBuilding = selectedRooms.get(selectedBuilding);
+            List<RoomDTO> roomsInBuilding = selectedRooms.get(selectedBuilding);
             if (roomsInBuilding != null) {
-                roomsInBuilding.removeAll(selectedRoom);
+                roomsInBuilding.removeAll(selectedRoomList);
                 if (roomsInBuilding.isEmpty()) {
                     selectedRooms.remove(selectedBuilding);
                 }
@@ -138,11 +163,25 @@ public class RoomAssignmentForm extends JPanel {
         }
     }
 
-    private void updateSelectionSummary() {
-        StringBuilder summary = new StringBuilder();
-        for (Map.Entry<String, List<String>> entry : selectedRooms.entrySet()) {
-            summary.append(entry.getKey()).append(": ").append(entry.getValue()).append("\n");
+    private static class BuildingRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                      boolean isSelected, boolean cellHasFocus) {
+            if (value instanceof BuildingDTO building) {
+                value = building.buildingNumber();
+            }
+            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
         }
-        selectionSummary.setText(summary.toString());
+    }
+
+    private static class RoomRenderer extends DefaultListCellRenderer {
+        @Override
+        public Component getListCellRendererComponent(JList<?> list, Object value, int index,
+                                                      boolean isSelected, boolean cellHasFocus) {
+            if (value instanceof RoomDTO room) {
+                value = room.roomNumber();
+            }
+            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+        }
     }
 }

@@ -19,6 +19,7 @@ public final class MainPanel extends JPanel implements ChangeListener {
     private RegisterUserTab registerUserTab;
     private MenageDevicesTab menageDevicesTab;
     private MenageBuildingsRoomsTab menageBuildingsRoomsTab;
+    private AddUserTab uif;
 
     public MainPanel() {
         super(new GridLayout(1, 1));
@@ -55,7 +56,7 @@ public final class MainPanel extends JPanel implements ChangeListener {
         this.menageBuildingsRoomsTab.init();
         this.tabbedPane.addTab("Menage Buildings", this.menageBuildingsRoomsTab);
 
-        AddUserTab uif = new AddUserTab();
+        uif = new AddUserTab();
         uif.init();
         this.tabbedPane.addTab("Add User", uif);
 
@@ -79,6 +80,12 @@ public final class MainPanel extends JPanel implements ChangeListener {
                     menageDevicesTab.getScannersListPanel().updateScannerList();
                     menageDevicesTab.getBuildingRoomsPanel().updateBuildingList();
                     menageDevicesTab.getBuildingRoomsPanel().updateRoomList();
+                } else if (pane.getSelectedComponent() instanceof AddUserTab) {
+                    obtainLicenses(menageDevicesTab);
+                    uif.updateFingersTools();
+                    uif.getScannersListPanel().updateScannerList();
+//                    uif.getBuildingRoomsPanel().updateBuildingList();
+//                    uif.getBuildingRoomsPanel().updateRoomList();
                 }
             } catch (IOException ex) {
                 SwingUtilities.invokeLater(() -> {

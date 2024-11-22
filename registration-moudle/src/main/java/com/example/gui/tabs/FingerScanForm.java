@@ -101,7 +101,7 @@ public class FingerScanForm extends JPanel {
         return btnCancelIndexScan;
     }
 
-    public JButton getBtnCancelMiddleScan() {
+    JButton getBtnCancelMiddleScan() {
         return btnCancelMiddleScan;
     }
 
@@ -111,6 +111,10 @@ public class FingerScanForm extends JPanel {
 
     void setScanning(boolean scanning) {
         isScanning = scanning;
+    }
+
+    boolean areAllFingersScanned() {
+        return thumbView.getFinger() != null && indexView.getFinger() != null && middleView.getFinger() != null;
     }
 
     private JPanel createFingerPanel(String title, NFingerView view, JButton scanBtn, JButton cancelBtn) {

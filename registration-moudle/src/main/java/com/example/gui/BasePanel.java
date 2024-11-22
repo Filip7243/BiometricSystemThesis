@@ -42,6 +42,7 @@ public abstract class BasePanel extends JPanel {
             StringBuilder sb = new StringBuilder(64);
             sb.append("Execution resulted in one or more errors:\n");
             for (Throwable cause : ((AggregateExecutionException) e).getCauses()) {
+                System.out.println(cause.getCause());
                 sb.append(cause.toString()).append('\n');
             }
             SwingUtilities.invokeLater(() -> JOptionPane.showMessageDialog(this, sb.toString(),
