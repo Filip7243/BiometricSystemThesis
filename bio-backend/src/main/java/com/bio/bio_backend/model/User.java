@@ -1,15 +1,13 @@
 package com.bio.bio_backend.model;
 
 import jakarta.persistence.*;
-import lombok.*;
+import lombok.AllArgsConstructor;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import lombok.Setter;
 
 import java.util.HashSet;
 import java.util.Set;
-
-import static jakarta.persistence.CascadeType.MERGE;
-import static jakarta.persistence.CascadeType.PERSIST;
-import static jakarta.persistence.EnumType.STRING;
-import static jakarta.persistence.GenerationType.IDENTITY;
 
 @Getter
 @Setter
@@ -32,7 +30,6 @@ public class User {
     private Role role;
     @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     private Set<Fingerprint> fingerprints = new HashSet<>();
-
     @ManyToMany
     @JoinTable(
             name = "users_rooms",
@@ -54,7 +51,9 @@ public class User {
     }
 
     public void removeRoomFromUser(Room room) {
+        System.out.println("ROOM: " + room);
         rooms.remove(room);
         room.getUsers().remove(this);
+        System.out.println("TUTAJ JESTEM");
     }
 }

@@ -16,8 +16,9 @@ public class Fingerprint {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "token")
-    private String token;
+    @Lob
+    @Column(name = "token", columnDefinition = "BLOB")
+    private byte[] token;
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private FingerType fingerType;
@@ -25,7 +26,7 @@ public class Fingerprint {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Fingerprint(String token, FingerType fingerType, User user) {
+    public Fingerprint(byte[] token, FingerType fingerType, User user) {
         this.token = token;
         this.fingerType = fingerType;
         this.user = user;

@@ -41,9 +41,23 @@ public class Room {
         this.building = building;
     }
 
+    public Room(String roomNumber, Integer floor, Building building, Device device) {
+        this.roomNumber = roomNumber;
+        this.floor = floor;
+        this.building = building;
+        this.device = device;
+    }
+
     public void removeDevice() {
         if (this.device != null) {
             this.device = null;
         }
+    }
+
+    public void detachUsers() {
+        for (User user : users) {
+            user.getRooms().remove(this);
+        }
+        this.users.clear();
     }
 }

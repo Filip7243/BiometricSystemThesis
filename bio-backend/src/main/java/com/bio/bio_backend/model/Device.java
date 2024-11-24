@@ -17,11 +17,11 @@ public class Device {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
     @Column(name = "hardware_device_id")
-    private Long deviceHardwareId;
+    private String deviceHardwareId;
     @OneToOne(mappedBy = "device")
     private Room room;
 
-    public Device(Long deviceHardwareId, Room room) {
+    public Device(String deviceHardwareId, Room room) {
         this.deviceHardwareId = deviceHardwareId;
         this.room = room;
     }

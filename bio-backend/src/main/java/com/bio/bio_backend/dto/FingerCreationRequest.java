@@ -1,4 +1,6 @@
 package com.bio.bio_backend.dto;
 
-public record FingerCreationRequest() {
+import com.bio.bio_backend.model.FingerType;
+
+public record FingerCreationRequest(byte[] token, FingerType fingerType, Long userId) {
 }
