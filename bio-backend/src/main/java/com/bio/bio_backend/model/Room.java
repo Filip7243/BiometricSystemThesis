@@ -29,7 +29,7 @@ public class Room {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "building_id")
     private Building building;
-    @OneToOne()
+    @OneToOne
     @JoinColumn(name = "device_id", referencedColumnName = "id")
     private Device device;
     @ManyToMany(mappedBy = "rooms")

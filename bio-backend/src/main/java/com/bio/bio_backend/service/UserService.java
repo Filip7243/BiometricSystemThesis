@@ -1,18 +1,24 @@
 package com.bio.bio_backend.service;
 
 import com.bio.bio_backend.dto.FingerprintDTO;
+import com.bio.bio_backend.dto.RoomDTO;
+import com.bio.bio_backend.dto.UpdateUserRequest;
+import com.bio.bio_backend.dto.UserDTO;
 import com.bio.bio_backend.model.*;
 import com.bio.bio_backend.respository.FingerprintRepository;
 import com.bio.bio_backend.respository.RoomRepository;
 import com.bio.bio_backend.respository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
+
+import static java.util.stream.Collectors.toList;
 
 @Service
 @RequiredArgsConstructor
@@ -80,5 +86,80 @@ public class UserService {
         user.getFingerprints().add(fingerprint);
 
         userRepository.save(user);
+    }
+
+    @Transactional(readOnly = true)
+    public List<UserDTO> getAllUsers() {
+        return userRepository.findAll().stream()
+                .map(u -> new UserDTO(
+                        u.getId(),
+                        u.getFirstName(),
+                        u.getLastName(),
+                        u.getPesel(),
+                        u.getRole().name(),
+                        u.getRooms()
+                                .stream()
+                                .map(r -> new RoomDTO(
+                                        r.getId(),
+                                        r.getRoomNumber(),
+                                        r.getFloor(),
+                                        r.getDevice().getDeviceHardwareId()))
+                                .toList(),
+                        u.getFingerprints()
+                                .stream()
+                                .map(f -> new FingerprintDTO(
+                                        f.getId(),
+                                        f.getToken(),
+                                        f.getFingerType().name(),
+                                        f.getUser().getId()))
+                                .toList())
+                ).collect(toList());
+    }
+
+    @Transactional
+    public void updateUser(UpdateUserRequest request) {
+        User user = userRepository.findById(request.id())
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + request.id()));
+
+        user.setFirstName(request.firstName());
+        user.setLastName(request.lastName());
+        user.setPesel(request.pesel());
+        user.setRole(Role.valueOf(request.role()));
+    }
+
+    @Transactional
+    public ResponseEntity<Void> deleteUserWithId(Long id) {
+        if (!userRepository.existsById(id)) {
+            throw new EntityNotFoundException("User not found with id: " + id);
+        }
+
+        System.out.println("User with id: " + id + " deleted");
+        userRepository.deleteById(id);
+        return ResponseEntity.noContent().build();
+    }
+
+    @Transactional(readOnly = true)
+    public List<RoomDTO> getUserRooms(Long userId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+
+        return user.getRooms().stream()
+                .map(r -> new RoomDTO(
+                        r.getId(),
+                        r.getRoomNumber(),
+                        r.getFloor(),
+                        r.getDevice().getDeviceHardwareId()))
+                .toList();
+    }
+
+    @Transactional
+    public void detachUserFromRoom(Long userId, Long roomId) {
+        User user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+
+        Room room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new EntityNotFoundException("Room not found with id: " + roomId));
+
+        user.removeRoomFromUser(room);
     }
 }

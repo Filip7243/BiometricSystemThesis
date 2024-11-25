@@ -1,8 +1,7 @@
 package com.bio.bio_backend.controller;
 
-import com.bio.bio_backend.dto.FingerCreationRequest;
-import com.bio.bio_backend.dto.FingerprintDTO;
-import com.bio.bio_backend.dto.UserCreationRequest;
+import com.bio.bio_backend.dto.*;
+import com.bio.bio_backend.respository.UserRepository;
 import com.bio.bio_backend.service.FingerprintService;
 import com.bio.bio_backend.service.UserService;
 import lombok.RequiredArgsConstructor;
@@ -11,8 +10,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.CREATED;
-import static org.springframework.http.HttpStatus.OK;
+import static org.springframework.http.HttpStatus.*;
 
 @RestController
 @RequiredArgsConstructor
@@ -43,9 +41,37 @@ public class UserController {
         return ResponseEntity.status(CREATED).build();
     }
 
+    // TODO: it not should be here!
     @GetMapping("/fingerprint")
     public ResponseEntity<List<FingerprintDTO>> getAllFingerprints() {
         List<FingerprintDTO> all = fingerprintService.getAllFingerprints();
         return ResponseEntity.status(OK).body(all);
+    }
+
+    @GetMapping
+    public List<UserDTO> getAllUsers() {
+        return userService.getAllUsers();
+    }
+
+    @PutMapping
+    public ResponseEntity<Void> updateUser(@RequestBody UpdateUserRequest request) {
+        userService.updateUser(request);
+        return ResponseEntity.status(OK).build();
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
+        return userService.deleteUserWithId(id);
+    }
+
+    @GetMapping("/{userId}/rooms")
+    public ResponseEntity<List<RoomDTO>> getUserRooms(@PathVariable Long userId) {
+        List<RoomDTO> rooms = userService.getUserRooms(userId);
+        return ResponseEntity.ok(rooms);
+    }
+
+    @PatchMapping("/{userId}/rooms/{roomId}")
+    public void detachUserFromRoom(@PathVariable Long userId, @PathVariable Long roomId) {
+        userService.detachUserFromRoom(userId, roomId);
     }
 }

@@ -1,6 +1,6 @@
 package com.bio.bio_backend.dto;
 
-public record FingerprintDTO(byte[] token, String fingerType, Long userId) {
+public record FingerprintDTO(Long id, byte[] token, String fingerType, Long userId) {
 
     public FingerprintDTO {
         if (token == null || token.length == 0) {

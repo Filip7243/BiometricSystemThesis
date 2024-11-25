@@ -51,9 +51,7 @@ public class User {
     }
 
     public void removeRoomFromUser(Room room) {
-        System.out.println("ROOM: " + room);
         rooms.remove(room);
         room.getUsers().remove(this);
-        System.out.println("TUTAJ JESTEM");
     }
 }

@@ -11,7 +11,6 @@ public record RoomDTO(Long roomId, String roomNumber, Integer floor, String hard
         }
 
         if (floor == null || floor < 0) {
-            System.out.println("FLOOR: " + floor);
             throw new IllegalArgumentException("Floor number must be a positive integer.");
         }
     }

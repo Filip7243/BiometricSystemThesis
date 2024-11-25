@@ -2,6 +2,7 @@ package com.bio.bio_backend.service;
 
 import com.bio.bio_backend.dto.FingerCreationRequest;
 import com.bio.bio_backend.dto.FingerprintDTO;
+import com.bio.bio_backend.dto.UpdateFingerprintRequest;
 import com.bio.bio_backend.model.Fingerprint;
 import com.bio.bio_backend.respository.FingerprintRepository;
 import com.bio.bio_backend.respository.UserRepository;
@@ -28,11 +29,19 @@ public class FingerprintService {
         fingerprintRepository.save(fingerprint);
     }
 
+    @Transactional
+    public void updateFingerprint(UpdateFingerprintRequest request) {
+        var fingerprint = fingerprintRepository.findById(request.id())
+                .orElseThrow(() -> new IllegalArgumentException("Fingerprint with id " + request.id() + " not found"));
+
+        fingerprint.setToken(request.token());
+    }
+
 
     public List<FingerprintDTO> getAllFingerprints() {
         return fingerprintRepository.findAll()
                 .stream()
-                .map(f -> new FingerprintDTO(f.getToken(), f.getFingerType().name(), f.getUser().getId()))
+                .map(f -> new FingerprintDTO(f.getId(), f.getToken(), f.getFingerType().name(), f.getUser().getId()))
                 .toList();
     }
 }
