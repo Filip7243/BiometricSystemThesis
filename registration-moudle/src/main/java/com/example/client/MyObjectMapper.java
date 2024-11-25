@@ -14,7 +14,8 @@ public class MyObjectMapper {
             synchronized (MyObjectMapper.class) {
                 if (instance == null) {
                     instance = new ObjectMapper()
-                            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
+                            .configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false)
+                            .configure(DeserializationFeature.FAIL_ON_NULL_CREATOR_PROPERTIES, false);
                 }
             }
         }

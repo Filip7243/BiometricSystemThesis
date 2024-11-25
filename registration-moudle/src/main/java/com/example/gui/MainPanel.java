@@ -3,6 +3,7 @@ package com.example.gui;
 import com.example.FingersTools;
 import com.example.gui.tabs.AddUserTab;
 import com.example.gui.tabs.ManageBuildingsRoomsTab;
+import com.example.gui.tabs.ManageUsersTab;
 
 import javax.swing.*;
 import javax.swing.event.ChangeEvent;
@@ -21,6 +22,7 @@ public final class MainPanel extends JPanel implements ChangeListener {
     private MenageBuildingsRoomsTab menageBuildingsRoomsTab;
     private AddUserTab addUserTab;
     private ManageBuildingsRoomsTab manageBuildingsRoomsTab;
+    private ManageUsersTab manageUsersTab;
 
     public MainPanel() {
         super(new GridLayout(1, 1));
@@ -64,6 +66,10 @@ public final class MainPanel extends JPanel implements ChangeListener {
         manageBuildingsRoomsTab = new ManageBuildingsRoomsTab((JFrame) (getParent()));
         manageBuildingsRoomsTab.init();
         this.tabbedPane.addTab("Manage Buildings and Rooms", manageBuildingsRoomsTab);
+
+        manageUsersTab = new ManageUsersTab();
+        manageUsersTab.init();
+        this.tabbedPane.addTab("Manage Users", manageUsersTab);
 
         add(tabbedPane);
         setPreferredSize(new Dimension(880, 780));
