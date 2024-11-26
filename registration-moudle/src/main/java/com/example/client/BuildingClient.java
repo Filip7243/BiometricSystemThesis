@@ -96,6 +96,28 @@ public class BuildingClient {
 
     // TODO: add BASIC URL CONST
 
+    public List<BuildingDTO> getAllBuildingsNotAssignedToUser(Long id) {
+        try {
+            System.out.println("ID: " + id);
+            HttpRequest request = createGetAllBuildingsNotAssignedToUserRequest(id);
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to retrieve buildings. Status code: " + response.statusCode());
+            }
+
+            System.out.println("HERE: " + response.body());
+            return objectMapper.readValue(
+                    response.body(),
+                    new TypeReference<>() {
+                    }
+            );
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static HttpRequest createGetAllBuildingsRequest() {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/buildings"))
@@ -122,6 +144,14 @@ public class BuildingClient {
     private static HttpRequest createGetBuildingByIdRequest(Long id) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/buildings/" + id))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+    }
+
+    private static HttpRequest createGetAllBuildingsNotAssignedToUserRequest(Long id) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/buildings/rooms/not-assigned/" + id))
                 .header("Accept", "application/json")
                 .GET()
                 .build();

@@ -1,22 +1,22 @@
 package com.example.gui.tabs;
 
+import com.example.client.BuildingClient;
+import com.example.client.RoomClient;
 import com.example.client.UserClient;
-import com.example.client.dto.FingerprintDTO;
-import com.example.client.dto.RoomDTO;
-import com.example.client.dto.UpdateUserRequest;
-import com.example.client.dto.UserDTO;
+import com.example.client.dto.*;
 import com.example.gui.BasePanel;
 import com.example.model.Role;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
 import javax.swing.table.TableCellRenderer;
+import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.ArrayList;
+import java.util.*;
 import java.util.List;
-import java.util.Objects;
 import java.util.concurrent.ExecutionException;
+import java.util.stream.Collectors;
 
 import static java.awt.BorderLayout.CENTER;
 import static java.awt.BorderLayout.NORTH;
@@ -27,9 +27,12 @@ import static java.awt.Font.BOLD;
 public class ManageUsersTab extends BasePanel implements ActionListener {
 
     private final UserClient userClient = new UserClient();
+    private final BuildingClient buildingClient = new BuildingClient();
+    private final RoomClient roomClient = new RoomClient();
     private DefaultTableModel userTableModel;
     private JTable userTable;
     private final List<UserDTO> users = new ArrayList<>();
+    private JTable roomTable;
 
     @Override
     protected void initGUI() {
@@ -331,7 +334,7 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
 
         DefaultTableModel roomModel = new DefaultTableModel(
                 new Object[]{"ID", "Room Number", "Floor", "Detach User"}, 0);
-        JTable roomTable = new JTable(roomModel);
+        roomTable = new JTable(roomModel);
         roomTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer("Delete"));
 
         roomTable.addMouseListener(new MouseAdapter() {
@@ -392,19 +395,134 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
 
         JButton closeButton = new JButton("Close");
         closeButton.addActionListener(e -> dialog.dispose());
+        JButton addRoomsButton = new JButton("Add Rooms");
+        addRoomsButton.addActionListener(e -> addRoomToUser(user));
+
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
         buttonPanel.add(closeButton);
+        buttonPanel.add(addRoomsButton);
+
         mainPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         dialog.add(mainPanel);
         dialog.setVisible(true);
     }
 
-    private void detachUserFromRoom(Long userId, Long roomId) {
+    private void addRoomToUser(UserDTO user) {
+        JDialog assignRoomDialog = new JDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                "Assign Rooms to " + user.firstName() + " " + user.lastName(),
+                true
+        );
+        assignRoomDialog.setSize(800, 600);
+        assignRoomDialog.setLocationRelativeTo(this);
+
+        JPanel mainPanel = new JPanel(new BorderLayout());
+
+        // Create table model for buildings and rooms
+        DefaultTableModel buildingRoomModel = new DefaultTableModel(
+                new Object[]{"Building", "Building ID", "Room ID", "Room Number", "Floor", "Assign"}, 0
+        ) {
+            @Override
+            public boolean isCellEditable(int row, int column) {
+                return false;
+            }
+        };
+
+        JTable buildingRoomTable = new JTable(buildingRoomModel);
+
+        // Custom renderer and editor for the "Assign" column
+        buildingRoomTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Assign"));
+
+        buildingRoomTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = buildingRoomTable.rowAtPoint(e.getPoint());
+                int column = buildingRoomTable.columnAtPoint(e.getPoint());
+
+                if (row >= 0 && row < buildingRoomTable.getRowCount() &&
+                        column >= 0 && column < buildingRoomTable.getColumnCount()) {
+                    if (column == 5) { // "Assign" column
+                        Long roomId = (Long) buildingRoomModel.getValueAt(row, 2);
+                        System.out.println("Assigning room " + roomId + " to user " + user.id());
+                        assignUserToRoom(user.id(), roomId, assignRoomDialog);
+                    }
+                }
+            }
+        });
+
+        // Load buildings and rooms
+        new SwingWorker<List<BuildingDTO>, Void>() {
+            @Override
+            protected List<BuildingDTO> doInBackground() {
+                System.out.println("Loading buidlings...");
+                return buildingClient.getAllBuildingsNotAssignedToUser(user.id());
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    System.out.println("Im done!");
+                    List<BuildingDTO> buildings = get();
+                    System.out.println(buildings);
+                    Set<Long> assignedRoomIds = userClient.getUserRooms(user.id())
+                            .stream()
+                            .map(RoomDTO::roomId)
+                            .collect(Collectors.toSet());
+
+                    for (BuildingDTO building : buildings) {
+                        for (RoomDTO room : building.rooms()) {
+                            if (!assignedRoomIds.contains(room.roomId())) {
+                                buildingRoomModel.addRow(new Object[]{
+                                        building.buildingNumber(),
+                                        building.id(),
+                                        room.roomId(),
+                                        room.roomNumber(),
+                                        room.floor(),
+                                        "Assign"
+                                });
+                            }
+                        }
+                    }
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(
+                            ManageUsersTab.this,
+                            "Error loading buildings and rooms: " + ex.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    ex.printStackTrace();
+                }
+            }
+        }.execute();
+
+        // Table with scrollpane
+        JScrollPane scrollPane = new JScrollPane(buildingRoomTable);
+
+        TableRowSorter<DefaultTableModel> sorter = new TableRowSorter<>(buildingRoomModel);
+        buildingRoomTable.setRowSorter(sorter);
+
+        mainPanel.add(scrollPane, BorderLayout.CENTER);
+
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> assignRoomDialog.dispose());
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+        buttonPanel.add(closeButton);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        assignRoomDialog.add(mainPanel);
+        assignRoomDialog.setVisible(true);
+    }
+
+    // TODO: refactor code, zamowic malinke dobra, pozniej filtrowanie na kazdej tabeli i srotowanie po kolumnach, filtorwanie danych np. checkbox show only assigned rooms etc
+    // TODO: wysylanie requesta z malinki na backend, identyfikacja odciksu i response do malinki
+
+    private void assignUserToRoom(Long userId, Long roomId, JDialog parentDialog) {
         new SwingWorker<Void, Void>() {
             @Override
             protected Void doInBackground() {
-                userClient.detachUserFromRoom(userId, roomId);  // tODO: dokonczyc to z refreshowanie i dodac btn add rooms to user ;)
+                System.out.println("I'm assigning room " + roomId + " to user " + userId);
+                roomClient.assignRoomToUser(roomId, userId); // Assume this method exists
                 return null;
             }
 
@@ -413,7 +531,99 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
                 try {
                     get();
 
-                    // TODO: refresh user rooms data
+                    DefaultTableModel roomModel = (DefaultTableModel) roomTable.getModel();
+                    roomModel.setRowCount(0);
+
+                    new SwingWorker<List<RoomDTO>, Void>() {
+                        @Override
+                        protected List<RoomDTO> doInBackground() {
+                            return userClient.getUserRooms(userId);
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                List<RoomDTO> rooms = get();
+                                System.out.println("REFRESHED USER ROOMS: " + rooms);
+                                for (RoomDTO room : rooms) {
+                                    roomModel.addRow(new Object[]{
+                                            room.roomId(),
+                                            room.roomNumber(),
+                                            room.floor()
+                                    });
+                                }
+
+                                // Close the assign room dialog
+                                parentDialog.dispose();
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(
+                                        ManageUsersTab.this,
+                                        "Error refreshing user rooms: " + ex.getMessage(),
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE
+                                );
+                                ex.printStackTrace();
+                            }
+                        }
+                    }.execute();
+
+                } catch (InterruptedException | ExecutionException e) {
+                    JOptionPane.showMessageDialog(
+                            ManageUsersTab.this,
+                            "Error assigning user to room: " + e.getMessage(),
+                            "Error",
+                            JOptionPane.ERROR_MESSAGE
+                    );
+                    e.printStackTrace();
+                }
+            }
+        }.execute();
+    }
+
+    private void detachUserFromRoom(Long userId, Long roomId) {
+        new SwingWorker<Void, Void>() {
+            @Override
+            protected Void doInBackground() {
+                userClient.detachUserFromRoom(userId, roomId);
+                return null;
+            }
+
+            @Override
+            protected void done() {
+                try {
+                    get();
+
+                    DefaultTableModel roomModel = (DefaultTableModel) roomTable.getModel();
+                    roomModel.setRowCount(0);
+
+                    new SwingWorker<List<RoomDTO>, Void>() {
+                        @Override
+                        protected List<RoomDTO> doInBackground() {
+                            return userClient.getUserRooms(userId);
+                        }
+
+                        @Override
+                        protected void done() {
+                            try {
+                                List<RoomDTO> rooms = get();
+                                for (RoomDTO room : rooms) {
+                                    roomModel.addRow(new Object[]{
+                                            room.roomId(),
+                                            room.roomNumber(),
+                                            room.floor()
+                                    });
+                                }
+                            } catch (Exception ex) {
+                                JOptionPane.showMessageDialog(
+                                        ManageUsersTab.this,
+                                        "Error refreshing user rooms: " + ex.getMessage(),
+                                        "Error",
+                                        JOptionPane.ERROR_MESSAGE
+                                );
+                                ex.printStackTrace();
+                            }
+                        }
+                    }.execute();
                 } catch (InterruptedException | ExecutionException e) {
                     throw new RuntimeException(e);
                 }

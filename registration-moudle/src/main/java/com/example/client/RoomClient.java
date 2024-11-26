@@ -102,6 +102,23 @@ public class RoomClient {
         }
     }
 
+    public void assignRoomToUser(Long roomId, Long userId) {
+        try {
+            HttpRequest request = createAssignUserToRoomRequest(roomId, userId);
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to assign room to user. Status code: " + response.statusCode());
+            }
+
+            System.out.println("Room assigned to user!");
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Failed to assign room to user");
+            throw new RuntimeException(e);
+        }
+    }
+
     private HttpRequest createDeleteRoomWithIdRequest(Long id) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/rooms/" + id))
@@ -138,6 +155,14 @@ public class RoomClient {
                 .uri(URI.create("http://localhost:8080/api/v1/rooms"))
                 .header("Content-Type", "application/json")
                 .POST(HttpRequest.BodyPublishers.ofString(MyObjectMapper.getInstance().writeValueAsString(request)))
+                .build();
+    }
+
+    private HttpRequest createAssignUserToRoomRequest(Long roomId, Long userId) throws JsonProcessingException {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/rooms/" + roomId + "/users/" + userId + "/assign"))
+                .header("Content-Type", "application/json")
+                .method("PATCH", HttpRequest.BodyPublishers.noBody())
                 .build();
     }
 }
