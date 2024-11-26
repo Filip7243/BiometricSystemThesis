@@ -515,6 +515,7 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
     }
 
     // TODO: refactor code, zamowic malinke dobra, pozniej filtrowanie na kazdej tabeli i srotowanie po kolumnach, filtorwanie danych np. checkbox show only assigned rooms etc
+    // TODO: ladniejsze gui, dporacowac, dodac grafiki, dodac walidacje danych lepsza etc...
     // TODO: wysylanie requesta z malinki na backend, identyfikacja odciksu i response do malinki
 
     private void assignUserToRoom(Long userId, Long roomId, JDialog parentDialog) {
