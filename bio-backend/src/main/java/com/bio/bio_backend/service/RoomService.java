@@ -9,6 +9,7 @@ import com.bio.bio_backend.model.Room;
 import com.bio.bio_backend.respository.BuildingRepository;
 import com.bio.bio_backend.respository.DeviceRepository;
 import com.bio.bio_backend.respository.RoomRepository;
+import com.bio.bio_backend.respository.UserRepository;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
@@ -21,6 +22,7 @@ public class RoomService {
     private final RoomRepository roomRepository;
     private final DeviceRepository deviceRepository;
     private final BuildingRepository buildingRepository;
+    private final UserRepository userRepository;
 
     @Transactional
     public void updateRoomWithId(Long id, UpdateRoomRequest request) {
@@ -86,5 +88,15 @@ public class RoomService {
 
         roomRepository.save(room);
         return new RoomDTO(room.getId(), room.getRoomNumber(), room.getFloor(), room.getDevice().getDeviceHardwareId());
+    }
+
+    @Transactional
+    public void assignRoomToUser(Long roomId, Long userId) {
+        var room = roomRepository.findById(roomId)
+                .orElseThrow(() -> new IllegalArgumentException("Room with id " + roomId + " not found"));
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new IllegalArgumentException("User with id " + userId + " not found"));
+
+        user.addRoomToUser(room);
     }
 }

@@ -43,4 +43,9 @@ public class RoomController {
         return ResponseEntity.status(CREATED)
                 .body(roomService.addRoom(request));
     }
+
+    @PatchMapping("/{roomId}/users/{userId}/assign")
+    public void assignUserToRoom(@PathVariable Long roomId, @PathVariable Long userId) {
+        roomService.assignRoomToUser(roomId, userId);
+    }
 }

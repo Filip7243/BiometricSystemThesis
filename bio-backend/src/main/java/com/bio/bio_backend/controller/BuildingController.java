@@ -9,8 +9,6 @@ import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
 
-import static org.springframework.http.HttpStatus.CREATED;
-
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/buildings")
@@ -37,5 +35,11 @@ public class BuildingController {
     @GetMapping("/{id}")
     public ResponseEntity<BuildingDTO> getBuildingById(@PathVariable Long id) {
         return ResponseEntity.ok(buildingService.getBuildingById(id));
+    }
+
+    @GetMapping("/rooms/not-assigned/{userId}")
+    public ResponseEntity<List<BuildingDTO>> getAllBuildingsNotAssignedToUser(@PathVariable Long userId) {
+        List<BuildingDTO> all = buildingService.getAllBuildingsNotAssignedToUser(userId);
+        return ResponseEntity.ok(all);
     }
 }
