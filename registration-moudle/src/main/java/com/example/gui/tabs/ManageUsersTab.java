@@ -3,9 +3,12 @@ package com.example.gui.tabs;
 import com.example.client.BuildingClient;
 import com.example.client.RoomClient;
 import com.example.client.UserClient;
-import com.example.client.dto.*;
+import com.example.client.UserService;
+import com.example.client.dto.BuildingDTO;
+import com.example.client.dto.FingerprintDTO;
+import com.example.client.dto.RoomDTO;
+import com.example.client.dto.UserDTO;
 import com.example.gui.BasePanel;
-import com.example.model.Role;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableModel;
@@ -13,8 +16,9 @@ import javax.swing.table.TableCellRenderer;
 import javax.swing.table.TableRowSorter;
 import java.awt.*;
 import java.awt.event.*;
-import java.util.*;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Set;
 import java.util.concurrent.ExecutionException;
 import java.util.stream.Collectors;
 
@@ -29,9 +33,11 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
     private final UserClient userClient = new UserClient();
     private final BuildingClient buildingClient = new BuildingClient();
     private final RoomClient roomClient = new RoomClient();
+    private final List<UserDTO> users = new ArrayList<>();
+    private final UserService userService = new UserService(userClient);
+
     private DefaultTableModel userTableModel;
     private JTable userTable;
-    private final List<UserDTO> users = new ArrayList<>();
     private JTable roomTable;
 
     @Override
@@ -89,35 +95,18 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
         add(new JScrollPane(userTable), CENTER);
 
         setDefaultValues();
-        System.out.println("ESSA!");
     }
 
     @Override
     protected void setDefaultValues() {
-        SwingWorker<List<UserDTO>, Void> worker = new SwingWorker<>() {
-            @Override
-            protected List<UserDTO> doInBackground() {
-                return userClient.getAllUsers();
-            }
-
-            @Override
-            protected void done() {
-                try {
+        userService.getAllUsers(
+                (result) -> {
                     users.clear();
-                    users.addAll(get());
+                    users.addAll(result);
                     updateTableData();
-                } catch (Exception ex) {
-                    JOptionPane.showMessageDialog(
-                            ManageUsersTab.this,
-                            "Error loading users: " + ex.getMessage(),
-                            "Error",
-                            JOptionPane.ERROR_MESSAGE
-                    );
-                    ex.printStackTrace();
-                }
-            }
-        };
-        worker.execute();
+                },
+                this
+        );
     }
 
     @Override
@@ -157,100 +146,12 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
     }
 
     private void showEditUserDialog(UserDTO user) {
-        JDialog dialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), "Edit User", true);
-        dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(this);
-
-        JPanel mainPanel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        // Add input fields with existing values
-        JTextField firstNameField = new JTextField(user.firstName(), 20);
-        JTextField lastNameField = new JTextField(user.lastName(), 20);
-        JTextField peselField = new JTextField(user.pesel(), 20);
-        JComboBox<Role> roleCombo = new JComboBox<>(Role.values());
-        roleCombo.setSelectedItem(user.role());
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        mainPanel.add(new JLabel("First Name:"), gbc);
-        gbc.gridx = 1;
-        mainPanel.add(firstNameField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        mainPanel.add(new JLabel("Last Name:"), gbc);
-        gbc.gridx = 1;
-        mainPanel.add(lastNameField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        mainPanel.add(new JLabel("PESEL:"), gbc);
-        gbc.gridx = 1;
-        mainPanel.add(peselField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        mainPanel.add(new JLabel("Role:"), gbc);
-        gbc.gridx = 1;
-        mainPanel.add(roleCombo, gbc);
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        JButton saveButton = new JButton("Save");
-        JButton cancelButton = new JButton("Cancel");
-
-        saveButton.addActionListener(e -> {
-            UpdateUserRequest request = new UpdateUserRequest(
-                    user.id(),
-                    firstNameField.getText().trim(),
-                    lastNameField.getText().trim(),
-                    peselField.getText().trim(),
-                    ((Role) Objects.requireNonNull(roleCombo.getSelectedItem())).name()
-            );
-
-            SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                @Override
-                protected Void doInBackground() {
-                    userClient.updateUser(request);
-
-                    return null;
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        get();
-                        dialog.dispose();
-                        setDefaultValues();
-                        JOptionPane.showMessageDialog(
-                                ManageUsersTab.this,
-                                "User updated successfully",
-                                "Success",
-                                JOptionPane.INFORMATION_MESSAGE
-                        );
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(
-                                dialog,
-                                "Error updating user: " + ex.getMessage(),
-                                "Error",
-                                JOptionPane.ERROR_MESSAGE
-                        );
-                    }
-                }
-            };
-            worker.execute();
-        });
-
-        cancelButton.addActionListener(e -> dialog.dispose());
-
-        buttonPanel.add(saveButton);
-        buttonPanel.add(cancelButton);
-
-        dialog.add(mainPanel, CENTER);
-        dialog.add(buttonPanel, BorderLayout.SOUTH);
-        dialog.setVisible(true);
+        new EditUserDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                user,
+                userService,
+                (result) -> setDefaultValues()
+        );
     }
 
     private void handleDeleteUser(UserDTO user) {
@@ -262,35 +163,11 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
         );
 
         if (confirm == JOptionPane.YES_OPTION) {
-            SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                @Override
-                protected Void doInBackground() {
-                    userClient.deleteUser(user.id());
-                    return null;
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        get();
-                        setDefaultValues();
-                        JOptionPane.showMessageDialog(
-                                ManageUsersTab.this,
-                                "User deleted successfully",
-                                "Success",
-                                JOptionPane.INFORMATION_MESSAGE
-                        );
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(
-                                ManageUsersTab.this,
-                                "Error deleting user: " + ex.getMessage(),
-                                "Error",
-                                JOptionPane.ERROR_MESSAGE
-                        );
-                    }
-                }
-            };
-            worker.execute();
+            userService.deleteUser(
+                    user.id(),
+                    (result) -> setDefaultValues(),
+                    this
+            );
         }
     }
 

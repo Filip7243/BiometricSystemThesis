@@ -19,6 +19,8 @@ import static com.example.model.FingerType.*;
 
 public final class UserClient {
 
+    private static final String USER_API_URL = "http://localhost:8080/api/v1/users";
+
     public void createUser(UserCreationRequest request) {
         try {
             JSONObject fingerprintData = new JSONObject();
@@ -142,7 +144,6 @@ public final class UserClient {
         }
     }
 
-
     public void detachUserFromRoom(Long userId, Long roomId) {
         try {
             HttpRequest request = createDetachUserFromRoomRequest(userId, roomId);
@@ -205,4 +206,5 @@ public final class UserClient {
                 .method("PATCH", HttpRequest.BodyPublishers.noBody())
                 .build();
     }
+
 }

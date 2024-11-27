@@ -5,13 +5,10 @@ import com.example.client.UserClient;
 import com.example.client.dto.FingerprintDTO;
 import com.example.client.dto.UpdateFingerprintRequest;
 import com.example.gui.ScannersListPanel;
-import com.example.model.FingerType;
-import com.example.model.Fingerprint;
 import com.neurotec.biometrics.NBiometricTask;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
 import com.neurotec.biometrics.swing.NFingerView;
-import com.neurotec.devices.NFingerScanner;
 import com.neurotec.util.concurrent.CompletionHandler;
 
 import javax.imageio.ImageIO;
@@ -19,12 +16,9 @@ import javax.swing.*;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
 import java.io.IOException;
-import java.util.Base64;
 import java.util.EnumSet;
 
-import static com.example.utils.FingerProcessor.getFingerTemplate;
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
 import static com.neurotec.biometrics.NBiometricOperation.CREATE_TEMPLATE;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
