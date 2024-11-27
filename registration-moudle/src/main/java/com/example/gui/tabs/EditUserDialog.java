@@ -30,7 +30,7 @@ public class EditUserDialog extends JDialog {
         initComponents();
     }
 
-    public void initComponents() {
+    private void initComponents() {
         setSize(400, 300);
         setLocationRelativeTo(null);
 
