@@ -33,7 +33,7 @@ public class BuildingService {
     }
 
     public void saveBuilding(CreateBuildingRequest request,
-                             Consumer<CreateBuildingRequest> onSuccess,
+                             Consumer<BuildingDTO> onSuccess,
                              Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> buildingClient.saveBuilding(request),

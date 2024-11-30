@@ -6,41 +6,41 @@ import java.awt.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
-public class BaseResourceWorker<T> extends SwingWorker<T, Void> {
-    private final Callable<T> backgroundTask;
-    private final Consumer<T> successHandler;
+public class BaseResourceWorker<T, R> extends SwingWorker<R, Void> {
+    private final Callable<R> requestTask;
+    private final Consumer<R> responseHandler;
     private final Consumer<Exception> errorHandler;
 
     /**
-     * Comprehensive constructor for flexible resource operations
+     * Comprehensive constructor for flexible API request operations
      *
-     * @param backgroundTask The main task to be executed in background
-     * @param successHandler Callback for successful completion
-     * @param errorHandler   Callback for error handling
+     * @param requestTask     The main task to be executed in background
+     * @param responseHandler Callback for successful completion
+     * @param errorHandler    Callback for error handling
      */
     public BaseResourceWorker(
-            Callable<T> backgroundTask,
-            Consumer<T> successHandler,
+            Callable<R> requestTask,
+            Consumer<R> responseHandler,
             Consumer<Exception> errorHandler) {
-        this.backgroundTask = backgroundTask;
-        this.successHandler = successHandler;
+        this.requestTask = requestTask;
+        this.responseHandler = responseHandler;
         this.errorHandler = errorHandler;
     }
 
     /**
      * Simplified constructor with default error handling
      *
-     * @param backgroundTask  The main task to be executed in background
-     * @param successHandler  Callback for successful completion
+     * @param requestTask     The main task to be executed in background
+     * @param responseHandler Callback for successful completion
      * @param parentComponent Parent component for error dialogs
      */
     public BaseResourceWorker(
-            Callable<T> backgroundTask,
-            Consumer<T> successHandler,
+            Callable<R> requestTask,
+            Consumer<R> responseHandler,
             Component parentComponent) {
         this(
-                backgroundTask,
-                successHandler,
+                requestTask,
+                responseHandler,
                 ex -> SwingUtilities.invokeLater(() ->
                         JOptionPane.showMessageDialog(
                                 parentComponent,
@@ -52,23 +52,19 @@ public class BaseResourceWorker<T> extends SwingWorker<T, Void> {
         );
     }
 
-
-
     @Override
-    protected T doInBackground() throws Exception {
-//        LOGGER.info("Starting background task");
-        return backgroundTask.call();
+    protected R doInBackground() throws Exception {
+        return requestTask.call();
     }
 
     @Override
     protected void done() {
         try {
-            T result = get();
-            if (successHandler != null) {
-                SwingUtilities.invokeLater(() -> successHandler.accept(result));
+            R result = get();
+            if (responseHandler != null) {
+                SwingUtilities.invokeLater(() -> responseHandler.accept(result));
             }
         } catch (Exception ex) {
-//            LOGGER.log(Level.SEVERE, "Background task failed", ex);
             if (errorHandler != null) {
                 SwingUtilities.invokeLater(() -> errorHandler.accept(ex));
             }
@@ -78,13 +74,13 @@ public class BaseResourceWorker<T> extends SwingWorker<T, Void> {
     /**
      * Convenience method to execute a background task
      */
-    public static <T> BaseResourceWorker<T> execute(
-            Callable<T> backgroundTask,
-            Consumer<T> successHandler,
+    public static <T, R> BaseResourceWorker<T, R> execute(
+            Callable<R> requestTask,
+            Consumer<R> responseHandler,
             Component parentComponent) {
 
-        BaseResourceWorker<T> worker = new BaseResourceWorker<>(
-                backgroundTask, successHandler, parentComponent
+        BaseResourceWorker<T, R> worker = new BaseResourceWorker<>(
+                requestTask, responseHandler, parentComponent
         );
         worker.execute();
         return worker;

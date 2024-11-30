@@ -121,12 +121,12 @@ public class BuildingClient {
 
     public BuildingDTO saveBuilding(CreateBuildingRequest createBuildingRequest) {
         try {
-            HttpRequest request = createUpdateBuildingWithIdRequest(createBuildingRequest);
+            HttpRequest request = createAddBuildingRequest(createBuildingRequest);
             System.out.println(request);
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() != 200) {
+            if (response.statusCode() != 201) {
                 throw new IOException("Failed to create building. Status code: " + response.statusCode());
             }
 
@@ -180,11 +180,11 @@ public class BuildingClient {
                 .build();
     }
 
-    private static HttpRequest createUpdateBuildingWithIdRequest(CreateBuildingRequest request) throws IOException {
+    private static HttpRequest createAddBuildingRequest(CreateBuildingRequest request) throws IOException {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/buildings"))
                 .header("Content-Type", "application/json")
-                .PUT(HttpRequest.BodyPublishers.ofString(MyObjectMapper.getInstance().writeValueAsString(request)))
+                .POST(HttpRequest.BodyPublishers.ofString(MyObjectMapper.getInstance().writeValueAsString(request)))
                 .build();
     }
 }

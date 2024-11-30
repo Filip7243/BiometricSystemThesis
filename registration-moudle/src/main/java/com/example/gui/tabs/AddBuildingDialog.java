@@ -1,5 +1,6 @@
 package com.example.gui.tabs;
 
+import com.example.FingersTools;
 import com.example.client.BuildingService;
 import com.example.client.dto.BuildingDTO;
 import com.example.client.dto.CreateBuildingRequest;
@@ -12,6 +13,7 @@ import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.function.Consumer;
 
 import static java.awt.BorderLayout.*;
 import static java.awt.Cursor.*;
@@ -19,19 +21,20 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 
 public class AddBuildingDialog extends JDialog {
 
-    private final List<BuildingDTO> buildings = new ArrayList<>();
     private final BuildingService buildingService;
+    private final Consumer<BuildingDTO> refreshCallback;
 
-    private DefaultTableModel buildingTableModel;
     private DefaultListModel<CreateRoomRequest> roomListModel;
 
-    public AddBuildingDialog(Frame parent, BuildingService buildingService, DefaultTableModel buildingTableModel) {
+    public AddBuildingDialog(Frame parent,
+                             BuildingService buildingService,
+                             Consumer<BuildingDTO> refreshCallback) {
         super(parent, "Create new building", true);
 
         setLocationRelativeTo(parent);
 
         this.buildingService = buildingService;
-        this.buildingTableModel = buildingTableModel;
+        this.refreshCallback = refreshCallback;
 
         initComponents();
     }
@@ -132,21 +135,11 @@ public class AddBuildingDialog extends JDialog {
             buildingService.saveBuilding(
                     request,
                     (result) -> {
-                        BuildingDTO building = new BuildingDTO(
-                                result.id(),
-                                result.buildingNumber(),
-                                result.street(),
-                                result.rooms()
-                        );
-                        buildings.add(building);
-                        updateBuildingTable();
+                        refreshCallback.accept(result);
                         dispose();
                     },
                     this
             );
-
-
-
         });
 
         clearButton.addActionListener(e -> {
@@ -164,27 +157,6 @@ public class AddBuildingDialog extends JDialog {
 
         add(mainPanel);
         setVisible(true);
-    }
-
-    private void updateBuildingTable() {
-        buildingService.getAllBuildings(
-                buildings -> {
-                    this.buildings.clear();
-                    this.buildings.addAll(buildings);
-                    buildingTableModel.setRowCount(0);
-                    for (BuildingDTO building : buildings) {
-                        buildingTableModel.addRow(new Object[]{
-                                building.id(),
-                                building.buildingNumber(),
-                                building.street(),
-                                "Edit",
-                                "Delete",
-                                "Details"
-                        });
-                    }
-                },
-                this
-        );
     }
 
     private class AddRoomToBuildingForm extends JDialog {
@@ -259,18 +231,11 @@ public class AddBuildingDialog extends JDialog {
                 return;
             }
 
-            CreateRoomRequest request = new CreateRoomRequest(
+            CreateRoomRequest room = new CreateRoomRequest(
                     roomNumber,
                     Integer.parseInt(floor),
-                    buildings.get(buildings.size() - 1).id(),
-                    null
-            );
-
-            RoomDTO room = new RoomDTO(
-                    (long) (buildings.size() + 1),
-                    roomNumber,
-                    Integer.parseInt(floor),
-                    null
+                    FingersTools.getInstance().getClient().getFingerScanner() != null ?
+                            FingersTools.getInstance().getClient().getFingerScanner().getId() : null
             );
 
             roomListModel.addElement(room);
