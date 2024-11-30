@@ -1,6 +1,7 @@
 package com.example.client;
 
 import com.example.client.dto.BuildingDTO;
+import com.example.client.dto.CreateBuildingRequest;
 import com.example.client.dto.UpdateBuildingRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
@@ -118,6 +119,28 @@ public class BuildingClient {
         }
     }
 
+    public BuildingDTO saveBuilding(CreateBuildingRequest createBuildingRequest) {
+        try {
+            HttpRequest request = createUpdateBuildingWithIdRequest(createBuildingRequest);
+            System.out.println(request);
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to create building. Status code: " + response.statusCode());
+            }
+
+            return objectMapper.readValue(
+                    response.body(),
+                    new TypeReference<>() {
+                    }
+            );
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Failed to create building");
+            throw new RuntimeException(e);
+        }
+    }
+
     private static HttpRequest createGetAllBuildingsRequest() {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/buildings"))
@@ -154,6 +177,14 @@ public class BuildingClient {
                 .uri(URI.create("http://localhost:8080/api/v1/buildings/rooms/not-assigned/" + id))
                 .header("Accept", "application/json")
                 .GET()
+                .build();
+    }
+
+    private static HttpRequest createUpdateBuildingWithIdRequest(CreateBuildingRequest request) throws IOException {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/buildings"))
+                .header("Content-Type", "application/json")
+                .PUT(HttpRequest.BodyPublishers.ofString(MyObjectMapper.getInstance().writeValueAsString(request)))
                 .build();
     }
 }

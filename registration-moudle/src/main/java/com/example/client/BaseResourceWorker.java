@@ -1,13 +1,12 @@
 package com.example.client;
 
+
 import javax.swing.*;
 import java.awt.*;
 import java.util.concurrent.Callable;
 import java.util.function.Consumer;
 
 public class BaseResourceWorker<T> extends SwingWorker<T, Void> {
-//    private static final Logger LOGGER = Logger.getLogger(ResourceWorker.class.getName());
-
     private final Callable<T> backgroundTask;
     private final Consumer<T> successHandler;
     private final Consumer<Exception> errorHandler;
@@ -52,6 +51,8 @@ public class BaseResourceWorker<T> extends SwingWorker<T, Void> {
                 )
         );
     }
+
+
 
     @Override
     protected T doInBackground() throws Exception {

@@ -2,6 +2,7 @@ package com.example.gui.tabs;
 
 import com.example.FingersTools;
 import com.example.client.BuildingClient;
+import com.example.client.BuildingService;
 import com.example.client.RoomClient;
 import com.example.client.dto.*;
 import com.example.gui.BasePanel;
@@ -40,6 +41,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
     private JButton addBuildingButton;
     private JButton btnRefreshData;
     private ScannersListPanel scannersListPanel;
+    private BuildingService buildingService;
 
     public ManageBuildingsRoomsTab(JFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -48,6 +50,8 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
     @Override
     protected void initGUI() {
         setLayout(new BorderLayout());
+
+        buildingService = new BuildingService(buildingClient);
 
         add(new JLabel("Buildings and Rooms Managing!"), NORTH);
 
@@ -179,104 +183,109 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
     }
 
     private void showAddBuildingDialog() {
-        JDialog dialog = new JDialog(mainFrame, "Add Building", true);
-        dialog.setSize(400, 500);
-        dialog.setLocationRelativeTo(mainFrame);
-
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        JTextField buildingNumberField = new JTextField(20);
-        buildingNumberField.setCursor(getPredefinedCursor(TEXT_CURSOR));
-        JTextField streetField = new JTextField(20);
-        streetField.setCursor(getPredefinedCursor(TEXT_CURSOR));
-        DefaultListModel<RoomDTO> roomListModel = new DefaultListModel<>();
-        JList<RoomDTO> roomList = new JList<>(roomListModel);  //TODO: dodac usuwanie pokoju przy dodawaniu jakbym sie pomylil
-        roomList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        panel.add(new JLabel("Building Number:"), gbc);
-        gbc.gridx = 1;
-        panel.add(buildingNumberField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        panel.add(new JLabel("Street:"), gbc);
-        gbc.gridx = 1;
-        panel.add(streetField, gbc);
-
-        JButton addRoomButton = new JButton("Add Room");
-        addRoomButton.setCursor(getPredefinedCursor(HAND_CURSOR));
-        addRoomButton.addActionListener(e -> {
-            String roomNumber = JOptionPane.showInputDialog("Enter Room Number:");
-            if (roomNumber != null && !roomNumber.trim().isEmpty()) {
-                roomListModel.addElement(new RoomDTO((long) (roomListModel.size() + 1), roomNumber, 1, null));  // TODO: add device id
-            }
-        });
-
-        JButton removeRoomButton = new JButton("Remove Room");
-        removeRoomButton.setCursor(Cursor.getPredefinedCursor(HAND_CURSOR));
-        removeRoomButton.addActionListener(e -> {
-            int selectedIndex = roomList.getSelectedIndex();
-            if (selectedIndex != -1) {
-                roomListModel.remove(selectedIndex); // Remove the selected room
-            } else {
-                JOptionPane.showMessageDialog(dialog, "Please select a room to remove.", "No Selection", WARNING_MESSAGE);
-            }
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        panel.add(addRoomButton, gbc);
-
-        gbc.gridy = 3;
-        panel.add(removeRoomButton, gbc);
-
-        gbc.gridy = 4;
-        panel.add(new JScrollPane(roomList), gbc);
-
-        JPanel buttonPanel = new JPanel();
-        JButton saveButton = new JButton("Save");
-        saveButton.setCursor(getPredefinedCursor(HAND_CURSOR));
-        JButton clearButton = new JButton("Clear");
-        clearButton.setCursor(getPredefinedCursor(HAND_CURSOR));
-
-        saveButton.addActionListener(e -> {
-            List<RoomDTO> rooms = new ArrayList<>();
-            for (int i = 0; i < roomListModel.size(); i++) {
-                rooms.add(roomListModel.get(i));
-            }
-
-            BuildingDTO building = new BuildingDTO(
-                    (long) (buildings.size() + 1),
-                    buildingNumberField.getText(),
-                    streetField.getText(),
-                    rooms
-            );
-
-            buildings.add(building);
-            updateBuildingTable();
-            dialog.dispose();
-        });
-
-        clearButton.addActionListener(e -> {
-            buildingNumberField.setText("");
-            streetField.setText("");
-            roomListModel.clear();
-        });
-
-        buttonPanel.add(saveButton);
-        buttonPanel.add(clearButton);
-
-        gbc.gridy = 5;
-        panel.add(buttonPanel, gbc);
-
-        dialog.add(panel);
-        dialog.setVisible(true);
+        new AddBuildingDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                buildingService,
+                buildingTableModel
+        );
+//        JDialog dialog = new JDialog(mainFrame, "Add Building", true);
+//        dialog.setSize(400, 500);
+//        dialog.setLocationRelativeTo(mainFrame);
+//
+//        JPanel panel = new JPanel(new GridBagLayout());
+//        GridBagConstraints gbc = new GridBagConstraints();
+//        gbc.insets = new Insets(5, 5, 5, 5);
+//        gbc.fill = GridBagConstraints.HORIZONTAL;
+//
+//        JTextField buildingNumberField = new JTextField(20);
+//        buildingNumberField.setCursor(getPredefinedCursor(TEXT_CURSOR));
+//        JTextField streetField = new JTextField(20);
+//        streetField.setCursor(getPredefinedCursor(TEXT_CURSOR));
+//        DefaultListModel<RoomDTO> roomListModel = new DefaultListModel<>();
+//        JList<RoomDTO> roomList = new JList<>(roomListModel);  //TODO: dodac usuwanie pokoju przy dodawaniu jakbym sie pomylil
+//        roomList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
+//
+//        gbc.gridx = 0;
+//        gbc.gridy = 0;
+//        panel.add(new JLabel("Building Number:"), gbc);
+//        gbc.gridx = 1;
+//        panel.add(buildingNumberField, gbc);
+//
+//        gbc.gridx = 0;
+//        gbc.gridy = 1;
+//        panel.add(new JLabel("Street:"), gbc);
+//        gbc.gridx = 1;
+//        panel.add(streetField, gbc);
+//
+//        JButton addRoomButton = new JButton("Add Room");
+//        addRoomButton.setCursor(getPredefinedCursor(HAND_CURSOR));
+//        addRoomButton.addActionListener(e -> {
+//            String roomNumber = JOptionPane.showInputDialog("Enter Room Number:");
+//            if (roomNumber != null && !roomNumber.trim().isEmpty()) {
+//                roomListModel.addElement(new RoomDTO((long) (roomListModel.size() + 1), roomNumber, 1, null));  // TODO: add device id
+//            }
+//        });
+//
+//        JButton removeRoomButton = new JButton("Remove Room");
+//        removeRoomButton.setCursor(Cursor.getPredefinedCursor(HAND_CURSOR));
+//        removeRoomButton.addActionListener(e -> {
+//            int selectedIndex = roomList.getSelectedIndex();
+//            if (selectedIndex != -1) {
+//                roomListModel.remove(selectedIndex); // Remove the selected room
+//            } else {
+//                JOptionPane.showMessageDialog(dialog, "Please select a room to remove.", "No Selection", WARNING_MESSAGE);
+//            }
+//        });
+//
+//        gbc.gridx = 0;
+//        gbc.gridy = 2;
+//        gbc.gridwidth = 2;
+//        panel.add(addRoomButton, gbc);
+//
+//        gbc.gridy = 3;
+//        panel.add(removeRoomButton, gbc);
+//
+//        gbc.gridy = 4;
+//        panel.add(new JScrollPane(roomList), gbc);
+//
+//        JPanel buttonPanel = new JPanel();
+//        JButton saveButton = new JButton("Save");
+//        saveButton.setCursor(getPredefinedCursor(HAND_CURSOR));
+//        JButton clearButton = new JButton("Clear");
+//        clearButton.setCursor(getPredefinedCursor(HAND_CURSOR));
+//
+//        saveButton.addActionListener(e -> {
+//            List<RoomDTO> rooms = new ArrayList<>();
+//            for (int i = 0; i < roomListModel.size(); i++) {
+//                rooms.add(roomListModel.get(i));
+//            }
+//
+//            BuildingDTO building = new BuildingDTO(
+//                    (long) (buildings.size() + 1),
+//                    buildingNumberField.getText(),
+//                    streetField.getText(),
+//                    rooms
+//            );
+//
+//            buildings.add(building);
+//            updateBuildingTable();
+//            dialog.dispose();
+//        });
+//
+//        clearButton.addActionListener(e -> {
+//            buildingNumberField.setText("");
+//            streetField.setText("");
+//            roomListModel.clear();
+//        });
+//
+//        buttonPanel.add(saveButton);
+//        buttonPanel.add(clearButton);
+//
+//        gbc.gridy = 5;
+//        panel.add(buttonPanel, gbc);
+//
+//        dialog.add(panel);
+//        dialog.setVisible(true);
     }
 
     private void editBuilding(int row) {
