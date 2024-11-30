@@ -212,115 +212,12 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
     }
 
     private void editBuilding(int row) {
-        BuildingDTO building = buildings.get(row);
-        JDialog dialog = new JDialog(mainFrame, "Edit Building", true);
-        dialog.setSize(400, 500);
-        dialog.setLocationRelativeTo(mainFrame);
-
-        JPanel panel = new JPanel(new GridBagLayout());
-        GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.fill = GridBagConstraints.HORIZONTAL;
-
-        JTextField buildingNumberField = new JTextField(building.buildingNumber(), 20);
-        buildingNumberField.setCursor(getPredefinedCursor(TEXT_CURSOR));
-        JTextField streetField = new JTextField(building.street(), 20);
-        streetField.setCursor(getPredefinedCursor(TEXT_CURSOR));
-
-        gbc.gridx = 0;
-        gbc.gridy = 0;
-        JLabel lblBuildingNumber = new JLabel("Building Number:");
-        lblBuildingNumber.setFont(new Font("Arial", BOLD, 12));
-        panel.add(lblBuildingNumber, gbc);
-        gbc.gridx = 1;
-        panel.add(buildingNumberField, gbc);
-
-        gbc.gridx = 0;
-        gbc.gridy = 1;
-        JLabel lblStreet = new JLabel("Street:");
-        lblStreet.setFont(new Font("Arial", BOLD, 12));
-        panel.add(lblStreet, gbc);
-        gbc.gridx = 1;
-        panel.add(streetField, gbc);
-
-        // Add status label for feedback
-        JLabel statusLabel = new JLabel("");
-        statusLabel.setForeground(Color.RED);
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-        panel.add(statusLabel, gbc);
-
-        JButton saveButton = new JButton("Save");
-        saveButton.setCursor(getPredefinedCursor(HAND_CURSOR));
-        saveButton.addActionListener(e -> {
-            saveButton.setEnabled(false);
-            statusLabel.setForeground(Color.BLACK);
-            statusLabel.setText("Updating building...");
-
-            SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                @Override
-                protected Void doInBackground() throws Exception {
-                    UpdateBuildingRequest updateRequest = new UpdateBuildingRequest(
-                            buildingNumberField.getText(),
-                            streetField.getText()
-                    );
-
-                    // Call the API to update the building
-                    System.out.println("Updating building with ID: " + building.id());
-                    buildingClient.updateBuildingWithId(building.id(), updateRequest);
-                    return null;
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        get(); // This will throw an exception if there was an error in doInBackground
-
-                        // Update local data
-                        buildings.set(row, new BuildingDTO(
-                                building.id(),
-                                buildingNumberField.getText(),
-                                streetField.getText(),
-                                building.rooms()
-                        ));
-                        updateBuildingTable();
-
-                        // Show success and close dialog
-                        JOptionPane.showMessageDialog(
-                                dialog,
-                                "Building updated successfully!",
-                                "Success",
-                                INFORMATION_MESSAGE
-                        );
-                        dialog.dispose();
-
-                    } catch (Exception ex) {
-                        // Handle error
-                        statusLabel.setForeground(Color.RED);
-                        statusLabel.setText("Error: " + ex.getMessage());
-                        saveButton.setEnabled(true);
-
-                        JOptionPane.showMessageDialog(
-                                dialog,
-                                "Failed to update building: " + ex.getMessage(),
-                                "Error",
-                                ERROR_MESSAGE
-                        );
-                    }
-                }
-            };
-
-            worker.execute();
-        });
-
-        gbc.gridx = 0;
-        gbc.gridy = 3;
-        gbc.gridwidth = 2;
-        panel.add(saveButton, gbc);
-
-        dialog.add(panel);
-        dialog.setVisible(true);
+        new EditBuildingDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                buildings.get(row),
+                buildingService,
+                this::updateBuildingTable
+        );
     }
 
     private void deleteBuilding(int row) {
@@ -907,48 +804,6 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
             };
 
             worker.execute();
-        }
-    }
-
-    private void updateRoomTable() {
-        roomTableModel.setRowCount(0);
-        for (RoomDTO room : rooms) {
-            roomTableModel.addRow(new Object[]{
-                    room.roomId(),
-                    room.roomNumber(),
-                    room.floor(),
-                    "Update",
-                    "Delete",
-                    "Set Device"
-            });
-        }
-    }
-
-    private static class ButtonRenderer extends JButton implements TableCellRenderer {
-        public ButtonRenderer(String function) {
-            setOpaque(true);
-
-            switch (function) {
-                case "Edit":
-                    setBackground(Color.LIGHT_GRAY);
-                    setFont(new Font("Arial", BOLD, 12));
-                    break;
-                case "Delete":
-                    setBackground(new Color(255, 51, 0));
-                    setFont(new Font("Arial", BOLD, 12));
-                    break;
-                case "Details":
-                    setBackground(Color.LIGHT_GRAY);
-                    setFont(new Font("Arial", BOLD, 12));
-                    break;
-            }
-        }
-
-        @Override
-        public Component getTableCellRendererComponent(JTable table, Object value,
-                                                       boolean isSelected, boolean hasFocus, int row, int column) {
-            setText((value == null) ? "" : value.toString());
-            return this;
         }
     }
 }

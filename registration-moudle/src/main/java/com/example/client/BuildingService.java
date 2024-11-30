@@ -2,6 +2,7 @@ package com.example.client;
 
 import com.example.client.dto.BuildingDTO;
 import com.example.client.dto.CreateBuildingRequest;
+import com.example.client.dto.UpdateBuildingRequest;
 import com.example.client.dto.UserDTO;
 
 import java.awt.*;
@@ -37,6 +38,19 @@ public class BuildingService {
                              Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> buildingClient.saveBuilding(request),
+                onSuccess,
+                parentComponent
+        );
+    }
+
+    public void updateBuildingWithId(Long buildingId, UpdateBuildingRequest request,
+                               Consumer<Void> onSuccess,
+                               Component parentComponent) {
+        BaseResourceWorker.execute(
+                () -> {
+                    buildingClient.updateBuildingWithId(buildingId, request);
+                    return null;
+                },
                 onSuccess,
                 parentComponent
         );
