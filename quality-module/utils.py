@@ -68,6 +68,7 @@ def segment_fingerprint(image):
 
     # Apply morphological operations to remove small noise and fill gaps
     kernel = cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5))
+    print(kernel)
     binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_CLOSE, kernel, iterations=3)
     binary_mask = cv2.morphologyEx(binary_mask, cv2.MORPH_OPEN, kernel, iterations=3)
 

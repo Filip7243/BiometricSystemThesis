@@ -668,6 +668,8 @@ for quality_folder in quality_folders[:]:
 
         print('Computing image orientation/coherence')
         orientations, coherence = img_orientation.estimate_orientation(normalized_image, _interpolate=True)
+        utils.showOrientations(original, orientations, "lbl", _block_size=16)
+        plt.show()
         coherence_basic_metrics = get_basic_metrics(coherence[mask == 1.0])
         coherence_basic_metrics = pd.DataFrame([coherence_basic_metrics])
         basic_metrics_coherence = pd.concat([basic_metrics_coherence, coherence_basic_metrics], ignore_index=True)
