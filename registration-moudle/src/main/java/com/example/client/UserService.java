@@ -1,6 +1,7 @@
 package com.example.client;
 
 import com.example.client.dto.RoomDTO;
+import com.example.client.dto.UpdateFingerprintRequest;
 import com.example.client.dto.UpdateUserRequest;
 import com.example.client.dto.UserDTO;
 
@@ -63,5 +64,17 @@ public class UserService {
                 onSuccess,
                 parentComponent
         );
+    }
+
+    public void updateUserFingerprint(UpdateFingerprintRequest request, Consumer<Void> onSuccess, Component parentComponent) {
+        BaseResourceWorker.execute(
+                () -> {
+                    userClient.updateFingerprint(request);
+                    return null;
+                },
+                onSuccess,
+                parentComponent
+        );
+
     }
 }

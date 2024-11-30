@@ -2,6 +2,7 @@ package com.example.gui.tabs;
 
 import com.example.FingersTools;
 import com.example.client.UserClient;
+import com.example.client.UserService;
 import com.example.client.dto.FingerprintDTO;
 import com.example.client.dto.UpdateFingerprintRequest;
 import com.example.gui.ScannersListPanel;
@@ -29,15 +30,15 @@ import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 
 public class FingerprintViewDialog extends JDialog {
-    private final UserClient userClient;
+    private final UserService userService;
     private final FingerprintDTO fingerprint;
     private byte[] currentImageBytes;
     private JLabel imageLabel;
 
-    public FingerprintViewDialog(Frame parent, FingerprintDTO fingerprint, UserClient userClient) {
+    public FingerprintViewDialog(Frame parent, FingerprintDTO fingerprint, UserService userService) {
         super(parent, "Fingerprint Details", true);
         this.fingerprint = fingerprint;
-        this.userClient = userClient;
+        this.userService = userService;
         this.currentImageBytes = fingerprint.token();
 
         initComponents();
@@ -72,7 +73,7 @@ public class FingerprintViewDialog extends JDialog {
     }
 
     private void updateImageDisplay() {
-        try {
+        try {  // TODO: view image properly, so download from db etc. cache in table and remove on exit
             if (currentImageBytes != null && currentImageBytes.length > 0) {
                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(currentImageBytes));
                 ImageIcon icon = new ImageIcon(image.getScaledInstance(400, 400, Image.SCALE_SMOOTH));
@@ -172,35 +173,19 @@ public class FingerprintViewDialog extends JDialog {
 
             System.out.println("Updating fingerprint: " + updatedFingerprint);
 
-            SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                @Override
-                protected Void doInBackground() {
-                    userClient.updateFingerprint(updatedFingerprint);
-                    return null;
-                }
-
-                @Override
-                protected void done() {
-                    try {
-                        get(); // Checks for exceptions
+            userService.updateUserFingerprint(
+                    updatedFingerprint,
+                    (result) -> {
                         JOptionPane.showMessageDialog(
-                                FingerprintViewDialog.this,
+                                this,
                                 "Fingerprint updated successfully",
                                 "Success",
                                 JOptionPane.INFORMATION_MESSAGE
                         );
                         dispose();
-                    } catch (Exception ex) {
-                        JOptionPane.showMessageDialog(
-                                FingerprintViewDialog.this,
-                                "Error updating fingerprint: " + ex.getMessage(),
-                                "Error",
-                                JOptionPane.ERROR_MESSAGE
-                        );
-                    }
-                }
-            };
-            worker.execute();
+                    },
+                    this
+            );
         } catch (Exception e) {
             JOptionPane.showMessageDialog(
                     this,
@@ -211,7 +196,7 @@ public class FingerprintViewDialog extends JDialog {
         }
     }
 
-    private final class CaptureHandler implements CompletionHandler<NBiometricTask, Object> {
+    private static final class CaptureHandler implements CompletionHandler<NBiometricTask, Object> {
         @Override
         public void completed(final NBiometricTask result, final Object attachment) {
             SwingUtilities.invokeLater(() -> {

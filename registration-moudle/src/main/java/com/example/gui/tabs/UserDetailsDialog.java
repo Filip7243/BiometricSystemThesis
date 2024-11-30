@@ -58,6 +58,25 @@ public class UserDetailsDialog extends JDialog {
         fingerprintTable.getColumnModel()
                 .getColumn(2)
                 .setCellRenderer(new ButtonRenderer("Details"));
+        fingerprintTable.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int row = fingerprintTable.rowAtPoint(e.getPoint());
+                int column = fingerprintTable.columnAtPoint(e.getPoint());
+
+                if (row < fingerprintTable.getRowCount() && row >= 0 &&
+                        column < fingerprintTable.getColumnCount() && column >= 0) {
+                    if (column == 2) {
+                        Long fingerprintId = (Long) fingerprintModel.getValueAt(row, 0);
+                        new FingerprintViewDialog(
+                                (Frame) getParent(),
+                                user.fingerprints().get(row),
+                                userService // TODO: zmienic ten row w fingerptins
+                        );
+                    }
+                }
+            }
+        });
 
         for (FingerprintDTO fingerprint : user.fingerprints()) {
             fingerprintModel.addRow(new Object[]{
