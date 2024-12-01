@@ -119,6 +119,25 @@ public class RoomClient {
         }
     }
 
+    public RoomDTO getRoomById(Long roomId) {
+        try {
+            HttpRequest request = createGetRoomById(roomId);
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to get room. Status code: " + response.statusCode());
+            }
+
+            return MyObjectMapper
+                    .getInstance()
+                    .readValue(response.body(), RoomDTO.class);
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Failed to get room");
+            throw new RuntimeException(e);
+        }
+    }
+
     private HttpRequest createDeleteRoomWithIdRequest(Long id) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/rooms/" + id))
@@ -163,6 +182,14 @@ public class RoomClient {
                 .uri(URI.create("http://localhost:8080/api/v1/rooms/" + roomId + "/users/" + userId + "/assign"))
                 .header("Content-Type", "application/json")
                 .method("PATCH", HttpRequest.BodyPublishers.noBody())
+                .build();
+    }
+
+    private static HttpRequest createGetRoomById(Long roomId) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/rooms/" + roomId))
+                .header("Accept", "application/json")
+                .GET()
                 .build();
     }
 }

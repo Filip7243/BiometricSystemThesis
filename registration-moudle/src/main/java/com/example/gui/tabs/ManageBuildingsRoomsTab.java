@@ -4,25 +4,24 @@ import com.example.FingersTools;
 import com.example.client.BuildingClient;
 import com.example.client.BuildingService;
 import com.example.client.RoomClient;
+import com.example.client.RoomService;
 import com.example.client.dto.*;
 import com.example.gui.BasePanel;
 import com.example.gui.ScannersListPanel;
 import com.neurotec.devices.NFScanner;
-import com.neurotec.devices.NFingerScanner;
 
 import javax.swing.*;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
-import javax.swing.table.TableCellRenderer;
 import java.awt.*;
 import java.awt.event.*;
-import java.net.http.HttpResponse;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.ExecutionException;
 
 import static java.awt.BorderLayout.*;
-import static java.awt.Cursor.*;
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
 import static java.awt.FlowLayout.RIGHT;
 import static java.awt.Font.BOLD;
 import static javax.swing.JOptionPane.*;
@@ -35,13 +34,13 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
     private final BuildingClient buildingClient = new BuildingClient();
     private final RoomClient roomClient = new RoomClient();
     private JTable buildingTable;
-    private JTable roomTable;
     private DefaultTableModel buildingTableModel;
     private DefaultTableModel roomTableModel;
     private JButton addBuildingButton;
     private JButton btnRefreshData;
     private ScannersListPanel scannersListPanel;
     private BuildingService buildingService;
+    private JTable roomTable;
 
     public ManageBuildingsRoomsTab(JFrame mainFrame) {
         this.mainFrame = mainFrame;
@@ -51,7 +50,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
     protected void initGUI() {
         setLayout(new BorderLayout());
 
-        buildingService = new BuildingService(buildingClient);
+        buildingService = new BuildingService(buildingClient, roomClient);
 
         add(new JLabel("Buildings and Rooms Managing!"), NORTH);
 
@@ -228,140 +227,132 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (confirm == JOptionPane.YES_OPTION) {
+        if (confirm == YES_OPTION) {
             BuildingDTO buildingToRemove = buildings.get(row);
-            buildings.remove(row);  // TODO: here remove buildings from db
-            SwingWorker<Void, Void> worker = new SwingWorker<>() {
-                @Override
-                protected Void doInBackground() {
-                    try {
-                        System.out.println("Deleting building with ID: " + buildingToRemove.id());
-                        buildingClient.deleteBuildingWithId(buildingToRemove.id());
-                    } catch (Exception e) {
-                        System.out.println("Error deleting building: " + e.getMessage());
-                        e.printStackTrace();
-                    }
-                    return null;
-                }
+            buildings.remove(row);
 
-                @Override
-                protected void done() {
-                    try {
-                        get();
-
+            buildingService.deleteBuildingWithId(
+                    buildingToRemove.id(),
+                    result -> {
                         updateBuildingTable();
+
                         JOptionPane.showMessageDialog(
                                 null,
                                 "Building as been deleted!",
                                 "Success",
                                 INFORMATION_MESSAGE
                         );
-                    } catch (InterruptedException | ExecutionException e) {
-                        JOptionPane.showMessageDialog(
-                                null,
-                                "Failed to update building: " + e.getMessage(),
-                                "Error",
-                                ERROR_MESSAGE
-                        );
-
-                    }
-                }
-            };
-
-            worker.execute();
+                    },
+                    this
+            );
         }
     }
 
     private void showBuildingDetails(int row) {
         BuildingDTO building = buildings.get(row);
-        JDialog dialog = new JDialog(mainFrame, "Building Details", true);
-        dialog.setSize(600, 400);
-        dialog.setLocationRelativeTo(mainFrame);
+        new BuildingDetailsDialog(
+                (Frame) SwingUtilities.getWindowAncestor(this),
+                building,
+                buildingService,
+                () -> {
+                    JOptionPane.showMessageDialog(null,
+                            "Room added successfully",
+                            "Success",
+                            JOptionPane.INFORMATION_MESSAGE);
 
-        JPanel panel = new JPanel(new BorderLayout());
-        JPanel infoPanel = new JPanel(new GridLayout(2, 2, 5, 5));
-
-        JLabel lblBuildingNumber = new JLabel("Building Number:");
-        lblBuildingNumber.setFont(new Font("Arial", BOLD, 12));
-        infoPanel.add(lblBuildingNumber);
-        infoPanel.add(new JLabel(building.buildingNumber()));
-
-        JLabel lblStreet = new JLabel("Street:");
-        lblStreet.setFont(new Font("Arial", BOLD, 12));  // TODO: maybe in futre create my own Label ex. BoldLabel etc.
-        infoPanel.add(lblStreet);
-        infoPanel.add(new JLabel(building.street()));
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(RIGHT));
-        JButton addRoomButton = new JButton("Add Room");
-        addRoomButton.setPreferredSize(new Dimension(100, 30));
-        buttonPanel.add(addRoomButton);
-
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(infoPanel, WEST);
-        topPanel.add(buttonPanel, EAST);
-
-        panel.add(topPanel, NORTH);
-
-        String[] columnNames = {"Room ID", "Room Number", "Floor", "Update", "Delete", "Set Device"};
-        roomTableModel = new DefaultTableModel(columnNames, 0) {
-            @Override
-            public boolean isCellEditable(int row, int column) {
-                return false;
-            }
-        };
-        roomTable = new JTable(roomTableModel);
-        roomTable.setShowGrid(true);
-
-        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
-        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
-        roomTable.getColumnModel().getColumn(0).setCellRenderer(defaultTableCellRenderer);
-        roomTable.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
-        roomTable.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
-        roomTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer("Edit"));
-        roomTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer("Delete"));
-        roomTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Details"));
-
-        for (RoomDTO room : building.rooms()) {
-            roomTableModel.addRow(new Object[]{
-                    room.roomId(),
-                    room.roomNumber(),
-                    room.floor(),
-                    "Update",
-                    "Delete",
-                    "Set Device"
-            });
-        }
-
-        addRoomButton.addActionListener(e -> showAddRoomDialog(building, dialog));
-
-        roomTable.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseClicked(MouseEvent e) {
-                int row = roomTable.rowAtPoint(e.getPoint());
-                int col = roomTable.columnAtPoint(e.getPoint());
-
-                if (row < roomTable.getRowCount() && row >= 0) {
-                    if (col == 3) { // Update
-                        updateRoom(building, row, dialog);
-                    } else if (col == 4) { // Delete
-                        deleteRoom(building, row, dialog);
-                    } else if (col == 5) { // Set Device
-                        showSetDeviceDialog(building, row, dialog);
-                    }
-                }
-            }
-        });
-
-        roomTable.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                roomTable.setCursor(getPredefinedCursor(HAND_CURSOR));
-            }
-        });
-
-        panel.add(new JScrollPane(roomTable), CENTER);
-        dialog.add(panel);
-        dialog.setVisible(true);
+                    updateBuildingTable();
+                },
+                buildings
+        );
+//        JDialog dialog = new JDialog(mainFrame, "Building Details", true);
+//        dialog.setSize(600, 400);
+//        dialog.setLocationRelativeTo(mainFrame);
+//
+//        JPanel panel = new JPanel(new BorderLayout());
+//        JPanel infoPanel = new JPanel(new GridLayout(2, 2, 5, 5));
+//
+//        JLabel lblBuildingNumber = new JLabel("Building Number:");
+//        lblBuildingNumber.setFont(new Font("Arial", BOLD, 12));
+//        infoPanel.add(lblBuildingNumber);
+//        infoPanel.add(new JLabel(building.buildingNumber()));
+//
+//        JLabel lblStreet = new JLabel("Street:");
+//        lblStreet.setFont(new Font("Arial", BOLD, 12));  // TODO: maybe in futre create my own Label ex. BoldLabel etc.
+//        infoPanel.add(lblStreet);
+//        infoPanel.add(new JLabel(building.street()));
+//
+//        JPanel buttonPanel = new JPanel(new FlowLayout(RIGHT));
+//        JButton addRoomButton = new JButton("Add Room");
+//        addRoomButton.setPreferredSize(new Dimension(100, 30));
+//        buttonPanel.add(addRoomButton);
+//
+//        JPanel topPanel = new JPanel(new BorderLayout());
+//        topPanel.add(infoPanel, WEST);
+//        topPanel.add(buttonPanel, EAST);
+//
+//        panel.add(topPanel, NORTH);
+//
+//        String[] columnNames = {"Room ID", "Room Number", "Floor", "Update", "Delete", "Set Device"};
+//        roomTableModel = new DefaultTableModel(columnNames, 0) {
+//            @Override
+//            public boolean isCellEditable(int row, int column) {
+//                return false;
+//            }
+//        };
+//        roomTable = new JTable(roomTableModel);
+//        roomTable.setShowGrid(true);
+//
+//        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+//        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+//        roomTable.getColumnModel().getColumn(0).setCellRenderer(defaultTableCellRenderer);
+//        roomTable.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
+//        roomTable.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
+//        roomTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer("Edit"));
+//        roomTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer("Delete"));
+//        roomTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Details"));
+//
+//        for (RoomDTO room : building.rooms()) {
+//            roomTableModel.addRow(new Object[]{
+//                    room.roomId(),
+//                    room.roomNumber(),
+//                    room.floor(),
+//                    "Update",
+//                    "Delete",
+//                    "Set Device"
+//            });
+//        }
+//
+//        addRoomButton.addActionListener(e -> showAddRoomDialog(building, dialog));
+//
+//        roomTable.addMouseListener(new MouseAdapter() {
+//            @Override
+//            public void mouseClicked(MouseEvent e) {
+//                int row = roomTable.rowAtPoint(e.getPoint());
+//                int col = roomTable.columnAtPoint(e.getPoint());
+//
+//                if (row < roomTable.getRowCount() && row >= 0) {
+//                    if (col == 3) { // Update
+////                        updateRoom(building, row, dialog);
+//                        new UpdateBasicRoomDialog(null, building.rooms().get(row), new RoomService(roomClient), () -> updateBuildingTable());
+//                    } else if (col == 4) { // Delete
+//                        deleteRoom(building, row, dialog);
+//                    } else if (col == 5) { // Set Device
+//                        showSetDeviceDialog(building, row, dialog);
+//                    }
+//                }
+//            }
+//        });
+//
+//        roomTable.addMouseMotionListener(new MouseMotionAdapter() {
+//            @Override
+//            public void mouseMoved(MouseEvent e) {
+//                roomTable.setCursor(getPredefinedCursor(HAND_CURSOR));
+//            }
+//        });
+//
+//        panel.add(new JScrollPane(roomTable), CENTER);
+//        dialog.add(panel);
+//        dialog.setVisible(true);
     }
 
     private void showAddRoomDialog(BuildingDTO building, JDialog parentDialog) {  // TODO: take class from AddRoomDialog and then modify the input from this floor!
@@ -527,7 +518,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
                         JOptionPane.YES_NO_OPTION
                 );
 
-                if (confirm == JOptionPane.YES_OPTION) {
+                if (confirm == YES_OPTION) {
                     SwingWorker<Void, Void> worker = new SwingWorker<>() {
                         @Override
                         protected Void doInBackground() {
@@ -758,7 +749,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
                 JOptionPane.YES_NO_OPTION
         );
 
-        if (confirm == JOptionPane.YES_OPTION) {  // tODO: delete building rom db here
+        if (confirm == YES_OPTION) {  // tODO: delete building rom db here
             SwingWorker<Void, Void> worker = new SwingWorker<>() {
                 @Override
                 protected Void doInBackground() {

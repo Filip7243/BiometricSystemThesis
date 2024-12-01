@@ -23,7 +23,7 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
     private final RoomClient roomClient = new RoomClient();
     private final List<UserDTO> users = new ArrayList<>();
     private final UserService userService = new UserService(userClient);
-    private final BuildingService buildingService = new BuildingService(buildingClient);
+    private final BuildingService buildingService = new BuildingService(buildingClient, roomClient);
     private final RoomService roomService = new RoomService(roomClient);
 
     private DefaultTableModel userTableModel;
