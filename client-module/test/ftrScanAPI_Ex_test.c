@@ -9,6 +9,9 @@
 
 #include <json-c/json.h>
 #include <curl/curl.h>
+#include <openssl/bio.h>
+#include <openssl/evp.h>
+#include <openssl/buffer.h>
 
 typedef struct tagBITMAPINFOHEADER
 {
@@ -48,40 +51,86 @@ typedef struct tagBITMAPFILEHEADER
 	unsigned long int bfOffBits;
 } BITMAPFILEHEADER, *PBITMAPFILEHEADER;
 
+int base64_encode(const unsigned char *buffer, size_t length, char **b64text)
+{
+	BIO *bio, *b64;
+	BUF_MEM *buffer_ptr;
+
+	b64 = BIO_new(BIO_f_base64());
+	if (!b64)
+		return -1;
+
+	bio = BIO_new(BIO_s_mem());
+	if (!bio)
+	{
+		BIO_free_all(b64);
+		return -1;
+	}
+
+	bio = BIO_push(b64, bio);
+	BIO_write(bio, buffer, length);
+	BIO_flush(bio);
+	BIO_get_mem_ptr(bio, &buffer_ptr);
+
+	*b64text = malloc(buffer_ptr->length + 1);
+	if (*b64text == NULL)
+	{
+		BIO_free_all(bio);
+		return -1;
+	}
+
+	memcpy(*b64text, buffer_ptr->data, buffer_ptr->length);
+	(*b64text)[buffer_ptr->length] = '\0';
+
+	BIO_free_all(bio);
+
+	return 0; // Success
+}
+
 int send_fingerprint_to_server(unsigned char *pImage, int img_size, const char *hardware_id)
 {
 	CURL *curl;
 	CURLcode res;
 	struct curl_slist *headers = NULL; // Request headers
 
-	// Create JSON object to send to server
+	// Create JSON object to send to the server
 	json_object *json_obj = json_object_new_object();
-	json_object *token = json_object_new_array(); // Fingerprint bytes
+	json_object *token = NULL; // Base64 encoded fingerprint data
 
-	for (int i = 0; i < img_size; i++)
+	// Encode the fingerprint data to Base64
+	char *base64_token = NULL;
+	if (base64_encode(pImage, img_size, &base64_token) != 0)
 	{
-		json_object_array_add(token, json_object_new_int(pImage[i]));
+		fprintf(stderr, "Failed to encode fingerprint to Base64\n");
+		return -1;
 	}
 
+	// Add Base64 token to JSON
+	token = json_object_new_string(base64_token);
+	free(base64_token); // Free memory after adding to JSON object
+
+	// Add fields to JSON object
 	json_object_object_add(json_obj, "token", token);
-	json_object_object_add(json_obj, "type", json_object_new_string("INDEX"));			  // TODO: add logic to get random finger type
-	json_object_object_add(json_obj, "hardware_id", json_object_new_string(hardware_id)); // TODO: add logic to get hardware id
+	json_object_object_add(json_obj, "type", json_object_new_string("INDEX"));			  // Add logic for finger type if needed
+	json_object_object_add(json_obj, "hardware_id", json_object_new_string(hardware_id)); // Use hardware_id parameter
 
 	const char *json_str = json_object_to_json_string(json_obj);
 
+	// Initialize cURL
 	curl = curl_easy_init();
-
 	if (curl)
 	{
 		curl_easy_setopt(curl, CURLOPT_URL, "http://10.100.123.34:8080/api/v1/enrollments");
 
+		// Add headers
 		headers = curl_slist_append(headers, "Content-Type: application/json");
-
 		curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+		// Add JSON payload
 		curl_easy_setopt(curl, CURLOPT_POSTFIELDS, json_str);
 
+		// Perform HTTP POST
 		res = curl_easy_perform(curl);
-
 		if (res != CURLE_OK)
 		{
 			fprintf(stderr, "curl_easy_perform() failed: %s\n", curl_easy_strerror(res));
@@ -92,19 +141,21 @@ int send_fingerprint_to_server(unsigned char *pImage, int img_size, const char *
 			return -1;
 		}
 
+		// Clean up
 		curl_easy_cleanup(curl);
 		curl_slist_free_all(headers);
 	}
 	else
 	{
 		fprintf(stderr, "Failed to initialize curl\n");
+		json_object_put(json_obj);
 		return -1;
 	}
 
+	// Free JSON object
 	json_object_put(json_obj);
-	curl_global_cleanup();
 
-	return 0;
+	return 0; // Success
 }
 
 int write_bmp_file(unsigned char *pImage, int width, int height)

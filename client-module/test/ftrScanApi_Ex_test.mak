@@ -3,7 +3,7 @@ TARGET=ftrScanAPI_Ex_test
 CFLAGS=-Wall -O2 -I./       
 
 FTRSCANAPI_DLIB=libScanAPI.so -lm -lusb
-LIBS=-lcurl -ljson-c $(FTRSCANAPI_DLIB)
+LIBS=-lcurl -ljson-c -lssl -lcrypto $(FTRSCANAPI_DLIB)
 
 all: $(TARGET)
 
