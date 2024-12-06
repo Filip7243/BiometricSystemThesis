@@ -1,7 +1,4 @@
-#include <json-c/json.h>
 #include <curl/curl.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 
 int send_file()
 {
@@ -52,10 +49,6 @@ int send_file()
     long file_size;
     char response[4096] = {0};
 
-    SSL_library_init();
-    OpenSSL_add_all_algorithms();
-    SSL_load_error_strings();
-
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
@@ -74,33 +67,32 @@ int send_file()
         file_size = ftell(file);
         rewind(file);
 
+        printf("File size: %d\n", file_size);
+
         // URL for secure upload
-        const char *url = "http://10.100.123.34:8080/api/v1/enrollments";
+        const char *url = "http://192.168.88.87:8080/api/v1/enrollments";
 
         // Create form
-        struct curl_httppost *formpost = NULL;
-        struct curl_httppost *lastptr = NULL;
-        struct curl_slist *headerlist = NULL;
+        curl_mime *mime;
+        curl_mimepart *part;
 
-        // Add file to form
-        curl_formadd(&formpost, &lastptr,
-                     CURLFORM_COPYNAME, "file",
-                     CURLFORM_FILE, "frame_Ex.bmp",
-                     CURLFORM_CONTENTTYPE, "image/bmp",
-                     CURLFORM_END);
+        mime = curl_mime_init(curl);
+        part = curl_mime_addpart(mime);
 
-        curl_formadd(&formpost, &lastptr,
-                     CURLFORM_COPYNAME, "type",
-                     CURLFORM_COPYCONTENTS, "INDEX",
-                     CURLFORM_END);
+        curl_mime_name(part, "file");
+        curl_mime_filedata(part, "frame_Ex.bmp");
+        curl_mime_type(part, "image/bmp");
 
-        curl_formadd(&formpost, &lastptr,
-                     CURLFORM_COPYNAME, "id",
-                     CURLFORM_COPYCONTENTS, "12345",
-                     CURLFORM_END);
+        part = curl_mime_addpart(mime);
+        curl_mime_name(part, "type");
+        curl_mime_data(part, "INDEX", CURL_ZERO_TERMINATED);
+
+        part = curl_mime_addpart(mime);
+        curl_mime_name(part, "id");
+        curl_mime_data(part, "12345", CURL_ZERO_TERMINATED);
 
         curl_easy_setopt(curl, CURLOPT_URL, url);
-        curl_easy_setopt(curl, CURLOPT_HTTPPOST, formpost);
+        curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
 
         // Perform the request
         res = curl_easy_perform(curl);
@@ -117,14 +109,10 @@ int send_file()
         }
 
         // Clean up
-        curl_formfree(formpost);
-        curl_slist_free_all(headerlist);
+        curl_mime_free(mime);
         curl_easy_cleanup(curl);
         fclose(file);
     }
-
-    EVP_cleanup();
-    ERR_free_strings();
 
     curl_global_cleanup();
 
