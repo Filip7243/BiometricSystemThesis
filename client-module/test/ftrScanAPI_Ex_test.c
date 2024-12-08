@@ -178,6 +178,12 @@ int write_bmp_file(unsigned char *pImage, int width, int height)
 	pDIBHeader->bmiHeader.biPlanes = 1;
 	pDIBHeader->bmiHeader.biBitCount = 8;	 // 8bits gray scale bmp
 	pDIBHeader->bmiHeader.biCompression = 0; // BI_RGB = 0;
+
+	// 500 DPI set
+	long int resolution = (long int)(500 / 0.0254);
+	pDIBHeader->bmiHeader.biXPelsPerMeter = resolution;
+	pDIBHeader->bmiHeader.biYPelsPerMeter = resolution;
+
 	// initialize logical and DIB grayscale
 	for (iCyc = 0; iCyc < 256; iCyc++)
 	{
@@ -236,7 +242,12 @@ int write_bmp_file(unsigned char *pImage, int width, int height)
 	cptrDIBData = pDIBData;
 	for (iCyc = 0; iCyc < height; iCyc++)
 	{
-		memcpy(cptrDIBData, cptrData, width);
+		// memcpy(cptrDIBData, cptrData, width);
+		for (int j = 0; j < width; j++)
+		{
+			// Invert the pixel value (255 - original value)
+			cptrDIBData[j] = 255 - cptrData[j];
+		}
 		cptrData = cptrData - width;
 		cptrDIBData = cptrDIBData + width;
 	}

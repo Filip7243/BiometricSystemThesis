@@ -2,47 +2,6 @@
 
 int send_file()
 {
-    // FILE *file;
-    // unsigned char *buffer;
-    // long file_size;
-
-    // file = fopen("frame_Ex.bmp", "rb");
-    // if (!file)
-    // {
-    //     perror("Error opening file\n");
-    //     return -1;
-    // }
-
-    // fseek(file, 0, SEEK_END);
-    // file_size = ftell(file);
-    // fseek(file, 0, SEEK_SET);
-
-    // buffer = (unsigned char *)malloc(file_size);
-    // if (!buffer)
-    // {
-    //     perror("Error allocating memory\n");
-    //     fclose(file);
-    //     return -1;
-    // }
-
-    // size_t read_bytes = fread(buffer, 1, file_size, file);
-    // if (read_bytes != file_size)
-    // {
-    //     perror("Error reading file\n");
-    //     fclose(file);
-    //     free(buffer);
-    //     return -1;
-    // }
-    // fclose(file);
-
-    // size_t base64_len;
-    // char *base64_str = base64_encode(buffer, file_size, &base64_len);
-    // free(buffer);
-
-    // // SEND REQUEST
-
-    // free(buffer);
-
     CURL *curl;
     CURLcode res;
     FILE *file;
@@ -88,7 +47,7 @@ int send_file()
         curl_mime_data(part, "INDEX", CURL_ZERO_TERMINATED);
 
         part = curl_mime_addpart(mime);
-        curl_mime_name(part, "id");
+        curl_mime_name(part, "hardwareId");
         curl_mime_data(part, "12345", CURL_ZERO_TERMINATED);
 
         curl_easy_setopt(curl, CURLOPT_URL, url);
