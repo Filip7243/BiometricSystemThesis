@@ -17,9 +17,6 @@ import static javax.swing.JTabbedPane.SCROLL_TAB_LAYOUT;
 public final class MainPanel extends JPanel implements ChangeListener {
 
     private JTabbedPane tabbedPane;
-    private RegisterUserTab registerUserTab;
-    private MenageDevicesTab menageDevicesTab;
-    private MenageBuildingsRoomsTab menageBuildingsRoomsTab;
     private AddUserTab addUserTab;
     private ManageBuildingsRoomsTab manageBuildingsRoomsTab;
     private ManageUsersTab manageUsersTab;
@@ -45,25 +42,25 @@ public final class MainPanel extends JPanel implements ChangeListener {
         this.tabbedPane.setTabLayoutPolicy(SCROLL_TAB_LAYOUT);
 
         // Register tab
-        this.registerUserTab = new RegisterUserTab();
-        this.registerUserTab.init();
-        this.tabbedPane.addTab("Register User", this.registerUserTab);
+//        this.registerUserTab = new RegisterUserTab();
+//        this.registerUserTab.init();
+//        this.tabbedPane.addTab("Register User", this.registerUserTab);
 
         // Assign device to room
-        this.menageDevicesTab = new MenageDevicesTab();
-        this.menageDevicesTab.init();
-        this.tabbedPane.addTab("Menage Devices", this.menageDevicesTab);
+//        this.menageDevicesTab = new MenageDevicesTab();
+//        this.menageDevicesTab.init();
+//        this.tabbedPane.addTab("Menage Devices", this.menageDevicesTab);
 
         // Manage buildings and rooms
-        this.menageBuildingsRoomsTab = new MenageBuildingsRoomsTab();
-        this.menageBuildingsRoomsTab.init();
-        this.tabbedPane.addTab("Menage Buildings", this.menageBuildingsRoomsTab);
+//        this.menageBuildingsRoomsTab = new MenageBuildingsRoomsTab();
+//        this.menageBuildingsRoomsTab.init();
+//        this.tabbedPane.addTab("Menage Buildings", this.menageBuildingsRoomsTab);
 
         addUserTab = new AddUserTab();
         addUserTab.init();
         this.tabbedPane.addTab("Add User", addUserTab);
 
-        manageBuildingsRoomsTab = new ManageBuildingsRoomsTab((JFrame) (getParent()));
+        manageBuildingsRoomsTab = new ManageBuildingsRoomsTab();
         manageBuildingsRoomsTab.init();
         this.tabbedPane.addTab("Manage Buildings and Rooms", manageBuildingsRoomsTab);
 
@@ -79,24 +76,14 @@ public final class MainPanel extends JPanel implements ChangeListener {
     public void stateChanged(ChangeEvent e) {
         if (e.getSource() instanceof JTabbedPane pane) {
             try {
-                if (pane.getSelectedComponent() instanceof RegisterUserTab) {
-                    obtainLicenses(registerUserTab);
-                    registerUserTab.updateFingersTools();
-                    registerUserTab.getScannersListPanel().updateScannerList();
-                    registerUserTab.getBuildingRoomsPanel().updateBuildingList();
-                    registerUserTab.getBuildingRoomsPanel().updateRoomList();
-                } else if (pane.getSelectedComponent() instanceof MenageDevicesTab) {
-                    obtainLicenses(menageDevicesTab);
-                    menageDevicesTab.updateFingersTools();
-                    menageDevicesTab.getScannersListPanel().updateScannerList();
-                    menageDevicesTab.getBuildingRoomsPanel().updateBuildingList();
-                    menageDevicesTab.getBuildingRoomsPanel().updateRoomList();
-                } else if (pane.getSelectedComponent() instanceof AddUserTab) {
+                if (pane.getSelectedComponent() instanceof AddUserTab) {
                     obtainLicenses(addUserTab);
                     addUserTab.updateFingersTools();
                     addUserTab.getScannersListPanel().updateScannerList();
-//                    uif.getBuildingRoomsPanel().updateBuildingList();
-//                    uif.getBuildingRoomsPanel().updateRoomList();
+                } else if (pane.getSelectedComponent() instanceof ManageBuildingsRoomsTab) {
+//                    obtainLicenses(manageBuildingsRoomsTab);
+                } else if (pane.getSelectedComponent() instanceof ManageUsersTab) {
+//                    obtainLicenses(manageUsersTab);
                 }
             } catch (IOException ex) {
                 SwingUtilities.invokeLater(() -> {

@@ -3,6 +3,7 @@ package com.example.gui;
 import com.neurotec.util.concurrent.AggregateExecutionException;
 
 import javax.swing.*;
+import java.awt.*;
 import java.util.List;
 
 import static javax.swing.JOptionPane.ERROR_MESSAGE;

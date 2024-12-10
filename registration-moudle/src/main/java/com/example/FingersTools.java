@@ -1,9 +1,13 @@
 package com.example;
 
 import com.neurotec.biometrics.client.NBiometricClient;
+import com.neurotec.io.NBuffer;
 import com.neurotec.licensing.NLicense;
 
 import java.io.IOException;
+import java.nio.ByteBuffer;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -43,6 +47,14 @@ public final class FingersTools {
             if (isLicenseObtained(license)) {
                 System.out.println(license + ": " + " already obtained");
             } else {
+                String licPath = "C:\\Users\\Filip\\Desktop\\STUDIA\\inzynierka\\MM_13.0\\" +
+                        "Neurotec_Biometric_13_0_SDK\\Bin\\Win64_x64\\Activation\\" +
+                        "Trial_PC__Valid-until_2025-06-04_5170789018306794686_internet_license.lic";
+
+                byte[] bytes = Files.readAllBytes(Paths.get(licPath));
+                ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
+                NLicense.add(NBuffer.fromByteBuffer(byteBuffer));
+
                 boolean state = NLicense.obtainComponents(ADDRESS, PORT, license);
                 licenses.put(license, state);
                 if (state) {

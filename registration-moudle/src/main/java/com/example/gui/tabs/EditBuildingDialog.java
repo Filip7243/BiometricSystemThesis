@@ -1,18 +1,16 @@
 package com.example.gui.tabs;
 
-import com.example.client.BaseResourceWorker;
 import com.example.client.BuildingService;
 import com.example.client.dto.BuildingDTO;
 import com.example.client.dto.UpdateBuildingRequest;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 
-import static java.awt.Color.RED;
-import static java.awt.Cursor.*;
-import static java.awt.Font.BOLD;
-import static javax.swing.JOptionPane.ERROR_MESSAGE;
-import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
+import static java.awt.Cursor.TEXT_CURSOR;
 
 public class EditBuildingDialog extends JDialog {
 
@@ -32,55 +30,73 @@ public class EditBuildingDialog extends JDialog {
     }
 
     private void initComponents() {
-        setTitle("Edit building: " + building.buildingNumber());
-        setSize(400, 500);
+        setTitle("Edit Building Details");
+        setSize(600, 450);
         setLocationRelativeTo(null);
 
-        JPanel panel = new JPanel(new GridBagLayout());
+        // Main panel with padding
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
+
+        // Header panel
+        JPanel headerPanel = new JPanel(new GridLayout(2, 1));
+        headerPanel.setBackground(new Color(245, 245, 245)); // Light gray
+        headerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JLabel headerTitle = new JLabel("Editing Building Details", SwingConstants.CENTER);
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        headerTitle.setForeground(new Color(52, 73, 94)); // Dark blue-gray
+
+        JLabel headerDetails = new JLabel(
+                "Building Number: " + building.buildingNumber() + " | Street: " + building.street(),
+                SwingConstants.CENTER
+        );
+        headerDetails.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        headerDetails.setForeground(new Color(100, 100, 100)); // Subtle gray
+
+        headerPanel.add(headerTitle);
+        headerPanel.add(headerDetails);
+
+        // Content panel
+        JPanel contentPanel = new JPanel(new GridBagLayout());
+        contentPanel.setBackground(Color.WHITE);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
-        JTextField buildingNumberField = new JTextField(building.buildingNumber(), 20);
-        buildingNumberField.setCursor(getPredefinedCursor(TEXT_CURSOR));
+        // Custom styled text fields
+        JTextField buildingNumberField = createStyledTextField(building.buildingNumber());
+        JTextField streetField = createStyledTextField(building.street());
 
-        JTextField streetField = new JTextField(building.street(), 20);
-        streetField.setCursor(getPredefinedCursor(TEXT_CURSOR));
-
+        // Labels
         gbc.gridx = 0;
         gbc.gridy = 0;
-
-        JLabel lblBuildingNumber = new JLabel("Building Number:");
-        lblBuildingNumber.setFont(new Font("Arial", BOLD, 12));
-
-        panel.add(lblBuildingNumber, gbc);
+        gbc.weightx = 0.3;
+        JLabel lblBuildingNumber = createStyledLabel("Building Number:");
+        contentPanel.add(lblBuildingNumber, gbc);
 
         gbc.gridx = 1;
-
-        panel.add(buildingNumberField, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(buildingNumberField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-
-        JLabel lblStreet = new JLabel("Street:");
-        lblStreet.setFont(new Font("Arial", BOLD, 12));
-
-        panel.add(lblStreet, gbc);
+        gbc.weightx = 0.3;
+        JLabel lblStreet = createStyledLabel("Street:");
+        contentPanel.add(lblStreet, gbc);
 
         gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        contentPanel.add(streetField, gbc);
 
-        panel.add(streetField, gbc);
-
+        // Status label
         JLabel statusLabel = new JLabel("");
-        statusLabel.setForeground(RED);
+        statusLabel.setForeground(Color.RED);
+        statusLabel.setHorizontalAlignment(JLabel.CENTER);
 
-        gbc.gridx = 0;
-        gbc.gridy = 2;
-        gbc.gridwidth = 2;
-
-        JButton saveButton = new JButton("Save");
-        saveButton.setCursor(getPredefinedCursor(HAND_CURSOR));
+        // Save button with green styling
+        JButton saveButton = createStyledButton();
         saveButton.addActionListener(e -> {
             saveButton.setEnabled(false);
             statusLabel.setForeground(Color.BLACK);
@@ -95,21 +111,76 @@ public class EditBuildingDialog extends JDialog {
                     building.id(),
                     updateRequest,
                     (result) -> {
-                        callback.run();
-                        dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            callback.run();
+                            dispose();
+                        });
                     },
                     this
             );
         });
 
+        // Layout components
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+
         gbc.gridx = 0;
-        gbc.gridy = 3;
+        gbc.gridy = 2;
         gbc.gridwidth = 2;
+        gbc.insets = new Insets(20, 10, 10, 10);
+        contentPanel.add(saveButton, gbc);
 
-        panel.add(saveButton, gbc);
+        gbc.gridy = 3;
+        contentPanel.add(statusLabel, gbc);
 
-        add(panel);
+        add(mainPanel);
 
+        // Add some final touches
+        getRootPane().setDefaultButton(saveButton);
+        setResizable(false);
         setVisible(true);
+    }
+
+    private JTextField createStyledTextField(String text) {
+        JTextField textField = new JTextField(text, 20);
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        textField.setCursor(Cursor.getPredefinedCursor(TEXT_CURSOR));
+        return textField;
+    }
+
+    private JLabel createStyledLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setForeground(new Color(70, 70, 70));
+        return label;
+    }
+
+    private JButton createStyledButton() {
+        JButton button = new JButton("Save Changes");
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(new Color(46, 204, 113)); // Green
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(new CompoundBorder(
+                new LineBorder(new Color(39, 174, 96), 1, true),
+                new EmptyBorder(10, 20, 10, 20)
+        ));
+
+        // Hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(39, 174, 96)); // Darker green
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(46, 204, 113)); // Default green
+            }
+        });
+
+        return button;
     }
 }

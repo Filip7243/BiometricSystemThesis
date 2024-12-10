@@ -30,18 +30,21 @@ import static com.neurotec.biometrics.NBiometricOperation.CREATE_TEMPLATE;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.BorderLayout.*;
+import static java.awt.Color.WHITE;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 
 public class AddUserTab extends BasePanel implements ActionListener {
 
+    private final BuildingClient buildingClient = new BuildingClient();
+    private final UserClient userClient = new UserClient();
     private final CaptureHandler captureHandler = new CaptureHandler();
-    private NSubject subject;
     private final List<Fingerprint> scannedFingers = new ArrayList<>();
-    private NFingerView currentCapturingView;
+
     private FingerType currentFingerCapturing = FingerType.NONE;
 
-    private LicensingPanel panelLicensing;  // TODO: add to initGUI
+    private NSubject subject;
+
     private UserInputForm userInputForm;
     private FingerScanForm fingerScanForm;
     private RoomAssignmentForm roomAssignmentForm;
@@ -52,8 +55,6 @@ public class AddUserTab extends BasePanel implements ActionListener {
     private JButton btnCancelThumbScan, btnCancelIndexScan, btnCancelMiddleScan;
     private JButton btnAssignRoom, btnRemoveRoom;
 
-    private final BuildingClient buildingClient = new BuildingClient();
-    private final UserClient userClient = new UserClient();
 
     public AddUserTab() {
         super();
@@ -74,12 +75,15 @@ public class AddUserTab extends BasePanel implements ActionListener {
     protected void initGUI() {
         setLayout(new BorderLayout());
 
+        panelLicensing = new LicensingPanel(requiredLicenses, optionalLicenses);
+        add(panelLicensing, NORTH);
+
         slp = new ScannersListPanel();
         slp.hideFingersCombo();
-        panelLicensing = new LicensingPanel(requiredLicenses, optionalLicenses);
         add(slp, NORTH);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
         add(mainPanel, CENTER);
 
         List<BuildingDTO> allBuildings = buildingClient.getAllBuildings();
@@ -88,31 +92,28 @@ public class AddUserTab extends BasePanel implements ActionListener {
         fingerScanForm = new FingerScanForm();
         roomAssignmentForm = new RoomAssignmentForm(allBuildings);
 
-        btnScanThumb = fingerScanForm.getBtnScanThumb();
-        btnScanThumb.addActionListener(this);
-        btnScanIndex = fingerScanForm.getBtnScanIndex();
-        btnScanIndex.addActionListener(this);
-        btnScanMiddle = fingerScanForm.getBtnScanMiddle();
-        btnScanMiddle.addActionListener(this);
-
-        btnCancelThumbScan = fingerScanForm.getBtnCancelThumbScan();
-        btnCancelThumbScan.addActionListener(this);
-        btnCancelIndexScan = fingerScanForm.getBtnCancelIndexScan();
-        btnCancelIndexScan.addActionListener(this);
-        btnCancelMiddleScan = fingerScanForm.getBtnCancelMiddleScan();
-        btnCancelMiddleScan.addActionListener(this);
-
-        btnAssignRoom = roomAssignmentForm.getBtnAssignRoom();
-        btnRemoveRoom = roomAssignmentForm.getBtnRemoveRoom();
+        styleButtons(fingerScanForm, roomAssignmentForm);
 
         mainPanel.add(userInputForm, NORTH);
         mainPanel.add(fingerScanForm, CENTER);
         mainPanel.add(roomAssignmentForm, SOUTH);
 
         btnSubmitForm = new JButton("Submit Form");
-        btnSubmitForm.setPreferredSize(new Dimension(btnSubmitForm.getPreferredSize().width, 20));
+        btnSubmitForm.putClientProperty("JButton.buttonType", "roundRect");
+        btnSubmitForm.setFont(btnSubmitForm.getFont().deriveFont(Font.BOLD));
+        btnSubmitForm.setBackground(new Color(0, 120, 215));
+        btnSubmitForm.setForeground(WHITE);
+        btnSubmitForm.setPreferredSize(new Dimension(
+                150,
+                40
+        ));
         btnSubmitForm.addActionListener(this);
-        add(btnSubmitForm, SOUTH);
+
+        JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
+        submitPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+        submitPanel.add(btnSubmitForm);
+
+        add(submitPanel, BorderLayout.SOUTH);
     }
 
     @Override
@@ -166,6 +167,43 @@ public class AddUserTab extends BasePanel implements ActionListener {
         } else if (source.equals(btnSubmitForm)) {
             saveUser();
         }
+    }
+
+    private void styleButtons(FingerScanForm fingerScanForm, RoomAssignmentForm roomAssignmentForm) {
+        JButton[] scanButtons = {
+                fingerScanForm.getBtnScanThumb(),
+                fingerScanForm.getBtnScanIndex(),
+                fingerScanForm.getBtnScanMiddle(),
+                fingerScanForm.getBtnCancelThumbScan(),
+                fingerScanForm.getBtnCancelIndexScan(),
+                fingerScanForm.getBtnCancelMiddleScan(),
+                roomAssignmentForm.getBtnAssignRoom(),
+                roomAssignmentForm.getBtnRemoveRoom()
+        };
+
+        for (JButton btn : scanButtons) {
+            btn.putClientProperty("JButton.buttonType", "roundRect");
+            btn.setFont(btn.getFont().deriveFont(Font.BOLD));
+            btn.setFocusPainted(false);
+        }
+
+        // Action listeners remain the same
+        btnScanThumb = fingerScanForm.getBtnScanThumb();
+        btnScanThumb.addActionListener(this);
+        btnScanIndex = fingerScanForm.getBtnScanIndex();
+        btnScanIndex.addActionListener(this);
+        btnScanMiddle = fingerScanForm.getBtnScanMiddle();
+        btnScanMiddle.addActionListener(this);
+
+        btnCancelThumbScan = fingerScanForm.getBtnCancelThumbScan();
+        btnCancelThumbScan.addActionListener(this);
+        btnCancelIndexScan = fingerScanForm.getBtnCancelIndexScan();
+        btnCancelIndexScan.addActionListener(this);
+        btnCancelMiddleScan = fingerScanForm.getBtnCancelMiddleScan();
+        btnCancelMiddleScan.addActionListener(this);
+
+        btnAssignRoom = roomAssignmentForm.getBtnAssignRoom();
+        btnRemoveRoom = roomAssignmentForm.getBtnRemoveRoom();
     }
 
     private void startCapturing(NFingerView view) {
@@ -223,6 +261,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
         Map<BuildingDTO, List<RoomDTO>> selectedRooms = roomAssignmentForm.getSelectedRooms();
 
+        // TODO: clear all fileds after saving!
         Map<FingerType, byte[]> fingerprintData = scannedFingers.stream()
                 .collect(Collectors.toMap(Fingerprint::fingerType, Fingerprint::token));
 
@@ -247,7 +286,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
                     fingerScanForm.updateStatus("Quality: " + subject.getFingers().get(0).getObjects().get(0).getQuality());
 
                     System.out.println("Saving finger: " + currentFingerCapturing);
-                    scannedFingers.add(new Fingerprint(getFingerTemplate(subject), currentFingerCapturing));
+                    scannedFingers.add(new Fingerprint(subject.getTemplateBuffer().toByteArray(), currentFingerCapturing));
                 } else {
                     fingerScanForm.updateStatus("Failed to capture. " + result.getStatus());
                 }
@@ -261,7 +300,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
         public void failed(final Throwable throwable, final Object attachment) {
             SwingUtilities.invokeLater(() -> {
                 fingerScanForm.setScanning(false);
-                currentCapturingView.setShownImage(ORIGINAL);
+//                currentCapturingView.setShownImage(ORIGINAL);
                 showError(throwable);
                 currentFingerCapturing = FingerType.NONE;
                 updateControls();

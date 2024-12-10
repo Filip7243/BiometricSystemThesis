@@ -7,6 +7,9 @@ import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import static java.awt.GridBagConstraints.NONE;
+import static java.awt.GridBagConstraints.WEST;
+
 public class UserInputForm extends JPanel {
     private JTextField firstNameField;
     private JTextField lastNameField;
@@ -46,8 +49,18 @@ public class UserInputForm extends JPanel {
     }
 
     boolean areAllFieldsValid() {
-        return validatePesel(peselField.getText().trim()) && !firstNameField.getText().trim().isEmpty() &&
-                !lastNameField.getText().trim().isEmpty() && roleCombo.getSelectedItem() != null;
+        boolean pesel = validatePesel(peselField.getText().trim());
+        boolean firstNmae = firstNameField.getText().trim().isEmpty();
+        boolean lastName = lastNameField.getText().trim().isEmpty();
+        boolean role = roleCombo.getSelectedItem() != null;
+
+        System.out.println("pesel: " + pesel);
+        System.out.println("first name: " + firstNmae);
+        System.out.println("last name: " + lastName);
+        System.out.println("role: " + role);
+
+        return pesel && !firstNmae &&
+                !lastName && role;
     }
 
     private void initComponents() {
@@ -68,7 +81,6 @@ public class UserInputForm extends JPanel {
 
         add(fieldsPanel, BorderLayout.CENTER);
     }
-    // Allow only numbers in filed
 
     private void addNumberKeyListener(JTextField field) {
         field.addKeyListener(new KeyAdapter() {
@@ -84,7 +96,6 @@ public class UserInputForm extends JPanel {
             }
         });
     }
-    // Allow only letters in fields
 
     private void addTextKeyListener(JTextField firstNameField) {
         firstNameField.addKeyListener(new KeyAdapter() {
@@ -105,14 +116,16 @@ public class UserInputForm extends JPanel {
     private GridBagConstraints createGridBagConstraints() {
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
-        gbc.anchor = GridBagConstraints.WEST;
+        gbc.anchor = WEST;
+        gbc.weightx = 1.0;
         return gbc;
     }
 
     private void addFormField(JPanel panel, String labelText, JComponent field, GridBagConstraints gbc, int row, int col) {
         gbc.gridx = col * 2;
         gbc.gridy = row;
-        gbc.fill = GridBagConstraints.NONE;
+        gbc.fill = NONE;
+
         JLabel label = new JLabel(labelText);
         label.setPreferredSize(new Dimension(100, 25));
         panel.add(label, gbc);
@@ -121,6 +134,9 @@ public class UserInputForm extends JPanel {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         if (field instanceof JTextField) {
             field.setPreferredSize(new Dimension(field.getPreferredSize().width, 25));
+            field.putClientProperty("JTextField.placeholderText", "Enter " + labelText.toLowerCase());
+        } else if (field instanceof JComboBox) {
+            field.setPreferredSize(new Dimension(field.getPreferredSize().width, 30));
         }
         panel.add(field, gbc);
     }

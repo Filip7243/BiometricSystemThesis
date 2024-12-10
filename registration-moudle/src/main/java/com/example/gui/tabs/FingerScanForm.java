@@ -4,10 +4,15 @@ import com.neurotec.biometrics.swing.NFingerView;
 
 import javax.swing.*;
 import java.awt.*;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
+import static java.awt.BorderLayout.*;
 import static java.awt.Color.BLACK;
+import static java.awt.GridBagConstraints.BOTH;
 import static javax.swing.BorderFactory.createLineBorder;
+import static javax.swing.SwingConstants.CENTER;
 
 public class FingerScanForm extends JPanel {
 
@@ -17,14 +22,15 @@ public class FingerScanForm extends JPanel {
     private final JLabel infoLabel;
 
     private boolean isScanning = false;
+    private JDialog zoomDialog = null;
 
     public FingerScanForm() {
         setLayout(new GridBagLayout());
         setBorder(BorderFactory.createTitledBorder("Fingers Scan"));
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(10, 10, 10, 10);
-        gbc.fill = GridBagConstraints.BOTH;
+        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.fill = BOTH;
         gbc.weightx = 1;
         gbc.weighty = 1;
 
@@ -56,8 +62,9 @@ public class FingerScanForm extends JPanel {
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.gridwidth = 3;
+        gbc.weighty = 0.1;
         infoLabel = new JLabel("Please scan your thumb, index, and middle fingers.");
-        infoLabel.setHorizontalAlignment(SwingConstants.CENTER); // Center the label
+        infoLabel.setHorizontalAlignment(CENTER); // Center the label
         add(infoLabel, gbc);
     }
 
@@ -129,14 +136,65 @@ public class FingerScanForm extends JPanel {
         view.setAutofit(true);
         scrollPane.setViewportView(view);
 
+        view.setPreferredSize(new Dimension(300, 400));
+
+        view.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (view.getFinger() != null) {
+                    view.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                view.setCursor(Cursor.getDefaultCursor());
+            }
+
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                if (e.getClickCount() == 1 && view.getFinger() != null) {
+                    showZoomedView(view, title);
+                }
+            }
+        });
+
         cancelBtn.setEnabled(false);
 
         JPanel btnPanel = new JPanel(new BorderLayout());
-        btnPanel.add(scanBtn, BorderLayout.WEST);
-        btnPanel.add(cancelBtn, BorderLayout.EAST);
+        btnPanel.add(scanBtn, WEST);
+        btnPanel.add(cancelBtn, EAST);
 
-        mainPanel.add(btnPanel, BorderLayout.SOUTH);
+        mainPanel.add(btnPanel, SOUTH);
 
         return mainPanel;
+    }
+
+    private void showZoomedView(NFingerView originalView, String title) {
+        if (zoomDialog != null) {
+            zoomDialog.dispose();
+        }
+
+        zoomDialog = new JDialog((Frame) SwingUtilities.getWindowAncestor(this), title + " - Zoomed View", false);
+        zoomDialog.setLayout(new BorderLayout());
+
+        NFingerView zoomedView = new NFingerView();
+        zoomedView.setFinger(originalView.getFinger());
+        zoomedView.setShownImage(ORIGINAL);
+        zoomedView.setAutofit(false);
+
+        JScrollPane scrollPane = new JScrollPane(zoomedView);
+        scrollPane.setPreferredSize(new Dimension(600, 800));
+
+        zoomDialog.add(scrollPane, BorderLayout.CENTER);
+
+        // Add a close button
+        JButton closeButton = new JButton("Close");
+        closeButton.addActionListener(e -> zoomDialog.dispose());
+        zoomDialog.add(closeButton, SOUTH);
+
+        zoomDialog.pack();
+        zoomDialog.setLocationRelativeTo(this);
+        zoomDialog.setVisible(true);
     }
 }

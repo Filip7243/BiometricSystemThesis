@@ -7,8 +7,12 @@ import com.example.client.dto.AddRoomRequest;
 import com.example.client.dto.BuildingDTO;
 import com.example.client.dto.RoomDTO;
 import com.example.gui.ScannersListPanel;
+import com.example.gui.tabs.tables.MyTable;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -31,7 +35,6 @@ public class BuildingDetailsDialog extends JDialog {
     private final RoomService roomService = new RoomService(roomClient);
     private final BuildingService buildingService;
     private final Runnable onBuildingUpdated;
-    private final List<BuildingDTO> buildings;
 
     private BuildingDTO building;
     private DefaultTableModel roomTableModel;
@@ -39,50 +42,52 @@ public class BuildingDetailsDialog extends JDialog {
     public BuildingDetailsDialog(Frame owner,
                                  BuildingDTO building,
                                  BuildingService buildingService,
-                                 Runnable onBuildingUpdated,
-                                 List<BuildingDTO> buildings) {
+                                 Runnable onBuildingUpdated) {
         super(owner, true);
 
         this.building = building;
         this.buildingService = buildingService;
         this.onBuildingUpdated = onBuildingUpdated;
-        this.buildings = buildings;
 
         initComponent();
     }
 
     private void initComponent() {
         setTitle("Details for building " + building.buildingNumber());
-        setSize(600, 400);
+        setSize(800, 600);
         setLocationRelativeTo(null);
 
         JPanel panel = new JPanel(new BorderLayout());
-        JPanel infoPanel = new JPanel(new GridLayout(2, 2, 5, 5));
 
-        JLabel lblBuildingNumber = new JLabel("Building Number:");
-        lblBuildingNumber.setFont(new Font("Arial", BOLD, 12));
+        // Header Panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(245, 245, 245)); // Light gray
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        infoPanel.add(lblBuildingNumber);
-        infoPanel.add(new JLabel(building.buildingNumber()));
+        JLabel headerTitle = new JLabel("Building Details", 0);
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        headerTitle.setForeground(new Color(52, 73, 94)); // Dark blue-gray
 
-        JLabel lblStreet = new JLabel("Street:");
-        lblStreet.setFont(new Font("Arial", BOLD, 12));  // TODO: maybe in futre create my own Label ex. BoldLabel etc.
+        JLabel headerDetails = new JLabel(
+                "Building Number: " + building.buildingNumber() + " | Street: " + building.street(),
+                SwingConstants.CENTER
+        );
+        headerDetails.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        headerDetails.setForeground(new Color(100, 100, 100)); // Subtle gray
 
-        infoPanel.add(lblStreet);
-        infoPanel.add(new JLabel(building.street()));
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new BorderLayout());
+        buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
+        JButton addRoomButton = createStyledButton("Add Room");
+        buttonPanel.add(addRoomButton, CENTER);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(RIGHT));
-        JButton addRoomButton = new JButton("Add Room");
+        headerPanel.add(headerTitle, NORTH);
+        headerPanel.add(headerDetails, CENTER);
+        headerPanel.add(buttonPanel, SOUTH);
 
-        addRoomButton.setPreferredSize(new Dimension(100, 30));
-        buttonPanel.add(addRoomButton);
+        panel.add(headerPanel, BorderLayout.NORTH);
 
-        JPanel topPanel = new JPanel(new BorderLayout());
-        topPanel.add(infoPanel, WEST);
-        topPanel.add(buttonPanel, EAST);
-
-        panel.add(topPanel, NORTH);
-
+        // Room Table
         String[] columnNames = {"Room ID", "Room Number", "Floor", "Update", "Delete", "Set Device"};
         roomTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
@@ -91,18 +96,18 @@ public class BuildingDetailsDialog extends JDialog {
             }
         };
 
-        JTable roomTable = new JTable(roomTableModel);
-        roomTable.setShowGrid(true);
+        MyTable roomTable = new MyTable(roomTableModel);
 
         DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
-        defaultTableCellRenderer.setHorizontalAlignment(CENTER);
-        roomTable.getColumnModel().getColumn(0).setCellRenderer(defaultTableCellRenderer);
-        roomTable.getColumnModel().getColumn(1).setCellRenderer(defaultTableCellRenderer);
-        roomTable.getColumnModel().getColumn(2).setCellRenderer(defaultTableCellRenderer);
-        roomTable.getColumnModel().getColumn(3).setCellRenderer(new ButtonRenderer("Edit"));
-        roomTable.getColumnModel().getColumn(4).setCellRenderer(new ButtonRenderer("Delete"));
-        roomTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Details"));
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        roomTable.setColumnRenderer(0, defaultTableCellRenderer);
+        roomTable.setColumnRenderer(1, defaultTableCellRenderer);
+        roomTable.setColumnRenderer(2, defaultTableCellRenderer);
+        roomTable.setColumnRenderer(3, new ButtonRenderer("Edit"));
+        roomTable.setColumnRenderer(4, new ButtonRenderer("Delete"));
+        roomTable.setColumnRenderer(5, new ButtonRenderer("Set Device"));
 
+        // Add rows to the table
         for (RoomDTO room : building.rooms()) {
             roomTableModel.addRow(new Object[]{
                     room.roomId(),
@@ -113,7 +118,7 @@ public class BuildingDetailsDialog extends JDialog {
                     "Set Device"
             });
         }
-        //TODO: manage user details detach room refresh table doesnt work
+
         addRoomButton.addActionListener(e -> {
             new AddOrUpdateRoomInBuildingDialog(
                     (Frame) getParent(),
@@ -126,7 +131,8 @@ public class BuildingDetailsDialog extends JDialog {
                                 updateBuilding();
                             },
                             this),
-                    null
+                    null,
+                    "Add New Room"
             );
         });
 
@@ -145,13 +151,6 @@ public class BuildingDetailsDialog extends JDialog {
                         assignDevice(row);
                     }
                 }
-            }
-        });
-
-        roomTable.addMouseMotionListener(new MouseMotionAdapter() {
-            @Override
-            public void mouseMoved(MouseEvent e) {
-                roomTable.setCursor(getPredefinedCursor(HAND_CURSOR));
             }
         });
 
@@ -228,7 +227,8 @@ public class BuildingDetailsDialog extends JDialog {
                 this,
                 "Are you sure you want to delete this room?",
                 "Confirm Delete",
-                JOptionPane.YES_NO_OPTION
+                JOptionPane.YES_NO_OPTION,
+                JOptionPane.WARNING_MESSAGE
         );
 
         if (confirm == YES_OPTION) {  // TODO: update roomList after adding/deleteing
@@ -247,5 +247,30 @@ public class BuildingDetailsDialog extends JDialog {
                     null
             );
         }
+    }
+
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(new Color(46, 204, 113));
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(new CompoundBorder(
+                new LineBorder(new Color(39, 174, 96), 1, true),
+                new EmptyBorder(10, 20, 10, 20)
+        ));
+
+        // Hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(39, 174, 96)); // Darker green
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(46, 204, 113)); // Default green
+            }
+        });
+
+        return button;
     }
 }

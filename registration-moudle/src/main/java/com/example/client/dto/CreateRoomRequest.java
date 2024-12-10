@@ -10,4 +10,9 @@ public record CreateRoomRequest(String roomNumber, Integer floor, String deviceH
             throw new IllegalArgumentException("Floor cannot be null.");
         }
     }
+
+    @Override
+    public String toString() {
+        return String.format("Room: %s (Floor: %d, Device: %s)", roomNumber, floor, deviceHardwareId);
+    }
 }

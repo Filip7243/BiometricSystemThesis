@@ -15,7 +15,7 @@ public class Main {
         Utils.setupLookAndFeel();
         LibraryManager.initLibraryPath();
 
-        NLicenseManager.setTrialMode(true);
+        NLicenseManager.setTrialMode(false);
 
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame();

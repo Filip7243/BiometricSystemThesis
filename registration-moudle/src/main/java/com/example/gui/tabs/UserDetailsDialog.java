@@ -39,7 +39,7 @@ public class UserDetailsDialog extends JDialog {
 
     private void initComponents() {
         setTitle("User: " + user.firstName() + " " + user.lastName() + " details");
-        setSize(600, 400);
+        setSize(800, 500);
         setLocationRelativeTo(null);
 
         JPanel mainPanel = new JPanel(new BorderLayout());
@@ -58,6 +58,7 @@ public class UserDetailsDialog extends JDialog {
         fingerprintTable.getColumnModel()
                 .getColumn(2)
                 .setCellRenderer(new ButtonRenderer("Details"));
+
         fingerprintTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -96,7 +97,8 @@ public class UserDetailsDialog extends JDialog {
         JTable roomTable = new JTable(roomModel);
         roomTable.getColumnModel()
                 .getColumn(3)
-                .setCellRenderer(new ButtonRenderer("Delete"));
+                .setCellRenderer(new ButtonRenderer("Details"));
+
         roomTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -124,6 +126,7 @@ public class UserDetailsDialog extends JDialog {
 
         roomsPanel.add(new JScrollPane(roomTable), CENTER);
 
+        // todo; api and raspbery and styling(at last stage)
         JSplitPane splitPane = new JSplitPane(
                 VERTICAL_SPLIT,
                 fingerprintsPanel,
@@ -166,6 +169,7 @@ public class UserDetailsDialog extends JDialog {
         userService.getUserRooms(
                 user.id(),
                 (rooms) -> {
+                    roomModel.setRowCount(0);
                     for (RoomDTO room : rooms) {
                         roomModel.addRow(new Object[]{
                                 room.roomId(),
