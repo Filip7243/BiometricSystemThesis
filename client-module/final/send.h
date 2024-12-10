@@ -8,6 +8,6 @@
 #define IMAGE_NAME "frame_Ex.bmp"
 
 // Function prototype for sending file via CURL
-int send_file(FingerType type);
+int send_file(FingerType type, char mac_addr[18], char filename[50]);
 
 #endif

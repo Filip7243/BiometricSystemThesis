@@ -2,7 +2,7 @@
 #include <finger_types.h>
 #include <send.h>
 
-int send_file(FingerType type)
+int send_file(FingerType type, char mac_addr[18], char filename[50])
 {
     CURL *curl;
     CURLcode res;
@@ -21,7 +21,7 @@ int send_file(FingerType type)
         mime = curl_mime_init(curl);
         part = curl_mime_addpart(mime);
 
-        curl_mime_filedata(part, IMAGE_NAME);
+        curl_mime_filedata(part, filename);
         curl_mime_name(part, "file");
         curl_mime_type(part, IMAGE_TYPE);
 
@@ -31,7 +31,7 @@ int send_file(FingerType type)
 
         part = curl_mime_addpart(mime);
         curl_mime_name(part, "hardwareId");
-        curl_mime_data(part, "12345", CURL_ZERO_TERMINATED);
+        curl_mime_data(part, mac_addr, CURL_ZERO_TERMINATED);
 
         curl_easy_setopt(curl, CURLOPT_URL, UPLOAD_URL);
         curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);

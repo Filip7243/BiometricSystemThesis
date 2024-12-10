@@ -6,9 +6,11 @@
 #include <fcntl.h>
 #include <unistd.h>
 #include <ftrScanAPI_test.h>
+#include <time.h>
 
 #include <finger_types.h>
 #include <send.h>
+#include <get_device_mac.h>
 
 typedef struct tagBITMAPINFOHEADER
 {
@@ -48,7 +50,7 @@ typedef struct tagBITMAPFILEHEADER
     unsigned long int bfOffBits;
 } BITMAPFILEHEADER, *PBITMAPFILEHEADER;
 
-int write_bmp_file(unsigned char *pImage, int width, int height)
+int write_bmp_file(unsigned char *pImage, int width, int height, char *ret_filename)
 {
     BITMAPINFO *pDIBHeader;
     BITMAPFILEHEADER bmfHeader;
@@ -87,7 +89,15 @@ int write_bmp_file(unsigned char *pImage, int width, int height)
     bmfHeader.bfOffBits = 14 + pDIBHeader->bmiHeader.biSize + sizeof(RGBQUAD) * 256;
     // write to file
     FILE *fp;
-    fp = fopen(IMAGE_NAME, "wb");
+    time_t now;
+    struct tm *timeinfo;
+    char filename[50]; // Buffer to hold the filename
+    time(&now);
+    timeinfo = localtime(&now);
+    strftime(filename, sizeof(filename), "fingers/finger_%Y%m%d_%H%M%S.bmp", timeinfo);
+    printf("Filename: %s\n", filename);
+    sprintf(ret_filename, "%s", filename);
+    fp = fopen(filename, "wb");
     if (fp == NULL)
     {
         printf("Failed to write to file\n");
@@ -143,7 +153,7 @@ int write_bmp_file(unsigned char *pImage, int width, int height)
     }
     fwrite((void *)pDIBData, 1, width * height, fp);
     fclose(fp);
-    printf("Fingerprint image is written to file: %s.\n", IMAGE_NAME);
+    printf("Fingerprint image is written to file: %s.\n", filename);
     free(pDIBData);
     free(pDIBHeader);
     return 0;
@@ -186,19 +196,31 @@ void print_error_message(unsigned long nErrCode)
 
 int main(int argc, char *argv[])
 {
+    char mac_address[18];
+    get_mac("wlan0", mac_address); // TODO: Obsluga bledow
+
     void *hDevice;
     FTRSCAN_IMAGE_SIZE ImageSize;
     unsigned char *pBuffer;
     int i;
-
-    unsigned char serialNumber[8];
-    int result;
+    FTRSCAN_DEVICE_INFO deviceInfo;
+    memset(&deviceInfo, 0, sizeof(deviceInfo));
+    deviceInfo.dwStructSize = sizeof(deviceInfo);
 
     hDevice = ftrScanOpenDevice();
     if (hDevice == NULL)
     {
         printf("Failed to open device!\n");
         return -1;
+    }
+
+    if (ftrScanGetDeviceInfo(hDevice, &deviceInfo))
+    {
+        printf("Device Manufacturer: %d\n", deviceInfo.byDeviceCompatibility);
+    }
+    else
+    {
+        print_error_message(ftrScanGetLastError());
     }
 
     if (!ftrScanGetImageSize(hDevice, &ImageSize))
@@ -229,9 +251,12 @@ int main(int argc, char *argv[])
             if (ftrScanGetFrame(hDevice, pBuffer, NULL))
             {
                 printf("Done!\nWriting to file......\n");
-                write_bmp_file(pBuffer, ImageSize.nWidth, ImageSize.nHeight);
+                char filename[50];
+                write_bmp_file(pBuffer, ImageSize.nWidth, ImageSize.nHeight, filename);
 
-                send_file(randomFinger);
+                printf("Sending to server with name: %s\n", filename);
+
+                send_file(randomFinger, mac_address, filename);
 
                 break;
             }
