@@ -6,11 +6,14 @@ import com.bio.bio_backend.dto.UpdateFingerprintRequest;
 import com.bio.bio_backend.model.Fingerprint;
 import com.bio.bio_backend.respository.FingerprintRepository;
 import com.bio.bio_backend.respository.UserRepository;
+import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.List;
+
+import static com.bio.bio_backend.mapper.FingerprintMapper.toDTOS;
 
 @Service
 @RequiredArgsConstructor
@@ -19,14 +22,24 @@ public class FingerprintService {
     private final FingerprintRepository fingerprintRepository;
     private final UserRepository userRepository;
 
-    @Transactional
-    public void addFingerprint(FingerCreationRequest fingerCreationRequest) {
-        var user = userRepository.findById(fingerCreationRequest.userId())
-                .orElseThrow(() -> new IllegalArgumentException("User with id " + fingerCreationRequest.userId() + " not found"));
+    public List<FingerprintDTO> getAllFingerprints() {
+        return toDTOS(fingerprintRepository.findAll());
+    }
 
-        // TODO: check if user has this fingerpritn in db!
-        var fingerprint = new Fingerprint(fingerCreationRequest.token(), fingerCreationRequest.fingerType(), user);
-        fingerprintRepository.save(fingerprint);
+    @Transactional
+    public void addFingerprint(FingerCreationRequest request) {
+        var user = userRepository.findById(request.userId())
+                .orElseThrow(
+                        () -> new EntityNotFoundException("User with id " + request.userId() + " not found")
+                );
+
+        fingerprintRepository.findByFingerTypeAndUser(request.fingerType(), user)
+                .ifPresentOrElse(
+                        f -> f.setToken(request.token()),
+                        () -> {
+                            var fingerprint = new Fingerprint(request.token(), request.fingerType(), user);
+                            fingerprintRepository.save(fingerprint);
+                        });
     }
 
     @Transactional
@@ -35,13 +48,5 @@ public class FingerprintService {
                 .orElseThrow(() -> new IllegalArgumentException("Fingerprint with id " + request.id() + " not found"));
 
         fingerprint.setToken(request.token());
-    }
-
-
-    public List<FingerprintDTO> getAllFingerprints() {
-        return fingerprintRepository.findAll()
-                .stream()
-                .map(f -> new FingerprintDTO(f.getId(), f.getToken(), f.getFingerType().name(), f.getUser().getId()))
-                .toList();
     }
 }

@@ -31,35 +31,24 @@ public final class LibraryManager {
         }
 
         if (isNullOrEmpty(jnaLibraryPath)) {
-            setProperty("jna.library.path", libraryPath);
+            System.setProperty("jna.library.path", libraryPath);
         } else {
-            setProperty("jna.library.path", format("%s%s%s", jnaLibraryPath, PATH_SEPARATOR, libraryPath));
+            System.setProperty("jna.library.path", format("%s%s%s", jnaLibraryPath, PATH_SEPARATOR, libraryPath));
         }
-        setProperty("java.library.path", format("%s%s%s", getProperty("java.library.path"), PATH_SEPARATOR, libraryPath));
-
-        //TODO: repair loading natives because it seems that it is not working
+        System.setProperty("java.library.path", format("%s%s%s", getProperty("java.library.path"), PATH_SEPARATOR, libraryPath));
     }
 
     private static String getLibraryPath() {
         try {
             URL resourceUrl = LibraryManager.class.getClassLoader().getResource(NATIVE_FOLDER_NAME);
             if (resourceUrl != null) {
-                return resourceUrl.toURI().getPath().substring(1);
+                return resourceUrl.toURI().getPath();
             }
         } catch (URISyntaxException e) {
+            // TODO: make logs
             e.printStackTrace();
         }
 
         return null;
-    }
-
-    private static void resetLibraryPath() {
-        try {
-            Field sysPathsField = ClassLoader.class.getDeclaredField("sys_paths");
-            sysPathsField.setAccessible(true);
-            sysPathsField.set(null, null);
-        } catch (NoSuchFieldException | IllegalAccessException e) {
-            e.printStackTrace();
-        }
     }
 }

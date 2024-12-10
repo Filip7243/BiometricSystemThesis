@@ -48,4 +48,9 @@ public class RoomController {
     public void assignUserToRoom(@PathVariable Long roomId, @PathVariable Long userId) {
         roomService.assignRoomToUser(roomId, userId);
     }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<RoomDTO> getRoomById(@PathVariable Long id) {
+        return ResponseEntity.ok(roomService.getRoomById(id));
+    }
 }

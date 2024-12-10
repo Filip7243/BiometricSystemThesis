@@ -1,9 +1,7 @@
 package com.bio.bio_backend.service;
 
-import com.bio.bio_backend.dto.FingerprintDTO;
-import com.bio.bio_backend.dto.RoomDTO;
-import com.bio.bio_backend.dto.UpdateUserRequest;
-import com.bio.bio_backend.dto.UserDTO;
+import com.bio.bio_backend.dto.*;
+import com.bio.bio_backend.mapper.RoomMapper;
 import com.bio.bio_backend.model.*;
 import com.bio.bio_backend.respository.FingerprintRepository;
 import com.bio.bio_backend.respository.RoomRepository;
@@ -18,6 +16,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 
+import static com.bio.bio_backend.mapper.RoomMapper.toDTOS;
 import static java.util.stream.Collectors.toList;
 
 @Service
@@ -29,25 +28,19 @@ public class UserService {
     private final FingerprintRepository fingerprintRepository;
 
     @Transactional
-    public void addUserWithFingerprintsAndRooms(
-            String firstName,
-            String lastName,
-            String pesel,
-            Role role,
-            Map<FingerType, byte[]> fingerprintData,
-            List<Long> roomIds) {
-        User user = new User(firstName, lastName, pesel, role);
+    public void addUserWithFingerprintsAndRooms(UserCreationRequest request) {
+        User user = new User(request.firstName(), request.lastName(), request.pesel(), request.role());
 
-        if (fingerprintData != null) {
-            fingerprintData.forEach((fingerType, token) -> {
+        if (request.fingerprintData() != null) {
+            request.fingerprintData().forEach((fingerType, token) -> {
                 Fingerprint fingerprint = new Fingerprint(token, fingerType, user);
                 System.out.println(fingerprint);
                 user.getFingerprints().add(fingerprint);
             });
         }
 
-        if (roomIds != null) {
-            roomIds.forEach(roomId -> {
+        if (request.roomIds() != null) {
+            request.roomIds().forEach(roomId -> {
                 Room room = roomRepository.findById(roomId)
                         .orElseThrow(() -> new EntityNotFoundException("Room not found with id: " + roomId));
                 user.addRoomToUser(room);
@@ -143,13 +136,7 @@ public class UserService {
         User user = userRepository.findById(userId)
                 .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
 
-        return user.getRooms().stream()
-                .map(r -> new RoomDTO(
-                        r.getId(),
-                        r.getRoomNumber(),
-                        r.getFloor(),
-                        r.getDevice().getDeviceHardwareId()))
-                .toList();
+        return toDTOS(user.getRooms());
     }
 
     @Transactional

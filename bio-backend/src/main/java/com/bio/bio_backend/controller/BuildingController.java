@@ -1,6 +1,7 @@
 package com.bio.bio_backend.controller;
 
 import com.bio.bio_backend.dto.BuildingDTO;
+import com.bio.bio_backend.dto.CreateBuildingRequest;
 import com.bio.bio_backend.dto.UpdateBuildingRequest;
 import com.bio.bio_backend.service.BuildingService;
 import lombok.RequiredArgsConstructor;
@@ -8,6 +9,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+
+import static org.springframework.http.HttpStatus.CREATED;
 
 @RestController
 @RequiredArgsConstructor
@@ -29,7 +32,9 @@ public class BuildingController {
 
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> deleteBuildingWithId(@PathVariable Long id) {
-        return buildingService.deleteBuildingWithId(id);
+        buildingService.deleteBuildingWithId(id);
+
+        return ResponseEntity.noContent().build();
     }
 
     @GetMapping("/{id}")
@@ -41,5 +46,10 @@ public class BuildingController {
     public ResponseEntity<List<BuildingDTO>> getAllBuildingsNotAssignedToUser(@PathVariable Long userId) {
         List<BuildingDTO> all = buildingService.getAllBuildingsNotAssignedToUser(userId);
         return ResponseEntity.ok(all);
+    }
+
+    @PostMapping
+    public ResponseEntity<BuildingDTO> createBuilding(@RequestBody CreateBuildingRequest request) {
+        return ResponseEntity.status(CREATED).body(buildingService.createBuilding(request));
     }
 }

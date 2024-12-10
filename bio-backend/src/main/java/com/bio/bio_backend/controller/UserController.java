@@ -22,15 +22,7 @@ public class UserController {
 
     @PostMapping
     public ResponseEntity<Void> createUser(@RequestBody UserCreationRequest userCreationRequest) {
-        System.out.println(userCreationRequest);
-        userService.addUserWithFingerprintsAndRooms(
-                userCreationRequest.firstName(),
-                userCreationRequest.lastName(),
-                userCreationRequest.pesel(),
-                userCreationRequest.role(),
-                userCreationRequest.fingerprintData(),
-                userCreationRequest.roomIds()
-        );
+        userService.addUserWithFingerprintsAndRooms(userCreationRequest);
 
         return ResponseEntity.status(CREATED).build();
     }
