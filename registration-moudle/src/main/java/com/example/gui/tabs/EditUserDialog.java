@@ -6,6 +6,9 @@ import com.example.client.dto.UserDTO;
 import com.example.model.Role;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.Objects;
 import java.util.function.Consumer;
@@ -31,60 +34,95 @@ public class EditUserDialog extends JDialog {
     }
 
     private void initComponents() {
-        setSize(400, 300);
+        setSize(600, 500);
         setLocationRelativeTo(null);
 
-        JTextField firstNameField = new JTextField(user.firstName(), 20);
-        firstNameField.setCursor(getPredefinedCursor(TEXT_CURSOR));
+        // Main panel with padding
+        JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
+        mainPanel.setBorder(new EmptyBorder(20, 20, 20, 20));
 
-        JTextField lastNameField = new JTextField(user.lastName(), 20);
-        lastNameField.setCursor(getPredefinedCursor(TEXT_CURSOR));
+        // Header panel
+        JPanel headerPanel = new JPanel(new GridLayout(2, 1));
+        headerPanel.setBackground(new Color(245, 245, 245)); // Light gray
+        headerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
 
-        JTextField peselField = new JTextField(user.pesel(), 20);
-        peselField.setCursor(getPredefinedCursor(TEXT_CURSOR));
+        JLabel headerTitle = new JLabel("Editing User Details", SwingConstants.CENTER);
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        headerTitle.setForeground(new Color(52, 73, 94)); // Dark blue-gray
 
-        JComboBox<Role> roleCombo = new JComboBox<>(Role.values());
-        roleCombo.setSelectedItem(user.role());
-        roleCombo.setCursor(getPredefinedCursor(HAND_CURSOR));
+        JLabel headerDetails = new JLabel(
+                "User: " + user.firstName() + " " + user.lastName() + " | PESEL: " + user.pesel(),
+                SwingConstants.CENTER
+        );
+        headerDetails.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        headerDetails.setForeground(new Color(100, 100, 100)); // Subtle gray
 
-        JPanel mainPanel = new JPanel(new GridBagLayout());
+        headerPanel.add(headerTitle);
+        headerPanel.add(headerDetails);
+
+        // Content panel
+        JPanel contentPanel = new JPanel(new GridBagLayout());
+        contentPanel.setBackground(Color.WHITE);
 
         GridBagConstraints gbc = new GridBagConstraints();
-        gbc.insets = new Insets(5, 5, 5, 5);
+        gbc.insets = new Insets(10, 10, 10, 10);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Custom styled text fields
+        JTextField firstNameField = createStyledTextField(user.firstName());
+        JTextField lastNameField = createStyledTextField(user.lastName());
+        JTextField peselField = createStyledTextField(user.pesel());
+        JComboBox<Role> roleCombo = createStyledComboBox(Role.values(), Role.valueOf(user.role()));
+
+        // Labels and text fields
         gbc.gridx = 0;
         gbc.gridy = 0;
-        mainPanel.add(new JLabel("First Name:"), gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(createStyledLabel("First Name:"), gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(firstNameField, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(firstNameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 1;
-        mainPanel.add(new JLabel("Last Name:"), gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(createStyledLabel("Last Name:"), gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(lastNameField, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(lastNameField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 2;
-        mainPanel.add(new JLabel("PESEL:"), gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(createStyledLabel("PESEL:"), gbc);
+
         gbc.gridx = 1;
-        mainPanel.add(peselField, gbc);
+        gbc.weightx = 0.7;
+        contentPanel.add(peselField, gbc);
 
         gbc.gridx = 0;
         gbc.gridy = 3;
-        mainPanel.add(new JLabel("Role:"), gbc);
-        gbc.gridx = 1;
-        mainPanel.add(roleCombo, gbc);
+        gbc.weightx = 0.3;
+        contentPanel.add(createStyledLabel("Role:"), gbc);
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(RIGHT));
-        JButton saveButton = new JButton("Save");
-        JButton cancelButton = new JButton("Cancel");
+        gbc.gridx = 1;
+        gbc.weightx = 0.7;
+        contentPanel.add(roleCombo, gbc);
+
+        // Button panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
+
+        JButton saveButton = createStyledButton("Save Changes");
+        JButton cancelButton = createStyledButton("Cancel");
 
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
 
         saveButton.addActionListener(e -> {
+            saveButton.setEnabled(false);
+
             UpdateUserRequest request = new UpdateUserRequest(
                     user.id(),
                     firstNameField.getText().trim(),
@@ -96,22 +134,88 @@ public class EditUserDialog extends JDialog {
             userService.updateUser(
                     request,
                     (result) -> {
-                        onSuccessCallback.accept(null);
-                        JOptionPane.showMessageDialog(
-                                this,
-                                "User updated successfully",
-                                "Success",
-                                INFORMATION_MESSAGE
-                        );
-                        dispose();
+                        SwingUtilities.invokeLater(() -> {
+                            onSuccessCallback.accept(null);
+                            JOptionPane.showMessageDialog(
+                                    this,
+                                    "User updated successfully",
+                                    "Success",
+                                    INFORMATION_MESSAGE
+                            );
+                            dispose();
+                        });
                     },
                     this
             );
         });
+
         cancelButton.addActionListener(e -> dispose());
 
-        add(mainPanel, BorderLayout.CENTER);
-        add(buttonPanel, BorderLayout.SOUTH);
+        // Layout components
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+        mainPanel.add(contentPanel, BorderLayout.CENTER);
+        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        add(mainPanel);
+
+        // Add some final touches
+        getRootPane().setDefaultButton(saveButton);
+        setResizable(false);
         setVisible(true);
+    }
+
+    private JTextField createStyledTextField(String text) {
+        JTextField textField = new JTextField(text, 20);
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        textField.setCursor(Cursor.getPredefinedCursor(TEXT_CURSOR));
+        return textField;
+    }
+
+    private JComboBox<Role> createStyledComboBox(Role[] values, Role selectedRole) {
+        JComboBox<Role> comboBox = new JComboBox<>(values);
+        comboBox.setSelectedItem(selectedRole);
+        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        comboBox.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        comboBox.setCursor(Cursor.getPredefinedCursor(HAND_CURSOR));
+        return comboBox;
+    }
+
+    private JLabel createStyledLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setForeground(new Color(70, 70, 70));
+        return label;
+    }
+
+    private JButton createStyledButton(String text) {
+        JButton button = new JButton(text);
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(new Color(46, 204, 113)); // Green
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setBorder(new CompoundBorder(
+                new LineBorder(new Color(39, 174, 96), 1, true),
+                new EmptyBorder(10, 20, 10, 20)
+        ));
+
+        // Hover effect
+        button.addMouseListener(new java.awt.event.MouseAdapter() {
+            public void mouseEntered(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(39, 174, 96)); // Darker green
+            }
+            public void mouseExited(java.awt.event.MouseEvent evt) {
+                button.setBackground(new Color(46, 204, 113)); // Default green
+            }
+        });
+
+        return button;
     }
 }

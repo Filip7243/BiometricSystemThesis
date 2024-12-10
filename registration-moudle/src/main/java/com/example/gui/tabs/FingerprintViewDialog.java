@@ -10,6 +10,8 @@ import com.neurotec.biometrics.NBiometricTask;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
 import com.neurotec.biometrics.swing.NFingerView;
+import com.neurotec.images.NImage;
+import com.neurotec.io.NBuffer;
 import com.neurotec.util.concurrent.CompletionHandler;
 
 import javax.imageio.ImageIO;
@@ -76,6 +78,14 @@ public class FingerprintViewDialog extends JDialog {
         try {  // TODO: view image properly, so download from db etc. cache in table and remove on exit
             if (currentImageBytes != null && currentImageBytes.length > 0) {
                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(currentImageBytes));
+                NBuffer nBuffer = NBuffer.fromArray(currentImageBytes);
+                NFinger finger = new NFinger();
+                finger.setImage(NImage.fromMemory(nBuffer));
+
+                NImage img = finger.getImage();
+                System.out.println("*******************************");
+                System.out.println(img.getInfo());
+                System.out.println("*******************************");
                 ImageIcon icon = new ImageIcon(image.getScaledInstance(400, 400, Image.SCALE_SMOOTH));
                 imageLabel.setIcon(icon);
             } else {

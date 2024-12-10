@@ -1,9 +1,6 @@
 package com.example.client;
 
-import com.example.client.dto.RoomDTO;
-import com.example.client.dto.UpdateFingerprintRequest;
-import com.example.client.dto.UpdateUserRequest;
-import com.example.client.dto.UserDTO;
+import com.example.client.dto.*;
 
 import java.awt.*;
 import java.util.List;
@@ -75,6 +72,13 @@ public class UserService {
                 onSuccess,
                 parentComponent
         );
+    }
 
+    public void getUserFingerprints(Long userId, Consumer<List<FingerprintDTO>> onSuccess, Component parentComponent) {
+        BaseResourceWorker.execute(
+                () -> userClient.getUserFingerprints(userId),
+                onSuccess,
+                parentComponent
+        );
     }
 }

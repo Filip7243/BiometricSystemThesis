@@ -5,8 +5,10 @@ import com.example.client.RoomService;
 import com.example.client.UserService;
 import com.example.client.dto.RoomDTO;
 import com.example.client.dto.UserDTO;
+import com.example.gui.tabs.tables.MyTable;
 
 import javax.swing.*;
+import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -16,7 +18,6 @@ import java.util.function.Consumer;
 import java.util.stream.Collectors;
 
 import static java.awt.BorderLayout.CENTER;
-import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 
 public class AddRoomToUserDialog extends JDialog {
 
@@ -47,6 +48,16 @@ public class AddRoomToUserDialog extends JDialog {
 
         JPanel mainPanel = new JPanel(new BorderLayout());
 
+        // Create header panel
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        JLabel headerLabel = new JLabel("Assign Rooms to " + user.firstName() + " " + user.lastName(), SwingConstants.CENTER);
+        headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
+        headerLabel.setForeground(new Color(52, 73, 94)); // Dark blue color
+        headerLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10)); // Add spacing around the header label
+        headerPanel.add(headerLabel, BorderLayout.CENTER);
+        mainPanel.add(headerPanel, BorderLayout.NORTH);
+
+        // Table model and setup
         DefaultTableModel buildingRoomModel = new DefaultTableModel(
                 new Object[]{"Building", "Building ID", "Room ID", "Room Number", "Floor", "Assign"}, 0) {
             @Override
@@ -55,8 +66,14 @@ public class AddRoomToUserDialog extends JDialog {
             }
         };
 
-        JTable buildingRoomTable = new JTable(buildingRoomModel);
-        buildingRoomTable.getColumnModel().getColumn(5).setCellRenderer(new ButtonRenderer("Edit"));
+        MyTable buildingRoomTable = new MyTable(buildingRoomModel);
+        DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
+        defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
+        for (int i = 0; i <= 4; i++) {
+            buildingRoomTable.setColumnRenderer(i, defaultTableCellRenderer);
+        }
+        buildingRoomTable.setColumnRenderer(5, new ButtonRenderer("Edit"));
+
         buildingRoomTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -67,7 +84,6 @@ public class AddRoomToUserDialog extends JDialog {
                         column >= 0 && column < buildingRoomTable.getColumnCount()) {
                     if (column == 5) { // "Assign" column
                         Long roomId = (Long) buildingRoomModel.getValueAt(row, 2);
-                        System.out.println("Assigning room " + roomId + " to user " + user.id());
                         assignUserToRoom(user.id(), roomId);
                     }
                 }
@@ -98,16 +114,9 @@ public class AddRoomToUserDialog extends JDialog {
         }, this);
 
         JScrollPane scrollPane = new JScrollPane(buildingRoomTable);
-
         mainPanel.add(scrollPane, CENTER);
 
-        JButton closeButton = new JButton("Close");
-        closeButton.addActionListener(e -> dispose());
-
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
-        buttonPanel.add(closeButton);
-
-        mainPanel.add(buttonPanel, BorderLayout.SOUTH);
+        // Remove close button and do not add any other buttons in the dialog
 
         add(mainPanel);
         setVisible(true);
@@ -120,7 +129,7 @@ public class AddRoomToUserDialog extends JDialog {
                     this,
                     "Room assigned successfully",
                     "Success",
-                    INFORMATION_MESSAGE);
+                    JOptionPane.INFORMATION_MESSAGE);
             dispose();
         }, this);
     }

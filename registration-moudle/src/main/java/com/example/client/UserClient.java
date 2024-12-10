@@ -1,9 +1,6 @@
 package com.example.client;
 
-import com.example.client.dto.RoomDTO;
-import com.example.client.dto.UpdateFingerprintRequest;
-import com.example.client.dto.UpdateUserRequest;
-import com.example.client.dto.UserDTO;
+import com.example.client.dto.*;
 import com.example.client.request.UserCreationRequest;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.json.JSONArray;
@@ -144,6 +141,26 @@ public final class UserClient {
         }
     }
 
+    public List<FingerprintDTO> getUserFingerprints(Long userId) {
+        try {
+            HttpRequest request = createGetUserFingerprintsRequest(userId);
+
+            HttpResponse<String> response = MyHttpClient.getInstance().send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to retrieve user fingerprints. Status code: " + response.statusCode());
+            }
+
+            return MyObjectMapper.getInstance().readValue(
+                    response.body(),
+                    new TypeReference<>() {
+                    }
+            );
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     public void detachUserFromRoom(Long userId, Long roomId) {
         try {
             HttpRequest request = createDetachUserFromRoomRequest(userId, roomId);
@@ -204,6 +221,14 @@ public final class UserClient {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/users/" + userId + "/rooms/" + roomId))
                 .method("PATCH", HttpRequest.BodyPublishers.noBody())
+                .build();
+    }
+
+    private static HttpRequest createGetUserFingerprintsRequest(Long userId) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/users/" + userId + "/fingerprints"))
+                .header("Accept", "application/json")
+                .GET()
                 .build();
     }
 
