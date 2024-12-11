@@ -32,9 +32,15 @@ public class UserService {
     public void addUserWithFingerprintsAndRooms(UserCreationRequest request) {
         var user = new User(request.firstName(), request.lastName(), request.pesel(), request.role());
 
-        if (request.fingerprintData() != null) {
-            request.fingerprintData().forEach((fingerType, token) -> {
-                Fingerprint fingerprint = new Fingerprint(token, fingerType, user);
+        if (request.fingerprintTokenData() != null) {
+            request.fingerprintTokenData().forEach((fingerType, token) -> {
+                Fingerprint fingerprint = new Fingerprint(
+                        token,
+                        fingerType,
+                        user,
+                        request.fingerprintImageData()
+                                .get(fingerType)
+                );
                 System.out.println(fingerprint);
                 user.getFingerprints().add(fingerprint);
             });

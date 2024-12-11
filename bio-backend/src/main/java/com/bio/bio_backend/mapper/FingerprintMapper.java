@@ -17,7 +17,8 @@ public final class FingerprintMapper {
                 fingerprint.getId(),
                 fingerprint.getToken(),
                 fingerprint.getFingerType().name(),
-                fingerprint.getUser().getId()
+                fingerprint.getUser().getId(),
+                fingerprint.getOriginalImage()
         );
     }
 

@@ -37,7 +37,12 @@ public class FingerprintService {
                 .ifPresentOrElse(
                         f -> f.setToken(request.token()),
                         () -> {
-                            var fingerprint = new Fingerprint(request.token(), request.fingerType(), user);
+                            var fingerprint = new Fingerprint(
+                                    request.token(),
+                                    request.fingerType(),
+                                    user,
+                                    request.originalImage()
+                            );
                             fingerprintRepository.save(fingerprint);
                         });
     }

@@ -19,6 +19,9 @@ public class Fingerprint {
     @Lob
     @Column(name = "token", columnDefinition = "BLOB")
     private byte[] token;
+    @Lob
+    @Column(name = "original_image", columnDefinition = "BLOB")
+    private byte[] originalImage;
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
     private FingerType fingerType;
@@ -26,9 +29,10 @@ public class Fingerprint {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Fingerprint(byte[] token, FingerType fingerType, User user) {
+    public Fingerprint(byte[] token, FingerType fingerType, User user, byte[] originalImage) {
         this.token = token;
         this.fingerType = fingerType;
         this.user = user;
+        this.originalImage = originalImage;
     }
 }
