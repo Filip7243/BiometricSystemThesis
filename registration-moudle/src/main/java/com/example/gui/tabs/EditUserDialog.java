@@ -123,11 +123,26 @@ public class EditUserDialog extends JDialog {
         saveButton.addActionListener(e -> {
             saveButton.setEnabled(false);
 
+            String firstName = firstNameField.getText().trim();
+            String lastName = lastNameField.getText().trim();
+            String pesel = peselField.getText().trim();
+
+            if (firstName.isBlank() || lastName.isBlank() || pesel.isBlank()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "First Name, Last Name and PESEL cannot be empty",
+                        "Error",
+                        JOptionPane.ERROR_MESSAGE
+                );
+                saveButton.setEnabled(true);
+                return;
+            }
+
             UpdateUserRequest request = new UpdateUserRequest(
                     user.id(),
-                    firstNameField.getText().trim(),
-                    lastNameField.getText().trim(),
-                    peselField.getText().trim(),
+                    firstName,
+                    lastName,
+                    pesel,
                     ((Role) Objects.requireNonNull(roleCombo.getSelectedItem())).name()
             );
 

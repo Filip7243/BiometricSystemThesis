@@ -130,12 +130,12 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
     }
 
     private void addRoomToForm() {
-        String roomNumber = txtRoomNumber.getText();
+        String roomNumber = txtRoomNumber.getText().trim();
         int floor = (int) floorSpinner.getValue();
-        String macAddress = txtMacAddress.getText();
-        String scannerSerialNumber = txtScannerSerialNumber.getText();
+        String macAddress = txtMacAddress.getText().trim();
+        String scannerSerialNumber = txtScannerSerialNumber.getText().trim();
 
-        if (roomNumber.isBlank() || floor < 0) {
+        if (roomNumber.isBlank() || floor < 0 || macAddress.isBlank() || scannerSerialNumber.isBlank()) {
             JOptionPane.showMessageDialog(
                     this,
                     "Please fill in all fields.",
@@ -162,12 +162,12 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
     private void updateBuilding() {
         String roomNumber = txtRoomNumber.getText().trim();
         int floor = (int) floorSpinner.getValue();
-        String macAddress = txtMacAddress.getText();
-        String scannerSerialNumber = txtScannerSerialNumber.getText();
+        String macAddress = txtMacAddress.getText().trim();
+        String scannerSerialNumber = txtScannerSerialNumber.getText().trim();
 
-        if (roomNumber.isEmpty()) {
+        if (roomNumber.isBlank() || floor < 0 || macAddress.isBlank() || scannerSerialNumber.isBlank()) {
             JOptionPane.showMessageDialog(this,
-                    "Room number cannot be empty",
+                    "All fields are required.",
                     "Validation Error",
                     JOptionPane.ERROR_MESSAGE);
             return;

@@ -98,13 +98,22 @@ public class EditBuildingDialog extends JDialog {
         // Save button with green styling
         JButton saveButton = createStyledButton();
         saveButton.addActionListener(e -> {
+            String buildingNumber = buildingNumberField.getText().trim();
+            String street = streetField.getText().trim();
+
+            if (buildingNumber.isEmpty() || street.isEmpty()) {
+                statusLabel.setForeground(Color.RED);
+                statusLabel.setText("Building Number and Street cannot be empty.");
+                return;
+            }
+
             saveButton.setEnabled(false);
             statusLabel.setForeground(Color.BLACK);
             statusLabel.setText("Updating building...");
 
             UpdateBuildingRequest updateRequest = new UpdateBuildingRequest(
-                    buildingNumberField.getText(),
-                    streetField.getText()
+                    buildingNumber,
+                    street
             );
 
             buildingService.updateBuildingWithId(

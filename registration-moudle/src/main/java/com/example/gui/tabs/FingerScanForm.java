@@ -142,8 +142,6 @@ public class FingerScanForm extends JPanel {
         }
     }
 
-    // Rest of the methods remain the same...
-
     private JPanel createFingerPanel(String title, NFingerView view, JButton scanBtn, JButton cancelBtn) {
         JPanel mainPanel = new JPanel(new BorderLayout());
         mainPanel.setBackground(new Color(245, 245, 245));
@@ -316,8 +314,9 @@ public class FingerScanForm extends JPanel {
 //        styleButton(scanBtn, new Color(52, 152, 219), 150, 40);
 //        styleButton(cancelBtn, new Color(231, 76, 60), 150, 40);
 //
-//        mainPanel.add(btnPanel, BorderLayout.SOUTH);// TODO:  posprawdza czy wszsytko dziala cala walidacja danych, do tego sprwadzic czy wszystko logiczne jest, czy sie czysic itd, do tego dodac analzie enrollmentow, jaki user gdzie wchodzi, najczesciej uzeszczane pokoje, wykresy do tego, po dacie, tabele maja oreder po id, mozna klikajac w kolumne zmieniac order, ANFIS, spis tresci koniec!
-//
+//        mainPanel.add(btnPanel, BorderLayout.SOUTH);// TODO:  do tego dodac analzie enrollmentow, jaki user gdzie wchodzi, najczesciej uzeszczane pokoje, wykresy do tego, po dacie, tabele maja oreder po id, mozna klikajac w kolumne zmieniac order, ANFIS, spis tresci koniec!
+//        # TODO: manage devices tab i enrollments tab
+
 //        return mainPanel;
 //    }
 

@@ -13,7 +13,7 @@ public record CreateBuildingRequest(String buildingNumber, String street, List<C
         }
 
         if (rooms == null) {
-            throw new IllegalArgumentException("Rooms cannot be null or empty.");
+            throw new IllegalArgumentException("Rooms cannot be null.");
         }
     }
 }

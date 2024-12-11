@@ -25,10 +25,8 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.ArrayList;
-import java.util.EnumSet;
+import java.util.*;
 import java.util.List;
-import java.util.Map;
 
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
 import static com.neurotec.biometrics.NBiometricOperation.CREATE_TEMPLATE;
@@ -224,18 +222,6 @@ public class AddUserTab extends BasePanel implements ActionListener {
     }
 
     private void styleButtons(FingerScanForm fingerScanForm, RoomAssignmentForm roomAssignmentForm) {
-        JButton[] scanButtons = {
-                fingerScanForm.getBtnScanThumb(),
-                fingerScanForm.getBtnScanIndex(),
-                fingerScanForm.getBtnScanMiddle(),
-                fingerScanForm.getBtnCancelThumbScan(),
-                fingerScanForm.getBtnCancelIndexScan(),
-                fingerScanForm.getBtnCancelMiddleScan(),
-                roomAssignmentForm.getBtnAssignRoom(),
-                roomAssignmentForm.getBtnRemoveRoom()
-        };
-
-        // Action listeners remain the same
         btnScanThumb = fingerScanForm.getBtnScanThumb();
         btnScanThumb.addActionListener(this);
         btnScanIndex = fingerScanForm.getBtnScanIndex();
@@ -302,6 +288,11 @@ public class AddUserTab extends BasePanel implements ActionListener {
             return;
         }
 
+        if (roomAssignmentForm.getSelectedRooms().isEmpty()) {
+            showError("Please assign a room to the user!");
+            return;
+        }
+
         String firstName = userInputForm.getFirstName();
         String lastName = userInputForm.getLastName();
         String pesel = userInputForm.getPesel();
@@ -348,17 +339,23 @@ public class AddUserTab extends BasePanel implements ActionListener {
                     fingerScanForm.updateStatus("Quality: " + subject.getFingers().get(0).getObjects().get(0).getQuality());
 
                     System.out.println("Saving finger: " + currentFingerCapturing);
-                    scannedFingers.add(new Fingerprint(
-                                    subject.getTemplateBuffer()
-                                            .toByteArray(),
-                                    currentFingerCapturing,
-                                    subject.getFingers()
-                                            .get(0)
-                                            .getImage()
-                                            .save()
-                                            .toByteArray()
-                            )
-                    );
+                    Optional<Fingerprint> duplicate = scannedFingers.stream()
+                            .filter(f -> f.fingerType().equals(currentFingerCapturing))
+                            .findFirst();
+
+                    if (duplicate.isPresent()) {
+                        scannedFingers.set(scannedFingers.indexOf(duplicate.get()), new Fingerprint(
+                                subject.getTemplateBuffer().toByteArray(),
+                                currentFingerCapturing,
+                                subject.getFingers().get(0).getImage().save().toByteArray()
+                        ));
+                    } else {
+                        scannedFingers.add(new Fingerprint(
+                                subject.getTemplateBuffer().toByteArray(),
+                                currentFingerCapturing,
+                                subject.getFingers().get(0).getImage().save().toByteArray()
+                        ));
+                    }
                 } else {
                     fingerScanForm.updateStatus("Failed to capture. " + result.getStatus());
                 }

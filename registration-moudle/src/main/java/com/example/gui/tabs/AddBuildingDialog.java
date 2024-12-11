@@ -151,14 +151,27 @@ public class AddBuildingDialog extends JDialog {
         JButton clearButton = createStyledButton("Clear", new Color(241, 196, 15)); // Yellow
 
         saveButton.addActionListener(e -> {
+            String buildingNumber = buildingNumberField.getText().trim();
+            String street = streetField.getText().trim();
+
+            if (buildingNumber.isBlank() || street.isBlank()) {
+                JOptionPane.showMessageDialog(
+                        this,
+                        "Please fill in all fields.",
+                        "Missing Information",
+                        JOptionPane.WARNING_MESSAGE
+                );
+                return;
+            }
+
             List<CreateRoomRequest> rooms = new ArrayList<>();
             for (int i = 0; i < roomListModel.size(); i++) {
                 rooms.add(roomListModel.get(i));
             }
 
             CreateBuildingRequest request = new CreateBuildingRequest(
-                    buildingNumberField.getText(),
-                    streetField.getText(),
+                    buildingNumber,
+                    street,
                     rooms
             );
 
