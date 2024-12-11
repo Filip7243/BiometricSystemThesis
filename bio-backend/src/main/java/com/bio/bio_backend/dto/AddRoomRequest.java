@@ -1,6 +1,10 @@
 package com.bio.bio_backend.dto;
 
-public record AddRoomRequest(String roomNumber, Integer floor, Long buildingId, String deviceHardwareId) {
+public record AddRoomRequest(String roomNumber,
+                             Integer floor,
+                             String macAddress,
+                             String scannerSerialNumber,
+                             Long buildingId) {
     public AddRoomRequest {
         if (roomNumber == null || roomNumber.isBlank()) {
             throw new IllegalArgumentException("Room number cannot be null or empty.");
@@ -12,6 +16,14 @@ public record AddRoomRequest(String roomNumber, Integer floor, Long buildingId, 
 
         if (buildingId == null) {
             throw new IllegalArgumentException("BuildingId cannot be null.");
+        }
+
+        if (macAddress == null || macAddress.isBlank()) {
+            throw new IllegalArgumentException("MacAddress cannot be null or empty.");
+        }
+
+        if (scannerSerialNumber == null || scannerSerialNumber.isBlank()) {
+            throw new IllegalArgumentException("ScannerSerialNumber cannot be null or empty.");
         }
     }
 }

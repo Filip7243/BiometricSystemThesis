@@ -1,12 +1,14 @@
 package com.bio.bio_backend.dto;
 
-public record AssignDeviceToRoomRequest(Long roomId, String hardwareDeviceId) {
+public record AssignDeviceToRoomRequest(Long roomId,
+                                        String macAddress,
+                                        String scannerSerialNumber) {
     public AssignDeviceToRoomRequest {
         if (roomId <= 0) {
             throw new IllegalArgumentException("Room ID must be a positive number.");
         }
 
-        if (hardwareDeviceId == null || hardwareDeviceId.isBlank()) {
+        if (macAddress == null || macAddress.isBlank()) {
             throw new IllegalArgumentException("Hardware device ID cannot be empty or blank.");
         }
     }

@@ -16,13 +16,16 @@ public class Device {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
-    @Column(name = "hardware_device_id")
-    private String deviceHardwareId;
+    @Column(name = "mac_address")
+    private String macAddress;
+    @Column(name = "scanner_serial_number")
+    private String scannerSerialNumber;
     @OneToOne(mappedBy = "device")
     private Room room;
 
-    public Device(String deviceHardwareId, Room room) {
-        this.deviceHardwareId = deviceHardwareId;
+    public Device(String macAddress, Room room, String scannerSerialNumber) {
+        this.macAddress = macAddress;
+        this.scannerSerialNumber = scannerSerialNumber;
         this.room = room;
     }
 

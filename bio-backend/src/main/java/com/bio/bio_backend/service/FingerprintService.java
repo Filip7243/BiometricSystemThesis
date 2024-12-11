@@ -50,8 +50,9 @@ public class FingerprintService {
     @Transactional
     public void updateFingerprint(UpdateFingerprintRequest request) {
         var fingerprint = fingerprintRepository.findById(request.id())
-                .orElseThrow(() -> new IllegalArgumentException("Fingerprint with id " + request.id() + " not found"));
+                .orElseThrow(() -> new EntityNotFoundException("Fingerprint with id " + request.id() + " not found"));
 
         fingerprint.setToken(request.token());
+        fingerprint.setOriginalImage(request.originalImage());
     }
 }

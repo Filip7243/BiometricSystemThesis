@@ -73,4 +73,10 @@ public class UserController {
 
         return ResponseEntity.ok(fingerprints);
     }
+
+    @GetMapping("/{userId}")
+    public ResponseEntity<UserDTO> getUserById(@PathVariable Long userId) {
+        UserDTO user = userService.getUserById(userId);
+        return ResponseEntity.ok(user);
+    }
 }

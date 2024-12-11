@@ -1,6 +1,5 @@
 package com.bio.bio_backend.mapper;
 
-import com.bio.bio_backend.dto.CreateRoomRequest;
 import com.bio.bio_backend.dto.RoomDTO;
 import com.bio.bio_backend.model.Room;
 
@@ -17,17 +16,14 @@ public final class RoomMapper {
                 room.getId(),
                 room.getRoomNumber(),
                 room.getFloor(),
-                room.getDevice() != null ? room.getDevice().getDeviceHardwareId() : null
+                room.getDevice() != null ? room.getDevice().getMacAddress() : null,
+                room.getDevice() != null ? room.getDevice().getScannerSerialNumber() : null
         );
     }
 
     public static List<RoomDTO> toDTOS(Set<Room> rooms) {
         return rooms.stream()
-                .map(r -> new RoomDTO(
-                        r.getId(),
-                        r.getRoomNumber(),
-                        r.getFloor(),
-                        r.getDevice().getDeviceHardwareId()))
+                .map(RoomMapper::toDTO)
                 .toList();
     }
 }

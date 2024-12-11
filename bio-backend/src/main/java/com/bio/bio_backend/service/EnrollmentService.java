@@ -97,7 +97,7 @@ public class EnrollmentService {
 
                 Long roomId = user.getRooms()
                         .stream()
-                        .filter(r -> r.getDevice().getDeviceHardwareId().equals(request.hardwareId()))
+                        .filter(r -> r.getDevice().getMacAddress().equals(request.hardwareId()))
                         .map(Room::getId)
                         .findFirst()
                         .orElse(null);

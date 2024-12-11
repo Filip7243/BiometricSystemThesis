@@ -11,7 +11,6 @@ import com.bio.bio_backend.respository.DeviceRepository;
 import com.bio.bio_backend.respository.RoomRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -81,20 +80,24 @@ public class BuildingService {
 
         List<Room> rooms = request.rooms()
                 .stream()
-                .map(r -> {
-                    Boolean isDeviceExists = deviceRepository.existsByDeviceHardwareId(r.deviceHardwareId());
+                .map(room -> {
+                    Boolean isDeviceExists = deviceRepository.existsByMacAddress(room.macAddress());
 
                     Device device;
                     if (!isDeviceExists) {
-                        device = new Device(r.deviceHardwareId(), null);
+                        device = new Device(room.macAddress(), null, room.scannerSerialNumber());
                         deviceRepository.save(device);
                     } else {
-                        device = deviceRepository.findByDeviceHardwareId(r.deviceHardwareId()).get();
+                        device = deviceRepository.findByMacAddress(room.macAddress()).get();
+
+                        if (device.getRoom() != null) {
+                            throw new IllegalArgumentException("Device with mac address " + room.macAddress() + " is already assigned to room");
+                        }
                     }
 
                     return new Room(
-                            r.roomNumber(),
-                            r.floor(),
+                            room.roomNumber(),
+                            room.floor(),
                             building,
                             device
                     );

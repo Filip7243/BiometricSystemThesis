@@ -2,6 +2,7 @@ package com.bio.bio_backend.service;
 
 import com.bio.bio_backend.dto.*;
 import com.bio.bio_backend.mapper.FingerprintMapper;
+import com.bio.bio_backend.mapper.UserMapper;
 import com.bio.bio_backend.model.Fingerprint;
 import com.bio.bio_backend.model.Role;
 import com.bio.bio_backend.model.Room;
@@ -103,11 +104,16 @@ public class UserService {
     }
 
     public List<FingerprintDTO> getUserFingerprints(Long userId) {
-//        User user = userRepository.findById(userId)
-//                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
         List<Fingerprint> userFingerprints = fingerprintRepository.findByUserId(userId);
 
 
         return FingerprintMapper.toDTOS(userFingerprints);
+    }
+
+    public UserDTO getUserById(Long userId) {
+        var user = userRepository.findById(userId)
+                .orElseThrow(() -> new EntityNotFoundException("User not found with id: " + userId));
+
+        return UserMapper.toDTO(user);
     }
 }

@@ -45,7 +45,8 @@ public final class BuildingMapper {
                                         room.getId(),
                                         room.getRoomNumber(),
                                         room.getFloor(),
-                                        room.getDevice() != null ? room.getDevice().getDeviceHardwareId() : null
+                                        room.getDevice() != null ? room.getDevice().getMacAddress() : null,
+                                        room.getDevice() != null ? room.getDevice().getScannerSerialNumber() : null
                                 ))
                                 .collect(toList())
                 )).collect(toList());

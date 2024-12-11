@@ -4,7 +4,6 @@ import com.bio.bio_backend.dto.AddRoomRequest;
 import com.bio.bio_backend.dto.AssignDeviceToRoomRequest;
 import com.bio.bio_backend.dto.RoomDTO;
 import com.bio.bio_backend.dto.UpdateRoomRequest;
-import com.bio.bio_backend.mapper.RoomMapper;
 import com.bio.bio_backend.model.Device;
 import com.bio.bio_backend.model.Room;
 import com.bio.bio_backend.respository.BuildingRepository;
@@ -13,7 +12,6 @@ import com.bio.bio_backend.respository.RoomRepository;
 import com.bio.bio_backend.respository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -54,8 +52,8 @@ public class RoomService {
         var room = roomRepository.findById(request.roomId())
                 .orElseThrow(() -> new EntityNotFoundException("Room with id " + request.roomId() + " not found"));
 
-        if (!deviceRepository.existsByDeviceHardwareId(request.hardwareDeviceId())) {
-            throw new EntityNotFoundException("Device with id " + request.hardwareDeviceId() + " not found");
+        if (!deviceRepository.existsByMacAddress(request.macAddress())) {
+            throw new EntityNotFoundException("Device with id " + request.macAddress() + " not found");
         }
 
         room.removeDevice();
@@ -67,11 +65,11 @@ public class RoomService {
                 .orElseThrow(() -> new EntityNotFoundException("Room with id " + request.roomId() + " not found"));
 
         Device device;
-        if (!deviceRepository.existsByDeviceHardwareId(request.hardwareDeviceId())) {
-            device = new Device(request.hardwareDeviceId(), room);
+        if (!deviceRepository.existsByMacAddress(request.macAddress())) {
+            device = new Device(request.macAddress(), room, request.scannerSerialNumber());  // TODO: do zmiany
             deviceRepository.save(device);
         } else {
-            device = deviceRepository.findByDeviceHardwareId(request.hardwareDeviceId()).get();
+            device = deviceRepository.findByMacAddress(request.macAddress()).get();
         }
 
         room.setDevice(device);
@@ -83,11 +81,15 @@ public class RoomService {
                 .orElseThrow(() -> new EntityNotFoundException("Building with id " + request.buildingId() + " not found"));
 
         Device device;
-        if (!deviceRepository.existsByDeviceHardwareId(request.deviceHardwareId())) {
-            device = new Device(request.deviceHardwareId(), null);
+        if (!deviceRepository.existsByMacAddress(request.macAddress())) {
+            device = new Device(request.macAddress(), null, request.scannerSerialNumber());  // TODO: do zminay
             deviceRepository.save(device);
         } else {
-            device = deviceRepository.findByDeviceHardwareId(request.deviceHardwareId()).get();
+            device = deviceRepository.findByMacAddress(request.macAddress())
+                    .get();
+            if (device.getRoom() != null) {
+                throw new IllegalArgumentException("Device with mac address " + request.macAddress() + " is already assigned to room");
+            }
         }
 
         var room = new Room(request.roomNumber(), request.floor(), building, device);
