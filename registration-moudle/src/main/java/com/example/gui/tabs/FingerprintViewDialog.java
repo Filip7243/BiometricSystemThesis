@@ -1,7 +1,6 @@
 package com.example.gui.tabs;
 
 import com.example.FingersTools;
-import com.example.client.UserClient;
 import com.example.client.UserService;
 import com.example.client.dto.FingerprintDTO;
 import com.example.client.dto.UpdateFingerprintRequest;
@@ -10,8 +9,6 @@ import com.neurotec.biometrics.NBiometricTask;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
 import com.neurotec.biometrics.swing.NFingerView;
-import com.neurotec.images.NImage;
-import com.neurotec.io.NBuffer;
 import com.neurotec.util.concurrent.CompletionHandler;
 
 import javax.imageio.ImageIO;
@@ -36,12 +33,15 @@ public class FingerprintViewDialog extends JDialog {
     private final FingerprintDTO fingerprint;
     private byte[] currentImageBytes;
     private JLabel imageLabel;
+    private JButton saveButton;
+    private JButton btnScan;
+    private JButton stopButton;
 
     public FingerprintViewDialog(Frame parent, FingerprintDTO fingerprint, UserService userService) {
         super(parent, "Fingerprint Details", true);
         this.fingerprint = fingerprint;
         this.userService = userService;
-        this.currentImageBytes = fingerprint.token();
+        this.currentImageBytes = fingerprint.originalImage();
 
         initComponents();
     }
@@ -59,33 +59,22 @@ public class FingerprintViewDialog extends JDialog {
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout());
         JButton rescanButton = new JButton("Rescan Fingerprint");
-        JButton saveButton = new JButton("Save Changes");
-        JButton closeButton = new JButton("Close");
 
         rescanButton.addActionListener(e -> performFingerScan());
-        saveButton.addActionListener(e -> saveFingerprint());
-        closeButton.addActionListener(e -> dispose());
 
         buttonPanel.add(rescanButton);
-        buttonPanel.add(saveButton);
-        buttonPanel.add(closeButton);
 
         add(new JScrollPane(imageLabel), BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
+
+        setVisible(true);
     }
 
     private void updateImageDisplay() {
         try {  // TODO: view image properly, so download from db etc. cache in table and remove on exit
             if (currentImageBytes != null && currentImageBytes.length > 0) {
                 BufferedImage image = ImageIO.read(new ByteArrayInputStream(currentImageBytes));
-                NBuffer nBuffer = NBuffer.fromArray(currentImageBytes);
-                NFinger finger = new NFinger();
-                finger.setImage(NImage.fromMemory(nBuffer));
 
-                NImage img = finger.getImage();
-                System.out.println("*******************************");
-                System.out.println(img.getInfo());
-                System.out.println("*******************************");
                 ImageIcon icon = new ImageIcon(image.getScaledInstance(400, 400, Image.SCALE_SMOOTH));
                 imageLabel.setIcon(icon);
             } else {
@@ -111,11 +100,22 @@ public class FingerprintViewDialog extends JDialog {
         scannersListPanel.updateScannerList();
 
         NFingerView view = new NFingerView();
-        JButton scan = new JButton("Scan");
-        scan.addActionListener(e -> startCapturing(view));
+
+        btnScan = new JButton("Scan");
+        btnScan.addActionListener(e -> startCapturing(view));
+
+        saveButton = new JButton("Save Changes");
+        saveButton.addActionListener(e -> saveFingerprint());
+
+        stopButton = new JButton("Stop");
+        stopButton.addActionListener(e -> stopCapturing());
+
         JPanel fingerPanel = createFingerPanel(
-                "Fingerprint", view,
-                scan, new JButton("Cancel")
+                "Fingerprint",
+                view,
+                btnScan,
+                saveButton,
+                stopButton
         );
 
         dialog.setLayout(new BorderLayout());
@@ -128,6 +128,12 @@ public class FingerprintViewDialog extends JDialog {
     }
 
     private void startCapturing(NFingerView view) {
+        FingersTools.getInstance().getClient().clear();
+
+        saveButton.setEnabled(false);
+        btnScan.setEnabled(false);
+        stopButton.setEnabled(true);
+
         if (FingersTools.getInstance().getClient().getFingerScanner() == null) {
             SwingUtilities.invokeLater(() -> showMessageDialog(
                     this,
@@ -151,7 +157,19 @@ public class FingerprintViewDialog extends JDialog {
         FingersTools.getInstance().getClient().performTask(task, null, new CaptureHandler());
     }
 
-    private JPanel createFingerPanel(String title, NFingerView view, JButton scanBtn, JButton cancelBtn) {
+    private void stopCapturing() {
+        FingersTools.getInstance().getClient().cancel();
+
+        saveButton.setEnabled(false);
+        btnScan.setEnabled(true);
+        stopButton.setEnabled(false);
+    }
+
+    private JPanel createFingerPanel(String title,
+                                     NFingerView view,
+                                     JButton scanBtn,
+                                     JButton saveBtn,
+                                     JButton stopBtn) {
         JPanel mainPanel = new JPanel(new BorderLayout());
 
         JScrollPane scrollPane = new JScrollPane();
@@ -163,11 +181,13 @@ public class FingerprintViewDialog extends JDialog {
         view.setAutofit(true);
         scrollPane.setViewportView(view);
 
-        cancelBtn.setEnabled(false);
+        saveBtn.setEnabled(false);
+        stopButton.setEnabled(false);
 
         JPanel btnPanel = new JPanel(new BorderLayout());
         btnPanel.add(scanBtn, BorderLayout.WEST);
-        btnPanel.add(cancelBtn, BorderLayout.EAST);
+        btnPanel.add(saveBtn, BorderLayout.EAST);
+        btnPanel.add(stopBtn, BorderLayout.CENTER);
 
         mainPanel.add(btnPanel, BorderLayout.SOUTH);
 
@@ -206,12 +226,15 @@ public class FingerprintViewDialog extends JDialog {
         }
     }
 
-    private static final class CaptureHandler implements CompletionHandler<NBiometricTask, Object> {
+    private final class CaptureHandler implements CompletionHandler<NBiometricTask, Object> {
         @Override
         public void completed(final NBiometricTask result, final Object attachment) {
             SwingUtilities.invokeLater(() -> {
                 if (result.getStatus() == OK) {
                     System.out.println("SUCCESS");  // tODO: add here real handler
+                    saveButton.setEnabled(true);
+                    btnScan.setEnabled(true);
+                    stopButton.setEnabled(false);
                 } else {
                     System.out.println("FAILED TO CAPTURE FINGERPRINT");
                 }

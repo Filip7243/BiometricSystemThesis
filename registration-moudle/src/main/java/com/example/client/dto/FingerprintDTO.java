@@ -1,6 +1,10 @@
 package com.example.client.dto;
 
-public record FingerprintDTO(Long id, byte[] token, String fingerType, Long userId) {
+public record FingerprintDTO(Long id,
+                             byte[] token,
+                             String fingerType,
+                             Long userId,
+                             byte[] originalImage) {
 
     public FingerprintDTO {
         if (token == null || token.length == 0) {
@@ -14,5 +18,9 @@ public record FingerprintDTO(Long id, byte[] token, String fingerType, Long user
         if (userId == null) {
             throw new IllegalArgumentException("UserId cannot be null.");
         }
+//
+//        if (originalImage == null || originalImage.length == 0) {
+//            throw new IllegalArgumentException("OriginalImage cannot be null or empty.");
+//        }
     }
 }

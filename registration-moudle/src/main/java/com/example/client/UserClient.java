@@ -20,18 +20,24 @@ public final class UserClient {
 
     public void createUser(UserCreationRequest request) {
         try {
-            JSONObject fingerprintData = new JSONObject();
+            JSONObject fingerprintTokenData = new JSONObject();
 
-            fingerprintData.put("THUMB", request.fingerprintData().get(THUMB));
-            fingerprintData.put("INDEX", request.fingerprintData().get(INDEX));
-            fingerprintData.put("MIDDLE", request.fingerprintData().get(MIDDLE));
+            fingerprintTokenData.put("THUMB", request.fingerprintTokenData().get(THUMB));
+            fingerprintTokenData.put("INDEX", request.fingerprintTokenData().get(INDEX));
+            fingerprintTokenData.put("MIDDLE", request.fingerprintTokenData().get(MIDDLE));
+
+            JSONObject fingerprintImageData = new JSONObject();
+            fingerprintImageData.put("THUMB", request.fingerprintImageData().get(THUMB));
+            fingerprintImageData.put("INDEX", request.fingerprintImageData().get(INDEX));
+            fingerprintImageData.put("MIDDLE", request.fingerprintImageData().get(MIDDLE));
 
             JSONObject payload = new JSONObject();
             payload.put("firstName", request.firstName());
             payload.put("lastName", request.lastName());
             payload.put("pesel", request.pesel());
             payload.put("role", request.role().name());
-            payload.put("fingerprintData", fingerprintData);
+            payload.put("fingerprintTokenData", fingerprintTokenData);
+            payload.put("fingerprintImageData", fingerprintImageData);
 
             JSONArray roomIds = new JSONArray();
             request.roomIds().forEach(roomIds::put);

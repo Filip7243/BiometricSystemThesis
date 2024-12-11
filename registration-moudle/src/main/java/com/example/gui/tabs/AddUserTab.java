@@ -9,7 +9,9 @@ import com.example.client.request.UserCreationRequest;
 import com.example.gui.BasePanel;
 import com.example.gui.LicensingPanel;
 import com.example.gui.ScannersListPanel;
-import com.example.model.*;
+import com.example.model.FingerType;
+import com.example.model.Fingerprint;
+import com.example.model.Role;
 import com.neurotec.biometrics.NBiometricTask;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
@@ -23,19 +25,19 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.EnumSet;
 import java.util.List;
-import java.util.stream.Collectors;
+import java.util.Map;
 
-import static com.example.utils.FingerProcessor.getFingerTemplate;
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
 import static com.neurotec.biometrics.NBiometricOperation.CREATE_TEMPLATE;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.BorderLayout.*;
-import static java.awt.Color.WHITE;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
+import static java.util.stream.Collectors.toMap;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -306,8 +308,10 @@ public class AddUserTab extends BasePanel implements ActionListener {
         Map<BuildingDTO, List<RoomDTO>> selectedRooms = roomAssignmentForm.getSelectedRooms();
 
         // TODO: clear all fileds after saving!
-        Map<FingerType, byte[]> fingerprintData = scannedFingers.stream()
-                .collect(Collectors.toMap(Fingerprint::fingerType, Fingerprint::token));
+        Map<FingerType, byte[]> fingerprintTokenData = scannedFingers.stream()
+                .collect(toMap(Fingerprint::fingerType, Fingerprint::token));
+        Map<FingerType, byte[]> fingerprintImageData = scannedFingers.stream()
+                .collect(toMap(Fingerprint::fingerType, Fingerprint::originalImage));
 
         List<Long> userRoomIds = selectedRooms.values()
                 .stream()
@@ -315,7 +319,15 @@ public class AddUserTab extends BasePanel implements ActionListener {
                 .map(RoomDTO::roomId)
                 .toList();
 
-        UserCreationRequest request = new UserCreationRequest(firstName, lastName, pesel, role, fingerprintData, userRoomIds);
+        UserCreationRequest request = new UserCreationRequest(
+                firstName,
+                lastName,
+                pesel,
+                role,
+                fingerprintTokenData,
+                fingerprintImageData,
+                userRoomIds
+        );
         System.out.println(request);
         userClient.createUser(request);
     }
@@ -330,7 +342,17 @@ public class AddUserTab extends BasePanel implements ActionListener {
                     fingerScanForm.updateStatus("Quality: " + subject.getFingers().get(0).getObjects().get(0).getQuality());
 
                     System.out.println("Saving finger: " + currentFingerCapturing);
-                    scannedFingers.add(new Fingerprint(subject.getTemplateBuffer().toByteArray(), currentFingerCapturing));
+                    scannedFingers.add(new Fingerprint(
+                                    subject.getTemplateBuffer()
+                                            .toByteArray(),
+                                    currentFingerCapturing,
+                                    subject.getFingers()
+                                            .get(0)
+                                            .getImage()
+                                            .save()
+                                            .toByteArray()
+                            )
+                    );
                 } else {
                     fingerScanForm.updateStatus("Failed to capture. " + result.getStatus());
                 }

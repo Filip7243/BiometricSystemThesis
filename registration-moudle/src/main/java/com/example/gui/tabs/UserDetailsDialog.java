@@ -125,6 +125,7 @@ public class UserDetailsDialog extends JDialog {
                 if (row < fingerprintTable.getRowCount() && row >= 0 &&
                         column < fingerprintTable.getColumnCount() && column >= 0) {
                     if (column == 2) {
+                        System.out.println("ESSUNIA");
                         new FingerprintViewDialog(
                                 (Frame) getParent(),
                                 user.fingerprints().get(row),

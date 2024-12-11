@@ -6,8 +6,13 @@ import com.example.model.Role;
 import java.util.List;
 import java.util.Map;
 
-public record UserCreationRequest(String firstName, String lastName, String pesel, Role role,
-                                  Map<FingerType, byte[]> fingerprintData, List<Long> roomIds) {
+public record UserCreationRequest(String firstName,
+                                  String lastName,
+                                  String pesel,
+                                  Role role,
+                                  Map<FingerType, byte[]> fingerprintTokenData,
+                                  Map<FingerType, byte[]> fingerprintImageData,
+                                  List<Long> roomIds) {
     public UserCreationRequest {
         if (firstName == null || firstName.isBlank()) {
             throw new IllegalArgumentException("First name cannot be empty or blank.");
@@ -25,7 +30,7 @@ public record UserCreationRequest(String firstName, String lastName, String pese
             throw new IllegalArgumentException("Role cannot be null.");
         }
 
-        if (fingerprintData == null || fingerprintData.isEmpty()) {
+        if (fingerprintImageData == null || fingerprintImageData.isEmpty()) {
             throw new IllegalArgumentException("Fingerprint data cannot be empty.");
         }
 
