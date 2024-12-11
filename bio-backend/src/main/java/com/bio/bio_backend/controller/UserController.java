@@ -66,4 +66,11 @@ public class UserController {
     public void detachUserFromRoom(@PathVariable Long userId, @PathVariable Long roomId) {
         userService.detachUserFromRoom(userId, roomId);
     }
+
+    @GetMapping("/{userId}/fingerprints")
+    public ResponseEntity<List<FingerprintDTO>> getUserFingerprints(@PathVariable Long userId) {
+        List<FingerprintDTO> fingerprints = userService.getUserFingerprints(userId);
+
+        return ResponseEntity.ok(fingerprints);
+    }
 }

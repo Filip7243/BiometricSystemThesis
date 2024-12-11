@@ -1,5 +1,6 @@
 package com.bio.bio_backend.mapper;
 
+import com.bio.bio_backend.dto.CreateRoomRequest;
 import com.bio.bio_backend.dto.RoomDTO;
 import com.bio.bio_backend.model.Room;
 

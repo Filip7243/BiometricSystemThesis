@@ -67,7 +67,7 @@ public class BuildingService {
 
     @Transactional(readOnly = true)
     public List<BuildingDTO> getAllBuildingsNotAssignedToUser(Long userId) {
-        List<Room> allRoomsNotAssignedToUser = buildingRepository.findAllRoomsNotAssignedToUser(userId);
+        var allRoomsNotAssignedToUser = buildingRepository.findAllRoomsNotAssignedToUser(userId);
 
         Map<Long, List<Room>> roomsInBuilding = allRoomsNotAssignedToUser.stream()
                 .collect(groupingBy(room -> room.getBuilding().getId()));

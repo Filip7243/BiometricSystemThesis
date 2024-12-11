@@ -44,6 +44,7 @@ public class RoomService {
 
         room.removeDevice();
         room.detachUsers();
+        room.removeEnrollments();
 
         roomRepository.delete(room);
     }

@@ -3,6 +3,7 @@ package com.bio.bio_backend.model;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.NoArgsConstructor;
+import lombok.Setter;
 import org.hibernate.annotations.CreationTimestamp;
 
 import java.sql.Timestamp;
@@ -20,6 +21,7 @@ public class Enrollment {
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "fingerprint_id")
     private Fingerprint fingerprint;
+    @Setter
     @ManyToOne(fetch = LAZY)
     @JoinColumn(name = "room_id")
     private Room room;
@@ -36,4 +38,5 @@ public class Enrollment {
         this.user = user;
         this.isConfirmed = isConfirmed;
     }
+
 }

@@ -34,6 +34,8 @@ public class Room {
     private Device device;
     @ManyToMany(mappedBy = "rooms")
     private Set<User> users = new HashSet<>();
+    @OneToMany(mappedBy = "room")
+    private Set<Enrollment> enrollments = new HashSet<>();
 
     public Room(String roomNumber, Integer floor, Building building) {
         this.roomNumber = roomNumber;
@@ -59,5 +61,12 @@ public class Room {
             user.getRooms().remove(this);
         }
         this.users.clear();
+    }
+
+    public void removeEnrollments() {
+        for (Enrollment enrollment : enrollments) {
+            enrollment.setRoom(null);
+        }
+        this.enrollments.clear();
     }
 }

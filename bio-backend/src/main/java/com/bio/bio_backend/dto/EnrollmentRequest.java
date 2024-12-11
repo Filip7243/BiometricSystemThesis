@@ -5,7 +5,7 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Objects;
 
-public record EnrollmentRequest(MultipartFile file, FingerType type, String hardwareId) {  // hardwareId - id of scanner associated with room
+public record EnrollmentRequest(MultipartFile file, FingerType type, String hardwareId) {  // hardwareId - id of raspberry associated with room
     public EnrollmentRequest {
         if (file == null || file.isEmpty() || !Objects.equals(file.getContentType(), "image/bmp")) {
             throw new IllegalArgumentException("File is required");

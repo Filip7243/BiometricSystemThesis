@@ -15,4 +15,6 @@ public interface FingerprintRepository extends JpaRepository<Fingerprint, Long> 
     List<Fingerprint> findByFingerType(FingerType fingerType);
 
     Optional<Fingerprint> findByFingerTypeAndUser(FingerType fingerType, User user);
+
+    List<Fingerprint> findByUserId(Long userId);
 }

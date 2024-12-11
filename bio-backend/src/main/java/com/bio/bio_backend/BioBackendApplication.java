@@ -19,22 +19,5 @@ public class BioBackendApplication {
         NLicenseManager.setTrialMode(false);
 
         SpringApplication.run(BioBackendApplication.class, args);
-
-        for (NPluginManager instance : NPluginManager.getInstances()) {
-            System.out.println("Plugin manager: " + instance);
-        }
-
-        FingersTools.getInstance().getClient().setUseDeviceManager(true);
-        NDeviceManager deviceManager = FingersTools.getInstance().getClient().getDeviceManager();
-        deviceManager.setDeviceTypes(EnumSet.of(FINGER_SCANNER));
-        deviceManager.initialize();
-        for (NDevice device : deviceManager.getDevices()) {
-            System.out.println("Device Name: " + device.getDisplayName());
-            System.out.println("ID: " + device.getId());
-            System.out.println("Manufacturer: " + device.getParent());
-            System.out.println("Model: " + device.getModel());
-            System.out.println("Serial Number: " + device.getSerialNumber());
-            System.out.println("Is Plugged In: " + device.isAvailable());
-        }
     }
 }
