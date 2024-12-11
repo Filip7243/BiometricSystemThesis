@@ -36,7 +36,6 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
 
         JPanel inputPanel = createInputPanel();
         ScannersListPanel scannersPanel = new ScannersListPanel();
-        scannersPanel.hideFingersCombo();
 
         this.updateBuildingCallback = updateBuildingCallback;
         this.roomListModel = roomListModel;

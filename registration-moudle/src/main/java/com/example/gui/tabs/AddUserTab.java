@@ -17,9 +17,12 @@ import com.neurotec.biometrics.swing.NFingerView;
 import com.neurotec.util.concurrent.CompletionHandler;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.*;
 import java.util.List;
 import java.util.stream.Collectors;
@@ -31,6 +34,8 @@ import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.BorderLayout.*;
 import static java.awt.Color.WHITE;
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -55,6 +60,8 @@ public class AddUserTab extends BasePanel implements ActionListener {
     private JButton btnCancelThumbScan, btnCancelIndexScan, btnCancelMiddleScan;
     private JButton btnAssignRoom, btnRemoveRoom;
 
+    private JTabbedPane tabbedPane;
+    private JPanel mainPanel;
 
     public AddUserTab() {
         super();
@@ -75,18 +82,34 @@ public class AddUserTab extends BasePanel implements ActionListener {
     protected void initGUI() {
         setLayout(new BorderLayout());
 
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical stacking
+        headerPanel.setBackground(new Color(245, 245, 245)); // Light gray
+        headerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JLabel headerTitle = new JLabel("Create New User", SwingConstants.CENTER);
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 28));
+        headerTitle.setForeground(new Color(52, 73, 94)); // Dark blue-gray
+        headerTitle.setAlignmentX(Component.CENTER_ALIGNMENT);
+        headerPanel.add(headerTitle);
+
         panelLicensing = new LicensingPanel(requiredLicenses, optionalLicenses);
-        add(panelLicensing, NORTH);
 
         slp = new ScannersListPanel();
-        slp.hideFingersCombo();
-        add(slp, NORTH);
+        slp.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-        JPanel mainPanel = new JPanel(new BorderLayout());
-        mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
-        add(mainPanel, CENTER);
+        headerPanel.add(Box.createVerticalStrut(10));
+        headerPanel.add(slp, BorderLayout.CENTER);
 
-        List<BuildingDTO> allBuildings = buildingClient.getAllBuildings();
+        add(headerPanel, NORTH);
+
+        // Create a main container for flexible layout
+        mainPanel = new JPanel();
+
+        // Create a tabbed pane for mobile view
+        tabbedPane = new JTabbedPane();
+
+        List allBuildings = buildingClient.getAllBuildings();
 
         userInputForm = new UserInputForm();
         fingerScanForm = new FingerScanForm();
@@ -94,19 +117,37 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
         styleButtons(fingerScanForm, roomAssignmentForm);
 
-        mainPanel.add(userInputForm, NORTH);
-        mainPanel.add(fingerScanForm, CENTER);
-        mainPanel.add(roomAssignmentForm, SOUTH);
+        // Determine screen size
+        Dimension screenSize = Toolkit.getDefaultToolkit().getScreenSize();
+        boolean isSmallScreen = screenSize.height < 900; // Adjust this threshold as needed
+
+        if (isSmallScreen) {
+            // For small screens, use tabbed pane
+            mainPanel.setLayout(new BorderLayout());
+
+            JScrollPane userInputScrollPane = createScrollPane(userInputForm);
+            JScrollPane fingerScanScrollPane = createScrollPane(fingerScanForm);
+            JScrollPane roomAssignmentScrollPane = createScrollPane(roomAssignmentForm);
+
+            tabbedPane.addTab("User Info", userInputScrollPane);
+            tabbedPane.addTab("Finger Scan", fingerScanScrollPane);
+            tabbedPane.addTab("Room Assignment", roomAssignmentScrollPane);
+
+            mainPanel.add(tabbedPane, CENTER);
+        } else {
+            // For larger screens, use traditional vertical layout
+            mainPanel.setLayout(new BorderLayout(10, 10));
+            mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+            mainPanel.add(userInputForm, NORTH);
+            mainPanel.add(fingerScanForm, CENTER);
+            mainPanel.add(roomAssignmentForm, SOUTH);
+        }
+
+        add(mainPanel, CENTER);
 
         btnSubmitForm = new JButton("Submit Form");
-        btnSubmitForm.putClientProperty("JButton.buttonType", "roundRect");
-        btnSubmitForm.setFont(btnSubmitForm.getFont().deriveFont(Font.BOLD));
-        btnSubmitForm.setBackground(new Color(0, 120, 215));
-        btnSubmitForm.setForeground(WHITE);
-        btnSubmitForm.setPreferredSize(new Dimension(
-                150,
-                40
-        ));
+        styleButton(btnSubmitForm, new Color(46, 204, 113), 150, 40);
         btnSubmitForm.addActionListener(this);
 
         JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -115,6 +156,15 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
         add(submitPanel, BorderLayout.SOUTH);
     }
+
+    // Helper method to create scrollable panes with consistent styling
+    private JScrollPane createScrollPane(JComponent component) {
+        JScrollPane scrollPane = new JScrollPane(component);
+        scrollPane.setVerticalScrollBarPolicy(JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED);
+        scrollPane.setHorizontalScrollBarPolicy(JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
+        return scrollPane;
+    }
+
 
     @Override
     protected void setDefaultValues() {
@@ -180,12 +230,6 @@ public class AddUserTab extends BasePanel implements ActionListener {
                 roomAssignmentForm.getBtnAssignRoom(),
                 roomAssignmentForm.getBtnRemoveRoom()
         };
-
-        for (JButton btn : scanButtons) {
-            btn.putClientProperty("JButton.buttonType", "roundRect");
-            btn.setFont(btn.getFont().deriveFont(Font.BOLD));
-            btn.setFocusPainted(false);
-        }
 
         // Action listeners remain the same
         btnScanThumb = fingerScanForm.getBtnScanThumb();
@@ -306,5 +350,27 @@ public class AddUserTab extends BasePanel implements ActionListener {
                 updateControls();
             });
         }
+    }
+
+    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(getPredefinedCursor(HAND_CURSOR));
+        button.setPreferredSize(new Dimension(width, height));
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(backgroundColor.darker());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(backgroundColor);
+            }
+        });
     }
 }

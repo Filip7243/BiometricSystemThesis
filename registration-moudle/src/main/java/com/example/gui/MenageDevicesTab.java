@@ -45,7 +45,6 @@ public class MenageDevicesTab extends BasePanel implements ActionListener {
         JPanel northPanel = new JPanel(new BorderLayout());
 
         scannersListPanel = new ScannersListPanel();
-        scannersListPanel.hideFingersCombo();
         northPanel.add(scannersListPanel, NORTH);
 
         buildingRoomsPanel = new BuildingRoomsPanel();

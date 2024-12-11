@@ -70,11 +70,9 @@ public class UserDetailsDialog extends JDialog {
         headerDetails.setForeground(new Color(100, 100, 100)); // Subtle gray
         headerDetails.setAlignmentX(Component.CENTER_ALIGNMENT);
 
-// Create button panel (nav bar style)
         JPanel buttonPanelHeader = new JPanel(new FlowLayout(FlowLayout.CENTER, 5, 10)); // Horizontal alignment
         buttonPanelHeader.setBackground(new Color(240, 240, 240)); // Light gray background
 
-// Add "Add Rooms" and "Refresh Data" buttons
         JButton addRoomsButton = new JButton("Add Rooms");
         styleButton(addRoomsButton, new Color(46, 204, 113), 150, 40);
         addRoomsButton.addActionListener(e -> addRoomToUser());  // You can implement the action as needed
@@ -86,12 +84,11 @@ public class UserDetailsDialog extends JDialog {
         buttonPanelHeader.add(addRoomsButton);
         buttonPanelHeader.add(refreshDataButton);
 
-// Add components in vertical order: Title, Details, Button Panel
-        headerPanel.add(headerTitle);        // First component (Title)
-        headerPanel.add(Box.createVerticalStrut(10)); // Spacer between title and details
-        headerPanel.add(headerDetails);      // Second component (Details)
-        headerPanel.add(Box.createVerticalStrut(10)); // Spacer between details and button panel
-        headerPanel.add(buttonPanelHeader);  // Third component (Button Panel)
+        headerPanel.add(headerTitle);
+        headerPanel.add(Box.createVerticalStrut(10));
+        headerPanel.add(headerDetails);
+        headerPanel.add(Box.createVerticalStrut(10));
+        headerPanel.add(buttonPanelHeader);
 
         // Fingerprints Panel
         JPanel fingerprintsPanel = new JPanel(new BorderLayout());

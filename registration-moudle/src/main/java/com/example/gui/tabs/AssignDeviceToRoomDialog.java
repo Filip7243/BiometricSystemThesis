@@ -126,7 +126,6 @@ public class AssignDeviceToRoomDialog extends JDialog {
 
         mainPanel.add(currentScannerPanel, NORTH);
 
-        scannersListPanel.hideFingersCombo();
         scannersListPanel.updateScannerList();
 
         mainPanel.add(scannersListPanel, CENTER);

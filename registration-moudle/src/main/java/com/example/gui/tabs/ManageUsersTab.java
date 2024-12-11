@@ -6,6 +6,7 @@ import com.example.gui.BasePanel;
 import com.example.gui.tabs.tables.MyTable;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -43,6 +44,7 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
         JLabel headerLabel = new JLabel("Manage Users", SwingConstants.CENTER);
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
         headerLabel.setForeground(new Color(52, 73, 94)); // Dark blue color
+        headerLabel.setBorder(new EmptyBorder(20, 10, 20, 10));
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         headerPanel.add(separator, BorderLayout.CENTER);
@@ -58,7 +60,7 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
 
         buttonPanel.add(btnRefresh);
 
-        headerPanel.add(headerLabel, BorderLayout.CENTER);
+        headerPanel.add(headerLabel, NORTH);
         headerPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(headerPanel, BorderLayout.NORTH);

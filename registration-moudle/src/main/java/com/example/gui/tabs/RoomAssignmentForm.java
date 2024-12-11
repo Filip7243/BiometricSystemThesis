@@ -1,80 +1,143 @@
 package com.example.gui.tabs;
 
-import com.example.FingersTools;
 import com.example.client.dto.BuildingDTO;
 import com.example.client.dto.RoomDTO;
-import com.example.model.Building;
-import com.example.model.Room;
-import com.neurotec.devices.NDevice;
-import com.neurotec.devices.NFingerScanner;
 
 import javax.swing.*;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
 public class RoomAssignmentForm extends JPanel {
-    // TODO: change to models
-    private JList<BuildingDTO> buildingList;
-    private JList<RoomDTO> roomList;
-    private JTextArea selectionSummary;
-    private JButton btnAssignRoom, btnRemoveRoom;
+    private final JList<BuildingDTO> buildingList;
+    private final JList<RoomDTO> roomList;
+    private final JTextArea selectionSummary;
+    private final JButton btnAssignRoom;
+    private final JButton btnRemoveRoom;
 
-    private Map<BuildingDTO, List<RoomDTO>> buildingRoomMap, selectedRooms;
+    private Map<BuildingDTO, List<RoomDTO>> buildingRoomMap;
+    private final Map<BuildingDTO, List<RoomDTO>> selectedRooms;
 
     public RoomAssignmentForm(List<BuildingDTO> buildingsWithRooms) {
-        setLayout(new BorderLayout());
+        setLayout(new BorderLayout(5, 5));
+        setBorder(new EmptyBorder(5, 5, 5, 5));
+        setBackground(Color.WHITE);
 
         selectedRooms = new HashMap<>();
 
         initializeData(buildingsWithRooms);
 
+        // Styling building list
         buildingList = new JList<>(buildingRoomMap.keySet().toArray(new BuildingDTO[0]));
-//        buildingList = new JList<>();
         buildingList.setSelectionMode(ListSelectionModel.SINGLE_SELECTION);
         buildingList.addListSelectionListener(e -> updateRoomList());
         buildingList.setCellRenderer(new BuildingRenderer());
+        buildingList.setBackground(new Color(240, 240, 240));
+        buildingList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JScrollPane buildingScrollPane = new JScrollPane(buildingList);
-        buildingScrollPane.setBorder(BorderFactory.createTitledBorder("Buildings"));
+        buildingScrollPane.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
+                "Buildings",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14),
+                new Color(52, 73, 94)
+        ));
 
+        // Styling room list
         roomList = new JList<>();
         roomList.setSelectionMode(ListSelectionModel.MULTIPLE_INTERVAL_SELECTION);
         roomList.setCellRenderer(new RoomRenderer());
+        roomList.setBackground(new Color(240, 240, 240));
+        roomList.setFont(new Font("Segoe UI", Font.PLAIN, 14));
         JScrollPane roomScrollPane = new JScrollPane(roomList);
-        roomScrollPane.setBorder(BorderFactory.createTitledBorder("Rooms"));
+        roomScrollPane.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
+                "Rooms",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14),
+                new Color(52, 73, 94)
+        ));
 
+        // Styling selection summary
         selectionSummary = new JTextArea(5, 20);
         selectionSummary.setEditable(false);
+        selectionSummary.setFont(new Font("Segoe UI", Font.PLAIN, 12));
+        selectionSummary.setBackground(new Color(250, 250, 250));
         JScrollPane summaryScrollPane = new JScrollPane(selectionSummary);
-        summaryScrollPane.setBorder(BorderFactory.createTitledBorder("Selection Summary"));
+        summaryScrollPane.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
+                "Summary",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14),
+                new Color(52, 73, 94)
+        ));
 
+        // Styling buttons
         btnAssignRoom = new JButton("Assign Rooms");
-        btnAssignRoom.addActionListener(new AssignButtonListener());
-
         btnRemoveRoom = new JButton("Remove Selected Room");
+
+        // Apply custom button styling
+        styleButton(btnAssignRoom, new Color(52, 152, 219), 150, 40);
+        styleButton(btnRemoveRoom, new Color(231, 76, 60), 200, 40);
+
+        btnAssignRoom.addActionListener(new AssignButtonListener());
         btnRemoveRoom.addActionListener(new RemoveButtonListener());
 
+        // Layout configuration
         JPanel listsPanel = new JPanel(new GridLayout(1, 2, 10, 0));
+        listsPanel.setBackground(Color.WHITE);
         listsPanel.add(buildingScrollPane);
         listsPanel.add(roomScrollPane);
 
-        JPanel bottomPanel = new JPanel(new BorderLayout());
-        bottomPanel.add(btnAssignRoom, BorderLayout.NORTH);
-        bottomPanel.add(summaryScrollPane, BorderLayout.CENTER);
-
-        JPanel buttonPanel = new JPanel();
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(Color.WHITE);
         buttonPanel.add(btnAssignRoom);
         buttonPanel.add(btnRemoveRoom);
-        bottomPanel.add(buttonPanel, BorderLayout.SOUTH);
+
+        JPanel bottomPanel = new JPanel(new BorderLayout());
+        bottomPanel.setBackground(Color.WHITE);
+        bottomPanel.add(buttonPanel, BorderLayout.NORTH);
+        bottomPanel.add(summaryScrollPane, BorderLayout.CENTER);
 
         add(listsPanel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
     }
 
+    // Custom button styling method
+    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        button.setPreferredSize(new Dimension(width, height)); // Set button size
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(backgroundColor.darker());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(backgroundColor);
+            }
+        });
+    }
+
+    // Existing methods remain the same as in the original implementation
     JButton getBtnAssignRoom() {
         return btnAssignRoom;
     }
@@ -83,17 +146,12 @@ public class RoomAssignmentForm extends JPanel {
         return btnRemoveRoom;
     }
 
-    Map<BuildingDTO, List<RoomDTO>> getBuildingRoomMap() {
-        return buildingRoomMap;
-    }
-
     Map<BuildingDTO, List<RoomDTO>> getSelectedRooms() {
         return selectedRooms;
     }
 
     private void initializeData(List<BuildingDTO> buildingsWithRooms) {
         buildingRoomMap = new HashMap<>();
-
         buildingsWithRooms.forEach(building -> buildingRoomMap.put(building, building.rooms()));
     }
 
@@ -118,7 +176,7 @@ public class RoomAssignmentForm extends JPanel {
         selectionSummary.setText(summary.toString());
     }
 
-
+    // Inner classes remain the same
     private class AssignButtonListener implements ActionListener {
         @Override
         public void actionPerformed(ActionEvent e) {
@@ -170,7 +228,9 @@ public class RoomAssignmentForm extends JPanel {
             if (value instanceof BuildingDTO building) {
                 value = building.buildingNumber();
             }
-            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            c.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            return c;
         }
     }
 
@@ -181,7 +241,9 @@ public class RoomAssignmentForm extends JPanel {
             if (value instanceof RoomDTO room) {
                 value = room.roomNumber();
             }
-            return super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            Component c = super.getListCellRendererComponent(list, value, index, isSelected, cellHasFocus);
+            c.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+            return c;
         }
     }
 }
