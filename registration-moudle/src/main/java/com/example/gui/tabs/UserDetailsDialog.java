@@ -51,7 +51,6 @@ public class UserDetailsDialog extends JDialog {
 
         JPanel mainPanel = new JPanel(new BorderLayout());
 
-
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS)); // Use BoxLayout for vertical stacking
         headerPanel.setBackground(new Color(245, 245, 245)); // Light gray
@@ -150,12 +149,12 @@ public class UserDetailsDialog extends JDialog {
         // Rooms Panel
         JPanel roomsPanel = new JPanel(new BorderLayout());
         roomsPanel.setBorder(BorderFactory.createTitledBorder(
-                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),  // Set border color and thickness
-                "Assigned Rooms",                                          // Title of the border
-                TitledBorder.DEFAULT_JUSTIFICATION,                        // Title alignment (left by default)
-                TitledBorder.DEFAULT_POSITION,                             // Title position (top by default)
-                new Font("Segoe UI", Font.BOLD, 14),                        // Set font to bold and increase size
-                new Color(52, 73, 94)                                      // Set title color (dark blue)
+                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
+                "Assigned Rooms",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14),
+                new Color(52, 73, 94)
         ));
 
         Object[] roomsTableColumns = {"ID", "Room Number", "Floor", "Detach User"};
@@ -280,13 +279,13 @@ public class UserDetailsDialog extends JDialog {
     }
 
     private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
         button.setBackground(backgroundColor);
         button.setForeground(Color.WHITE);
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
+        button.setPreferredSize(new Dimension(width, height));
 
         button.addMouseListener(new MouseAdapter() {
             @Override
