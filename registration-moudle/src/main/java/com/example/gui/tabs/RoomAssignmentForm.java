@@ -150,6 +150,11 @@ public class RoomAssignmentForm extends JPanel {
         return selectedRooms;
     }
 
+    void clearSelection() {
+        selectedRooms.clear();
+        updateSelectionSummary();
+    }
+
     private void initializeData(List<BuildingDTO> buildingsWithRooms) {
         buildingRoomMap = new HashMap<>();
         buildingsWithRooms.forEach(building -> buildingRoomMap.put(building, building.rooms()));

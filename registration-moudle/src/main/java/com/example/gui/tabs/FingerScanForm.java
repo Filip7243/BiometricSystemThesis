@@ -1,7 +1,7 @@
 package com.example.gui.tabs;
 
+import com.example.FingersTools;
 import com.neurotec.biometrics.swing.NFingerView;
-import com.neurotec.biometrics.swing.NFingerViewBase;
 
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
@@ -13,7 +13,6 @@ import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.BorderLayout.SOUTH;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
-import static java.awt.GridBagConstraints.BOTH;
 
 public class FingerScanForm extends JPanel {
 
@@ -257,6 +256,12 @@ public class FingerScanForm extends JPanel {
         return thumbView.getFinger() != null && indexView.getFinger() != null && middleView.getFinger() != null;
     }
 
+    void clearViews() {
+        thumbView.setFinger(null);
+        indexView.setFinger(null);
+        middleView.setFinger(null);
+    }
+
 //    private JPanel createFingerPanel(String title, NFingerView view, JButton scanBtn, JButton cancelBtn) {
 //        JPanel mainPanel = new JPanel(new BorderLayout());
 //        mainPanel.setBackground(new Color(245, 245, 245)); // Light background for panels
@@ -311,7 +316,7 @@ public class FingerScanForm extends JPanel {
 //        styleButton(scanBtn, new Color(52, 152, 219), 150, 40);
 //        styleButton(cancelBtn, new Color(231, 76, 60), 150, 40);
 //
-//        mainPanel.add(btnPanel, BorderLayout.SOUTH);// TODO: ogaranc jak zmiscic wszystko na malym ekraniuku i zmodyfikowac reszte, posprawdza czy wszsytko dziala cala walidacja danych, do tego sprwadzic czy wszystko logiczne jest, czy sie czysic itd, do tego dodac analzie enrollmentow, jaki user gdzie wchodzi, najczesciej uzeszczane pokoje, wykresy do tego, po dacie, tabele maja oreder po id, mozna klikajac w kolumne zmieniac order, ANFIS, spis tresci koniec!
+//        mainPanel.add(btnPanel, BorderLayout.SOUTH);// TODO:  posprawdza czy wszsytko dziala cala walidacja danych, do tego sprwadzic czy wszystko logiczne jest, czy sie czysic itd, do tego dodac analzie enrollmentow, jaki user gdzie wchodzi, najczesciej uzeszczane pokoje, wykresy do tego, po dacie, tabele maja oreder po id, mozna klikajac w kolumne zmieniac order, ANFIS, spis tresci koniec!
 //
 //        return mainPanel;
 //    }

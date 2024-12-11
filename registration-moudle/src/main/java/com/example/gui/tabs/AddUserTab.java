@@ -175,6 +175,8 @@ public class AddUserTab extends BasePanel implements ActionListener {
         subject = null;
 
         userInputForm.clearFields();
+        roomAssignmentForm.clearSelection();
+        fingerScanForm.clearViews();
     }
 
     @Override
@@ -328,8 +330,12 @@ public class AddUserTab extends BasePanel implements ActionListener {
                 fingerprintImageData,
                 userRoomIds
         );
-        System.out.println(request);
+
         userClient.createUser(request);
+
+        setDefaultValues();
+
+        showMessageDialog(this, "User created successfully!", "Success", PLAIN_MESSAGE);
     }
 
     private final class CaptureHandler implements CompletionHandler<NBiometricTask, Object> {
