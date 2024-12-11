@@ -1,34 +1,37 @@
 package com.example.gui.tabs;
 
-import com.example.FingersTools;
 import com.example.client.BuildingService;
+import com.example.client.DeviceClient;
+import com.example.client.DeviceService;
 import com.example.client.RoomService;
 import com.example.client.dto.AssignDeviceToRoomRequest;
 import com.example.client.dto.BuildingDTO;
+import com.example.client.dto.DeviceDTO;
 import com.example.client.dto.RoomDTO;
-import com.example.gui.ScannersListPanel;
-import com.neurotec.devices.NFScanner;
 
 import javax.swing.*;
-
+import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.util.List;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
 
 import static java.awt.BorderLayout.*;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
-import static java.awt.FlowLayout.RIGHT;
-import static java.awt.Font.BOLD;
 import static javax.swing.JOptionPane.*;
+import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
 public class AssignDeviceToRoomDialog extends JDialog {
 
     private final RoomService roomService;
     private final RoomDTO room;
-    private final ScannersListPanel scannersListPanel;
     private final BuildingService buildingService;
     private final BuildingDTO building;
     private final Runnable onRemove;
+
+    private final DeviceService deviceService = new DeviceService(new DeviceClient());
+    private JList<DeviceDTO> deviceList;
+    private DefaultListModel<DeviceDTO> deviceListModel;
 
     public AssignDeviceToRoomDialog(Frame owner,
                                     RoomService roomService,
@@ -40,7 +43,6 @@ public class AssignDeviceToRoomDialog extends JDialog {
 
         this.roomService = roomService;
         this.room = room;
-        this.scannersListPanel = new ScannersListPanel();
         this.buildingService = buildingService;
         this.building = building;
         this.onRemove = onRemove;
@@ -50,35 +52,59 @@ public class AssignDeviceToRoomDialog extends JDialog {
 
     private void initComponents() {
         setTitle("Assign device for room: " + room.roomNumber());
-        setSize(500, 300);
+        setSize(600, 600);
         setLocationRelativeTo(getOwner());
 
         JPanel mainPanel = new JPanel(new BorderLayout(10, 10));
         mainPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
 
-        JPanel currentScannerPanel = new JPanel(new GridBagLayout());
-        currentScannerPanel.setBorder(BorderFactory.createTitledBorder("Current Scanner"));
+        JPanel headerAndCurrentDevicePanel = new JPanel(new BorderLayout(10, 10));
+
+        JPanel headerPanel = new JPanel(new BorderLayout());
+        headerPanel.setBackground(new Color(245, 245, 245)); // Light gray
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        JLabel headerTitle = new JLabel("Room Device Management", SwingConstants.CENTER);
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        headerTitle.setForeground(new Color(52, 73, 94)); // Dark blue-gray
+
+        JLabel headerDetails = new JLabel(
+                "Room Number: " + room.roomNumber() + " | Building: " + building.buildingNumber(),
+                SwingConstants.CENTER
+        );
+        headerDetails.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        headerDetails.setForeground(new Color(100, 100, 100)); // Subtle gray
+
+        headerPanel.add(headerTitle, BorderLayout.NORTH);
+        headerPanel.add(headerDetails, BorderLayout.CENTER);
+
+        JPanel currentDeviceAssignedToRoomPanel = new JPanel(new GridBagLayout());
+        currentDeviceAssignedToRoomPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
+                "Current Device",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14),
+                new Color(52, 73, 94)
+        ));
 
         GridBagConstraints gbc = new GridBagConstraints();
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1.0;
 
-        JLabel scannerLabel = new JLabel(room.hardwareDeviceId() != null ?
-                "Scanner: " + room.hardwareDeviceId() :
+        JLabel scannerLabel = createStyledLabel(room.macAddress() != null ?
+                "Scanner: " + room.macAddress() :
                 "No scanner assigned");
-        scannerLabel.setFont(new Font("Arial", BOLD, 12));
 
         gbc.gridx = 0;
         gbc.gridy = 0;
-        currentScannerPanel.add(scannerLabel, gbc);
+        currentDeviceAssignedToRoomPanel.add(scannerLabel, gbc);
 
-        if (room.hardwareDeviceId() != null) {
-            JButton removeButton = new JButton("Remove Scanner");
-            removeButton.setCursor(getPredefinedCursor(HAND_CURSOR));
-            removeButton.setBackground(new Color(255, 51, 0));
-            removeButton.setForeground(Color.WHITE);
-            removeButton.setFont(new Font("Arial", BOLD, 12));
+// Remove Button for Current Device
+        if (room.macAddress() != null) {
+            JButton removeButton = new JButton("Remove Device");
+            styleButton(removeButton, new Color(192, 57, 43), 150, 40);
             removeButton.addActionListener(e -> {
                 int confirm = JOptionPane.showConfirmDialog(
                         this,
@@ -89,7 +115,7 @@ public class AssignDeviceToRoomDialog extends JDialog {
 
                 if (confirm == YES_OPTION) {
                     roomService.removeDeviceFromRoom(
-                            new AssignDeviceToRoomRequest(room.roomId(), room.hardwareDeviceId()),
+                            new AssignDeviceToRoomRequest(room.roomId(), room.macAddress(), null),
                             (result) -> {
                                 buildingService.getBuildingById(
                                         building.id(),
@@ -121,40 +147,55 @@ public class AssignDeviceToRoomDialog extends JDialog {
 
             gbc.gridx = 1;
             gbc.weightx = 0.0;
-            currentScannerPanel.add(removeButton, gbc);
+            currentDeviceAssignedToRoomPanel.add(removeButton, gbc);
         }
 
-        mainPanel.add(currentScannerPanel, NORTH);
+        headerAndCurrentDevicePanel.add(headerPanel, BorderLayout.NORTH);
+        headerAndCurrentDevicePanel.add(currentDeviceAssignedToRoomPanel, BorderLayout.CENTER);
 
-        scannersListPanel.updateScannerList();
+        mainPanel.add(headerAndCurrentDevicePanel, NORTH);
 
-        mainPanel.add(scannersListPanel, CENTER);
+        // Devices List Panel
+        JPanel devicesListPanel = new JPanel(new BorderLayout());
+        devicesListPanel.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
+                "Available devices",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14),
+                new Color(52, 73, 94)
+        ));
 
-        JPanel buttonPanel = new JPanel(new FlowLayout(RIGHT, 5, 5));
+        deviceListModel = new DefaultListModel<>();
+        deviceList = new JList<>(deviceListModel);
+        deviceList.setSelectionMode(SINGLE_SELECTION);
+        deviceList.setCellRenderer(new DeviceListCellRenderer());
 
-        JButton assignButton = new JButton("Assign Scanner");
-        assignButton.setEnabled(room.hardwareDeviceId() == null);
-        assignButton.setCursor(getPredefinedCursor(HAND_CURSOR));
-        assignButton.setBackground(new Color(0, 128, 0));
-        assignButton.setForeground(Color.WHITE);
-        assignButton.setFont(new Font("Arial", BOLD, 12));
+        JScrollPane scrollPane = new JScrollPane(deviceList);
+        devicesListPanel.add(scrollPane, CENTER);
+
+        mainPanel.add(devicesListPanel, CENTER);
+
+        // Button Panel
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 5));
+
+        JButton assignButton = new JButton("Assign Device");
+        styleButton(assignButton, new Color(46, 204, 113), 150, 40);
+        assignButton.setEnabled(room.macAddress() == null);
         assignButton.addActionListener(e -> {
-            NFScanner selectedScanner = FingersTools
-                    .getInstance()
-                    .getClient()
-                    .getFingerScanner();
+            DeviceDTO selectedDevice = deviceList.getSelectedValue();
 
-            if (selectedScanner != null) {
+            if (selectedDevice != null) {
                 roomService.assignDeviceToRoom(
-                        new AssignDeviceToRoomRequest(room.roomId(), selectedScanner.getId().trim()),
+                        new AssignDeviceToRoomRequest(room.roomId(), selectedDevice.macAddress(), selectedDevice.scannerSerialNumber()),
                         (result) -> {
                             JOptionPane.showMessageDialog(
                                     this,
-                                    "Scanner assigned successfully to room: " + room.roomNumber(),
+                                    "Device assigned successfully to room: " + room.roomNumber(),
                                     "Success",
                                     INFORMATION_MESSAGE
                             );
-                            scannerLabel.setText("Scanner: " + selectedScanner.getId().trim());
+                            scannerLabel.setText("Device: " + selectedDevice.macAddress());
                             pack();
                             dispose();
                         },
@@ -163,16 +204,15 @@ public class AssignDeviceToRoomDialog extends JDialog {
             } else {
                 JOptionPane.showMessageDialog(
                         this,
-                        "Please select a scanner from the list",
-                        "No Scanner Selected",
+                        "Please select a device from the list",
+                        "No Device Selected",
                         WARNING_MESSAGE
                 );
             }
-
         });
 
         JButton closeButton = new JButton("Cancel");
-        closeButton.setCursor(getPredefinedCursor(HAND_CURSOR));
+        styleButton(closeButton, new Color(192, 57, 43), 100, 40);
 
         buttonPanel.add(assignButton);
         buttonPanel.add(closeButton);
@@ -180,6 +220,91 @@ public class AssignDeviceToRoomDialog extends JDialog {
         mainPanel.add(buttonPanel, SOUTH);
 
         add(mainPanel);
+
+        // Fetch and populate devices
+        getAllDevicesNotAssignedToRoom();
+
         setVisible(true);
+    }
+
+    private void getAllDevicesNotAssignedToRoom() {
+        deviceService.getDevicesNotAssignedToRoom(
+                (devices) -> {
+                    deviceListModel.clear();
+                    for (DeviceDTO device : devices) {
+                        deviceListModel.addElement(device);
+                    }
+                },
+                this
+        );
+    }
+
+    // Custom cell renderer for devices
+    private class DeviceListCellRenderer extends JPanel implements ListCellRenderer<DeviceDTO> {
+        private final JLabel deviceIdLabel;
+        private final JLabel deviceTypeLabel;
+
+        public DeviceListCellRenderer() {
+            setLayout(new GridBagLayout());
+            GridBagConstraints gbc = new GridBagConstraints();
+            gbc.insets = new Insets(5, 5, 5, 5);
+            gbc.fill = GridBagConstraints.HORIZONTAL;
+            gbc.weightx = 1.0;
+
+            deviceIdLabel = createStyledLabel("Device MAC: ");
+            gbc.gridx = 0;
+            gbc.gridy = 0;
+            add(deviceIdLabel, gbc);
+
+            deviceTypeLabel = createStyledLabel("Device Type: ");
+            gbc.gridx = 1;
+            add(deviceTypeLabel, gbc);
+        }
+
+        @Override
+        public Component getListCellRendererComponent(
+                JList<? extends DeviceDTO> list,
+                DeviceDTO device,
+                int index,
+                boolean isSelected,
+                boolean cellHasFocus) {
+
+            deviceIdLabel.setText("Device MAC: " + device.macAddress());
+            deviceTypeLabel.setText("Scanner SN: " + device.scannerSerialNumber());
+
+            setBackground(isSelected ? list.getSelectionBackground() : list.getBackground());
+            setForeground(isSelected ? list.getSelectionForeground() : list.getForeground());
+
+            return this;
+        }
+    }
+
+    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(getPredefinedCursor(HAND_CURSOR));
+        button.setPreferredSize(new Dimension(width, height)); // Set button size
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(backgroundColor.darker());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(backgroundColor);
+            }
+        });
+    }
+
+    private JLabel createStyledLabel(String text) {
+        JLabel label = new JLabel(text);
+        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
+        label.setForeground(new Color(70, 70, 70));
+        return label;
     }
 }

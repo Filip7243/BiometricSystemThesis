@@ -2,6 +2,7 @@ package com.example.gui.tabs;
 
 import com.example.FingersTools;
 import com.example.client.dto.AddRoomRequest;
+import com.example.client.dto.BuildingDTO;
 import com.example.client.dto.CreateRoomRequest;
 import com.example.gui.ScannersListPanel;
 import com.neurotec.devices.NFScanner;
@@ -19,15 +20,19 @@ import static javax.swing.JOptionPane.WARNING_MESSAGE;
 public class AddOrUpdateRoomInBuildingDialog extends JDialog {
     private final DefaultListModel<CreateRoomRequest> roomListModel;
     private final Consumer<AddRoomRequest> updateBuildingCallback;
+    private BuildingDTO building;
 
     private JTextField txtRoomNumber;
     private JSpinner floorSpinner;
+    private JTextField txtMacAddress;
+    private JTextField txtScannerSerialNumber;
 
     public AddOrUpdateRoomInBuildingDialog(Frame parent,
                                            boolean isUpdate,
                                            Consumer<AddRoomRequest> updateBuildingCallback,
                                            DefaultListModel<CreateRoomRequest> roomListModel,
-                                           String title) {
+                                           String title,
+                                           BuildingDTO building) {
         super(parent, "Add Room to Building", true);
 
         setTitle(title);
@@ -35,10 +40,10 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         setLayout(new BorderLayout(10, 10));
 
         JPanel inputPanel = createInputPanel();
-        ScannersListPanel scannersPanel = new ScannersListPanel();
 
         this.updateBuildingCallback = updateBuildingCallback;
         this.roomListModel = roomListModel;
+        this.building = building;
 
         JButton btnSubmit = createStyledButton("Submit Registration", new Color(46, 204, 113));
 
@@ -51,8 +56,7 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         });
 
         JPanel centerPanel = new JPanel(new BorderLayout());
-        centerPanel.add(inputPanel, NORTH);
-        centerPanel.add(scannersPanel, CENTER);
+        centerPanel.add(inputPanel, CENTER);
 
         JPanel buttonPanel = new JPanel();
         buttonPanel.setLayout(new FlowLayout(FlowLayout.CENTER));
@@ -64,8 +68,6 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         add(centerPanel, BorderLayout.CENTER);
         add(buttonPanel, BorderLayout.SOUTH);
 
-        scannersPanel.updateScannerList();
-
         setVisible(true);
     }
 
@@ -76,6 +78,7 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         gbc.insets = new Insets(5, 5, 5, 5);
         gbc.fill = GridBagConstraints.HORIZONTAL;
 
+        // Room Number
         gbc.gridx = 0;
         gbc.gridy = 0;
         mainPanel.add(createStyledLabel("Room Number:"), gbc);
@@ -85,6 +88,7 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         txtRoomNumber = createStyledTextField("");
         mainPanel.add(txtRoomNumber, gbc);
 
+        // Floor
         gbc.gridx = 0;
         gbc.gridy = 1;
         gbc.weightx = 0;
@@ -100,12 +104,36 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         ));
         mainPanel.add(floorSpinner, gbc);
 
+        // MAC Address
+        gbc.gridx = 0;
+        gbc.gridy = 2;
+        gbc.weightx = 0;
+        mainPanel.add(createStyledLabel("MAC Address:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        txtMacAddress = createStyledTextField("");
+        mainPanel.add(txtMacAddress, gbc);
+
+        // Scanner Serial Number
+        gbc.gridx = 0;
+        gbc.gridy = 3;
+        gbc.weightx = 0;
+        mainPanel.add(createStyledLabel("Scanner Serial Number:"), gbc);
+
+        gbc.gridx = 1;
+        gbc.weightx = 1.0;
+        txtScannerSerialNumber = createStyledTextField("");
+        mainPanel.add(txtScannerSerialNumber, gbc);
+
         return mainPanel;
     }
 
     private void addRoomToForm() {
         String roomNumber = txtRoomNumber.getText();
         int floor = (int) floorSpinner.getValue();
+        String macAddress = txtMacAddress.getText();
+        String scannerSerialNumber = txtScannerSerialNumber.getText();
 
         if (roomNumber.isBlank() || floor < 0) {
             JOptionPane.showMessageDialog(
@@ -120,8 +148,8 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         CreateRoomRequest room = new CreateRoomRequest(
                 roomNumber,
                 floor,
-                FingersTools.getInstance().getClient().getFingerScanner() != null ?
-                        FingersTools.getInstance().getClient().getFingerScanner().getId() : null
+                macAddress,
+                scannerSerialNumber
         );
 
         System.out.println(room);
@@ -134,6 +162,8 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
     private void updateBuilding() {
         String roomNumber = txtRoomNumber.getText().trim();
         int floor = (int) floorSpinner.getValue();
+        String macAddress = txtMacAddress.getText();
+        String scannerSerialNumber = txtScannerSerialNumber.getText();
 
         if (roomNumber.isEmpty()) {
             JOptionPane.showMessageDialog(this,
@@ -143,15 +173,14 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
             return;
         }
 
-        NFScanner selectedScanner = FingersTools
-                .getInstance()
-                .getClient()
-                .getFingerScanner();
-
-        String hardwareDeviceId = selectedScanner != null ? selectedScanner.getId() : null;
-
         if (updateBuildingCallback != null) {
-            updateBuildingCallback.accept(new AddRoomRequest(roomNumber, floor, 1L, hardwareDeviceId));
+            updateBuildingCallback.accept(new AddRoomRequest(
+                    roomNumber,
+                    floor,
+                    macAddress,
+                    scannerSerialNumber,
+                    building.id()
+            ));
 
             dispose();
         }

@@ -88,7 +88,8 @@ public class AddBuildingDialog extends JDialog {
                 false,
                 null,
                 roomListModel,
-                "Add New Room")
+                "Add New Room",
+                null)
         );
 
         JButton removeRoomButton = createStyledButton("Remove Room", new Color(231, 76, 60)); // Red

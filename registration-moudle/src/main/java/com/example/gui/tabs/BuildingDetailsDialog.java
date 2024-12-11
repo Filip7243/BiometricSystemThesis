@@ -124,7 +124,7 @@ public class BuildingDetailsDialog extends JDialog {
                     (Frame) getParent(),
                     true,
                     (request) -> buildingService.addRoomToBuilding(
-                            new AddRoomRequest(request.roomNumber(), request.floor(), building.id(), request.deviceHardwareId()),
+                            new AddRoomRequest(request.roomNumber(), request.floor(), request.macAddress(), request.scannerSerialNumber(), building.id()),
                             (room) -> {
                                 onBuildingUpdated.run();
                                 updateRoomTable();
@@ -132,7 +132,8 @@ public class BuildingDetailsDialog extends JDialog {
                             },
                             this),
                     null,
-                    "Add New Room"
+                    "Add New Room",
+                    building
             );
         });
 

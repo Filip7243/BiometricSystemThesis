@@ -1,6 +1,10 @@
 package com.example.client.dto;
 
-public record RoomDTO(Long roomId, String roomNumber, Integer floor, String hardwareDeviceId) {
+public record RoomDTO(Long roomId,
+                      String roomNumber,
+                      Integer floor,
+                      String macAddress,
+                      String scannerSerialNumber) {
     public RoomDTO {
         if (roomNumber == null || roomNumber.isBlank()) {
             throw new IllegalArgumentException("Room number cannot be empty or blank.");
