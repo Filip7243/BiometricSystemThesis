@@ -36,12 +36,17 @@ public class FingerprintViewDialog extends JDialog {
     private JButton saveButton;
     private JButton btnScan;
     private JButton stopButton;
+    private JDialog fingerScanDialog;
 
-    public FingerprintViewDialog(Frame parent, FingerprintDTO fingerprint, UserService userService) {
+    private NSubject subject;
+    private Runnable onFingerprintUpdate;
+
+    public FingerprintViewDialog(Frame parent, FingerprintDTO fingerprint, UserService userService, Runnable onFingerprintUpdate) {
         super(parent, "Fingerprint Details", true);
         this.fingerprint = fingerprint;
         this.userService = userService;
         this.currentImageBytes = fingerprint.originalImage();
+        this.onFingerprintUpdate = onFingerprintUpdate;
 
         initComponents();
     }
@@ -92,9 +97,9 @@ public class FingerprintViewDialog extends JDialog {
     }
 
     private void performFingerScan() {
-        JDialog dialog = new JDialog();
-        dialog.setTitle("Available Scanners");
-        dialog.setModal(true);
+        fingerScanDialog = new JDialog();
+        fingerScanDialog.setTitle("Available Scanners");
+        fingerScanDialog.setModal(true);
 
         ScannersListPanel scannersListPanel = new ScannersListPanel();
         scannersListPanel.updateScannerList();
@@ -118,13 +123,13 @@ public class FingerprintViewDialog extends JDialog {
                 stopButton
         );
 
-        dialog.setLayout(new BorderLayout());
-        dialog.add(scannersListPanel, BorderLayout.NORTH);
-        dialog.add(fingerPanel, BorderLayout.CENTER);
+        fingerScanDialog.setLayout(new BorderLayout());
+        fingerScanDialog.add(scannersListPanel, BorderLayout.NORTH);
+        fingerScanDialog.add(fingerPanel, BorderLayout.CENTER);
 
-        dialog.setSize(400, 300);
-        dialog.setLocationRelativeTo(null);
-        dialog.setVisible(true);
+        fingerScanDialog.setSize(400, 300);
+        fingerScanDialog.setLocationRelativeTo(null);
+        fingerScanDialog.setVisible(true);
     }
 
     private void startCapturing(NFingerView view) {
@@ -145,7 +150,7 @@ public class FingerprintViewDialog extends JDialog {
 
         NFinger finger = new NFinger();
 
-        NSubject subject = new NSubject();
+        subject = new NSubject();
         subject.getFingers().add(finger);
 
         view.setFinger(finger);
@@ -198,7 +203,8 @@ public class FingerprintViewDialog extends JDialog {
         try {
             UpdateFingerprintRequest updatedFingerprint = new UpdateFingerprintRequest(
                     fingerprint.id(),
-                    fingerprint.token()
+                    subject.getTemplateBuffer().toByteArray(),
+                    subject.getFingers().get(0).getImage().save().toByteArray()
             );
 
             System.out.println("Updating fingerprint: " + updatedFingerprint);
@@ -212,6 +218,8 @@ public class FingerprintViewDialog extends JDialog {
                                 "Success",
                                 JOptionPane.INFORMATION_MESSAGE
                         );
+                        onFingerprintUpdate.run();
+                        fingerScanDialog.dispose();
                         dispose();
                     },
                     this

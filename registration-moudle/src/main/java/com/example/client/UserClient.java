@@ -183,6 +183,22 @@ public final class UserClient {
         }
     }
 
+    public UserDTO getUserById(Long userId) {
+        try {
+            HttpRequest request = createGetUserByIdRequest(userId);
+
+            HttpResponse<String> response = MyHttpClient.getInstance().send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to retrieve user. Status code: " + response.statusCode());
+            }
+
+            return MyObjectMapper.getInstance().readValue(response.body(), UserDTO.class);
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static HttpRequest createGetAllUsersRequest() {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/users"))
@@ -238,4 +254,11 @@ public final class UserClient {
                 .build();
     }
 
+    private static HttpRequest createGetUserByIdRequest(Long userId) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/users/" + userId))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+    }
 }

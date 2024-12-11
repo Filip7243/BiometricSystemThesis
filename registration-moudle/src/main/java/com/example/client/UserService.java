@@ -33,6 +33,14 @@ public class UserService {
         );
     }
 
+    public void getUserById(Long userId, Consumer<UserDTO> onSuccess, Component parentComponent) {
+        BaseResourceWorker.execute(
+                () -> userClient.getUserById(userId),
+                onSuccess,
+                parentComponent
+        );
+    }
+
     public void deleteUser(Long userId, Consumer<Void> onSuccess, Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> {

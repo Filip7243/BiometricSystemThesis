@@ -24,7 +24,7 @@ import static javax.swing.JSplitPane.VERTICAL_SPLIT;
 
 public class UserDetailsDialog extends JDialog {
 
-    private final UserDTO user;
+    private UserDTO user;
     private final UserService userService;
     private final RoomService roomService;
     private final BuildingService buildingService;
@@ -129,7 +129,8 @@ public class UserDetailsDialog extends JDialog {
                         new FingerprintViewDialog(
                                 (Frame) getParent(),
                                 user.fingerprints().get(row),
-                                userService // TODO: zmienic ten row w fingerptins
+                                userService, // TODO: zmienic ten row w fingerptins,
+                                () -> getUserFingerprints()
                         );
                     }
                 }
@@ -256,11 +257,12 @@ public class UserDetailsDialog extends JDialog {
     }
 
     private void getUserFingerprints() {
-        userService.getUserFingerprints(
+        userService.getUserById(
                 user.id(),
-                (fingerprints) -> {
+                (updatedUser) -> {
+                    this.user = updatedUser;
                     fingerprintModel.setRowCount(0);
-                    for (FingerprintDTO fingerprint : fingerprints) {
+                    for (FingerprintDTO fingerprint : updatedUser.fingerprints()) {
                         fingerprintModel.addRow(new Object[]{
                                 fingerprint.id(),
                                 fingerprint.fingerType(),
