@@ -18,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.io.IOException;
+import java.time.LocalDate;
 import java.util.Comparator;
 import java.util.EnumSet;
 import java.util.List;
@@ -157,5 +158,57 @@ public class EnrollmentService {
         }
 
         return responseFuture;
+    }
+
+    public List<Object[]> findDailyEnrollmentTrend() {
+        return enrollmentRepository.findDailyEnrollmentTrend();
+    }
+
+    public List<Object[]> findPeakEnrollmentHours() {
+        return enrollmentRepository.findPeakEnrollmentHours();
+    }
+
+    public List<Object[]> findTopActiveUsers() {
+        return enrollmentRepository.findTopActiveUsers();
+    }
+
+    public List<Object[]> getEnrollmentStatusDistribution() {
+        return enrollmentRepository.getEnrollmentStatusDistribution();
+    }
+
+    public List<Object[]> getEnrollmentsByRoom() {
+        return enrollmentRepository.getEnrollmentsByRoom();
+    }
+
+    public List<Object[]> getEnrollmentsPerFingerprint() {
+        return enrollmentRepository.getEnrollmentsPerFingerprint();
+    }
+
+    public List<Object[]> getUserEnrollmentConfirmationRate(Long userId) {
+        return enrollmentRepository.getUserEnrollmentConfirmationRate(userId);
+    }
+
+    public List<Object[]> getEnrollmentsByTimeOfDay() {
+        return enrollmentRepository.getEnrollmentsByTimeOfDay();
+    }
+
+    public List<Object[]> getEnrollmentsByRoomAndStatus() {
+        return enrollmentRepository.getEnrollmentsByRoomAndStatus();
+    }
+
+    public List<Object[]> getRoomUsageByUser() {
+        return enrollmentRepository.getRoomUsageByUser();
+    }
+
+    public List<Object[]> getNumberOfEntrancesToEachRoomOnDate(LocalDate date, Long buildingId) {
+        return enrollmentRepository.getNumberOfEntrancesToEachRoomOnDate(date, buildingId);
+    }
+
+    public List<Object[]> getUnconfirmedEntrancesPerUserByRoom() {
+        return enrollmentRepository.getUnconfirmedEntrancesPerUserByRoom();
+    }
+
+    public List<Object[]> getLateControlByUserAndRoom(int expectedHour, LocalDate date, Long userId) {
+        return enrollmentRepository.getLateControlByUserAndRoom(date, userId, expectedHour);
     }
 }

@@ -20,7 +20,7 @@ public class Fingerprint {
     @Column(name = "token", columnDefinition = "BLOB")
     private byte[] token;
     @Lob
-    @Column(name = "original_image", columnDefinition = "BLOB")
+    @Column(name = "original_image", columnDefinition = "MEDIUMBLOB")
     private byte[] originalImage;
     @Enumerated(EnumType.STRING)
     @Column(name = "type")
