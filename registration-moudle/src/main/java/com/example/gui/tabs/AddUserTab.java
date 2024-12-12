@@ -369,7 +369,6 @@ public class AddUserTab extends BasePanel implements ActionListener {
         public void failed(final Throwable throwable, final Object attachment) {
             SwingUtilities.invokeLater(() -> {
                 fingerScanForm.setScanning(false);
-//                currentCapturingView.setShownImage(ORIGINAL);
                 showError(throwable);
                 currentFingerCapturing = FingerType.NONE;
                 updateControls();
