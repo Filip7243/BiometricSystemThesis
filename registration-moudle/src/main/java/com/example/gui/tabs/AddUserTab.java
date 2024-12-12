@@ -109,7 +109,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
         // Create a tabbed pane for mobile view
         tabbedPane = new JTabbedPane();
 
-        List allBuildings = buildingClient.getAllBuildings();
+        List allBuildings = buildingClient.getAllBuildings("");
 
         userInputForm = new UserInputForm();
         fingerScanForm = new FingerScanForm();

@@ -8,6 +8,11 @@ import com.example.gui.BasePanel;
 import com.example.gui.tabs.tables.MyTable;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -36,6 +41,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
 
     private JButton addBuildingButton;
     private JButton btnRefreshData;
+    private JButton searchButton;
 
     private BuildingService buildingService;
 
@@ -45,7 +51,6 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
 
         buildingService = new BuildingService(buildingClient, roomClient);
 
-        // Create header panel
         JPanel headerPanel = new JPanel(new BorderLayout());
         JLabel headerLabel = new JLabel("Manage Buildings And Rooms", SwingConstants.CENTER);
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
@@ -53,33 +58,65 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
         headerLabel.setBorder(BorderFactory.createEmptyBorder(20, 10, 20, 10));
         headerPanel.add(headerLabel, BorderLayout.NORTH);
 
-        // Add separator below the header
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         headerPanel.add(separator, BorderLayout.CENTER);
 
-        // Create button panel (nav bar style)
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10)); // Horizontal alignment
-        buttonPanel.setBackground(new Color(240, 240, 240)); // Light gray background
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
+        buttonPanel.setBackground(new Color(240, 240, 240));
 
-        // Create and style buttons
         addBuildingButton = new JButton("Add Building");
         styleButton(addBuildingButton, new Color(46, 204, 113), 150, 40);
 
         btnRefreshData = new JButton("Refresh Data");
         styleButton(btnRefreshData, new Color(23, 162, 184), 150, 40);
 
-        // Add buttons to button panel
         buttonPanel.add(addBuildingButton);
         buttonPanel.add(btnRefreshData);
 
+        JPanel searchPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 2, 10));
+        searchPanel.setBackground(new Color(240, 240, 240));
+
+        JTextField searchBar = createStyledTextField("");
+        searchBar.setPreferredSize(new Dimension(300, 40));
+
+        searchButton = new JButton("Search");
+        styleButton(searchButton, new Color(52, 152, 219), 150, 40);
+        searchButton.setEnabled(false);
+        searchButton.addActionListener(e -> getBuildings(searchBar.getText().trim()));
+
+        searchBar.getDocument().addDocumentListener(new DocumentListener() {
+            private void updateButtonState() {
+                searchButton.setEnabled(!searchBar.getText().trim().isEmpty());
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateButtonState();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateButtonState();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateButtonState();
+            }
+        });
+
+        searchPanel.add(searchBar);
+        searchPanel.add(searchButton);
+
+        buttonPanel.add(searchPanel);
+
         headerPanel.add(buttonPanel, BorderLayout.SOUTH);
 
-        add(headerPanel, NORTH);
+        add(headerPanel, BorderLayout.NORTH);
 
-        // Create and add table to the center
         createBuildingTable();
         JScrollPane scrollPane = new JScrollPane(buildingTable);
-        add(scrollPane, CENTER);
+        add(scrollPane, BorderLayout.CENTER);
     }
 
     @Override
@@ -87,7 +124,12 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
         addBuildingButton.setEnabled(false);
         buildingTable.setEnabled(false);
 
+        getBuildings("");
+    }
+
+    private void getBuildings(String search) {
         buildingService.getAllBuildings(
+                search,
                 buildings -> {
                     this.buildings.clear();
                     this.buildings.addAll(buildings);
@@ -178,6 +220,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
 
     private void updateBuildingTable() {
         buildingService.getAllBuildings(
+                "",
                 buildings -> {
                     this.buildings.clear();
                     this.buildings.addAll(buildings);
@@ -275,5 +318,16 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
         });
 
         button.addActionListener(this);
+    }
+
+    private JTextField createStyledTextField(String text) {
+        JTextField textField = new JTextField(text, 20);
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        textField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        return textField;
     }
 }

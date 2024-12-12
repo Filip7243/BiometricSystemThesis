@@ -59,9 +59,9 @@ public final class UserClient {
         }
     }
 
-    public List<UserDTO> getAllUsers() {
+    public List<UserDTO> getAllUsers(String search) {
         try {
-            HttpRequest request = createGetAllUsersRequest();
+            HttpRequest request = createGetAllUsersRequest(search);
 
             HttpResponse<String> response = MyHttpClient.getInstance().send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -199,9 +199,9 @@ public final class UserClient {
         }
     }
 
-    private static HttpRequest createGetAllUsersRequest() {
+    private static HttpRequest createGetAllUsersRequest(String search) {
         return HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/api/v1/users"))
+                .uri(URI.create("http://localhost:8080/api/v1/users?search=" + search))
                 .header("Accept", "application/json")
                 .GET()
                 .build();

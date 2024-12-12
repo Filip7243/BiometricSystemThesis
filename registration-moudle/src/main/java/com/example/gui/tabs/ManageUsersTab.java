@@ -6,7 +6,11 @@ import com.example.gui.BasePanel;
 import com.example.gui.tabs.tables.MyTable;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.event.DocumentEvent;
+import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
 import javax.swing.table.DefaultTableModel;
 import java.awt.*;
@@ -17,7 +21,6 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.awt.BorderLayout.NORTH;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
 
@@ -38,36 +41,64 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
     protected void initGUI() {
         setLayout(new BorderLayout());
 
-        // Create modern header panel
         JPanel headerPanel = new JPanel(new BorderLayout());
-        headerPanel.setBackground(new Color(240, 240, 240)); // Light gray modern background
-        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15)); // Add padding
+        headerPanel.setBackground(new Color(240, 240, 240));
+        headerPanel.setBorder(BorderFactory.createEmptyBorder(10, 15, 10, 15));
 
         JLabel headerLabel = new JLabel("Manage Users", SwingConstants.CENTER);
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 26));
-        headerLabel.setForeground(new Color(52, 73, 94)); // Dark blue color
+        headerLabel.setForeground(new Color(52, 73, 94));
         headerLabel.setBorder(new EmptyBorder(20, 10, 20, 10));
 
         JSeparator separator = new JSeparator(SwingConstants.HORIZONTAL);
         headerPanel.add(separator, BorderLayout.CENTER);
 
-        // Create button panel (nav bar style)
-        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10)); // Horizontal alignment
-        buttonPanel.setBackground(new Color(240, 240, 240)); // Light gray background
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
+        buttonPanel.setBackground(new Color(240, 240, 240));
 
-        // Create and style buttons
         JButton btnRefresh = new JButton("Refresh Data");
         btnRefresh.addActionListener(this);
         styleButton(btnRefresh, new Color(23, 162, 184), 150, 40);
 
         buttonPanel.add(btnRefresh);
 
-        headerPanel.add(headerLabel, NORTH);
+        JTextField searchBar = createStyledTextField("");
+        searchBar.setPreferredSize(new Dimension(300, 40));
+
+        JButton searchButton = new JButton("Search");
+        styleButton(searchButton, new Color(52, 152, 219), 150, 40);
+        searchButton.setEnabled(false);
+        searchButton.addActionListener(e -> getUsers(searchBar.getText().trim()));
+
+        searchBar.getDocument().addDocumentListener(new DocumentListener() {
+            private void updateButtonState() {
+                searchButton.setEnabled(!searchBar.getText().trim().isEmpty());
+            }
+
+            @Override
+            public void insertUpdate(DocumentEvent e) {
+                updateButtonState();
+            }
+
+            @Override
+            public void removeUpdate(DocumentEvent e) {
+                updateButtonState();
+            }
+
+            @Override
+            public void changedUpdate(DocumentEvent e) {
+                updateButtonState();
+            }
+        });
+
+        buttonPanel.add(searchBar);
+        buttonPanel.add(searchButton);
+
+        headerPanel.add(headerLabel, BorderLayout.NORTH);
         headerPanel.add(buttonPanel, BorderLayout.SOUTH);
 
         add(headerPanel, BorderLayout.NORTH);
 
-        // Define columns for the table
         String[] columns = {"ID", "First Name", "Last Name", "PESEL", "Role", "Edit", "Delete", "Details"};
         userTableModel = new DefaultTableModel(columns, 0) {
             @Override
@@ -76,22 +107,18 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
             }
         };
 
-        // Initialize table
         userTable = new MyTable(userTableModel);
 
-        // Center align cell renderers for specific columns
         DefaultTableCellRenderer defaultTableCellRenderer = new DefaultTableCellRenderer();
         defaultTableCellRenderer.setHorizontalAlignment(SwingConstants.CENTER);
         for (int i = 0; i <= 4; i++) {
             userTable.setColumnRenderer(i, defaultTableCellRenderer);
         }
 
-        // Set custom button renderers for action columns
         userTable.setColumnRenderer(5, new ButtonRenderer("Edit"));
         userTable.setColumnRenderer(6, new ButtonRenderer("Delete"));
         userTable.setColumnRenderer(7, new ButtonRenderer("Details"));
 
-        // Add mouse listener for button actions
         userTable.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseClicked(MouseEvent e) {
@@ -99,22 +126,20 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
                 int column = userTable.columnAtPoint(e.getPoint());
 
                 if (row >= 0 && row < userTable.getRowCount() && column >= 0 && column < userTable.getColumnCount()) {
-                    if (column == 5) { // Edit button
+                    if (column == 5) {
                         showEditUserDialog(users.get(row));
-                    } else if (column == 6) { // Delete button
+                    } else if (column == 6) {
                         handleDeleteUser(users.get(row));
-                    } else if (column == 7) { // Details button
+                    } else if (column == 7) {
                         showUserDetails(users.get(row));
                     }
                 }
             }
         });
 
-        // Add toolbar with actions
         JToolBar toolBar = new JToolBar();
         toolBar.setFloatable(false);
-        toolBar.setBackground(new Color(240, 240, 240)); // Match header background
-
+        toolBar.setBackground(new Color(240, 240, 240));
 
         JScrollPane scrollPane = new JScrollPane(userTable);
         add(scrollPane, BorderLayout.CENTER);
@@ -124,7 +149,12 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
 
     @Override
     protected void setDefaultValues() {
+        getUsers("");
+    }
+
+    private void getUsers(String search) {
         userService.getAllUsers(
+                search,
                 (result) -> {
                     users.clear();
                     users.addAll(result);
@@ -229,5 +259,16 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
         });
 
         button.addActionListener(this);
+    }
+
+    private JTextField createStyledTextField(String text) {
+        JTextField textField = new JTextField(text, 20);
+        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        textField.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        textField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        return textField;
     }
 }

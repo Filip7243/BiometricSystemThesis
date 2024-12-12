@@ -24,9 +24,9 @@ public class BuildingClient {
         this.objectMapper = MyObjectMapper.getInstance();
     }
 
-    public List<BuildingDTO> getAllBuildings() {
+    public List<BuildingDTO> getAllBuildings(String search) {
         try {
-            HttpRequest request = createGetAllBuildingsRequest();
+            HttpRequest request = createGetAllBuildingsRequest(search);
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
@@ -137,9 +137,9 @@ public class BuildingClient {
         }
     }
 
-    private static HttpRequest createGetAllBuildingsRequest() {
+    private static HttpRequest createGetAllBuildingsRequest(String search) {
         return HttpRequest.newBuilder()
-                .uri(URI.create("http://localhost:8080/api/v1/buildings"))
+                .uri(URI.create("http://localhost:8080/api/v1/buildings?search=" + search))
                 .header("Accept", "application/json")
                 .GET()
                 .build();

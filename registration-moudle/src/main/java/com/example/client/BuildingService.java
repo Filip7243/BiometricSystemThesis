@@ -24,9 +24,9 @@ public class BuildingService {
         );
     }
 
-    public void getAllBuildings(Consumer<List<BuildingDTO>> onSuccess, Component parentComponent) {
+    public void getAllBuildings(String search, Consumer<List<BuildingDTO>> onSuccess, Component parentComponent) {
         BaseResourceWorker.execute(
-                buildingClient::getAllBuildings,
+                () -> buildingClient.getAllBuildings(search),
                 onSuccess,
                 parentComponent
         );

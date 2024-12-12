@@ -25,9 +25,9 @@ public class UserService {
         );
     }
 
-    public void getAllUsers(Consumer<List<UserDTO>> onSuccess, Component parentComponent) {
+    public void getAllUsers(String search, Consumer<List<UserDTO>> onSuccess, Component parentComponent) {
         BaseResourceWorker.execute(
-                userClient::getAllUsers,
+                () -> userClient.getAllUsers(search),
                 onSuccess,
                 parentComponent
         );
