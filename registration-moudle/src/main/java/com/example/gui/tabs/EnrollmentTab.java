@@ -4,9 +4,7 @@ import com.example.client.*;
 import com.example.client.dto.*;
 import com.example.gui.BasePanel;
 import com.example.model.FingerType;
-import org.jdatepicker.impl.JDatePanelImpl;
-import org.jdatepicker.impl.JDatePickerImpl;
-import org.jdatepicker.impl.UtilDateModel;
+import com.toedter.calendar.JDateChooser;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartPanel;
 import org.jfree.chart.JFreeChart;
@@ -15,19 +13,16 @@ import org.jfree.data.category.DefaultCategoryDataset;
 import org.jfree.data.general.DefaultPieDataset;
 
 import javax.swing.*;
-import javax.swing.border.Border;
-import javax.swing.text.DefaultFormatter;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.time.LocalDate;
-import java.time.ZoneId;
-import java.util.Calendar;
 import java.util.Date;
 import java.util.Map;
-import java.util.Properties;
 import java.util.stream.Collectors;
 
 import static java.time.LocalDate.now;
@@ -44,11 +39,12 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
     private RoomService roomService;
 
     private JComboBox<BuildingDTO> buildingSelector;
-    private JComboBox<UserDTO> userSelector;
+    private JComboBox<UserDTO> hourlyEnrollmentsUserSelector;
+    private JComboBox<UserDTO> lateControlUserSelector;
     private JComboBox<RoomDTO> roomSelector;
     private JSpinner hourSpinner;
-    private JDatePickerImpl roomDatePicker;
-    private JDatePickerImpl lateControlDatePicker;
+    private ModerDatePicker roomDatePicker;
+    private ModerDatePicker lateControlDatePicker;
 
     private ChartPanel roomEntrancesChartPanel;
     private ChartPanel unconfirmedEntrancesChartPanel;
@@ -74,8 +70,37 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
         // Initialize components
         buildingSelector = new JComboBox<>();
-        userSelector = new JComboBox<>();
+        buildingSelector.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        buildingSelector.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        buildingSelector.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        hourlyEnrollmentsUserSelector = new JComboBox<>();
+        hourlyEnrollmentsUserSelector.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        hourlyEnrollmentsUserSelector.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        hourlyEnrollmentsUserSelector.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
+        lateControlUserSelector = new JComboBox<>();
+        lateControlUserSelector.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        lateControlUserSelector.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        lateControlUserSelector.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
         roomSelector = new JComboBox<>();
+        roomSelector.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        roomSelector.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        roomSelector.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+
         hourSpinner = new JSpinner(new SpinnerNumberModel(1, 1, 24, 1));
 
         loadBuildings();
@@ -83,13 +108,14 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
         loadRooms();
 
         buildingSelector.addActionListener(e -> updateRoomEntrancesChart());
-        userSelector.addActionListener(e -> {
-            updateUnconfirmedEntrancesChart();
+        hourlyEnrollmentsUserSelector.addActionListener(e -> {
             updateEnrollmentConfirmationChart();
+        });
+        lateControlUserSelector.addActionListener(e -> {
             updateLateControlChart();
         });
 
-        // Set Layout with GroupLayout for better control
+        // Set Layout with BorderLayout and add some padding
         setLayout(new BorderLayout(20, 20));
         setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20));
 
@@ -100,115 +126,139 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
     private JTabbedPane createChartTabbedPane() {
         JTabbedPane tabbedPane = new JTabbedPane();
-
-        // Styling for headers and panels
-        Font headerFont = new Font("Segoe UI", Font.BOLD, 18);
-        Border padding = BorderFactory.createEmptyBorder(10, 10, 10, 10);
+        tabbedPane.setFont(new Font("Segoe UI", Font.PLAIN, 14));
 
         // Room Entrances Chart Tab
-        JPanel roomEntrancesPanel = new JPanel();
-        roomEntrancesPanel.setLayout(new BoxLayout(roomEntrancesPanel, BoxLayout.Y_AXIS));
-        JLabel roomHeader = new JLabel("Room Entrance Distribution");
-        roomHeader.setFont(headerFont);
-        roomHeader.setBorder(padding);
+        JPanel roomEntrancesPanel = new JPanel(new BorderLayout(10, 10));
 
-        UtilDateModel roomDateModel = new UtilDateModel();
-        Properties roomDateProps = new Properties();
-        roomDateProps.put("text.today", "Today");
-        roomDateProps.put("text.month", "Month");
-        roomDateProps.put("text.year", "Year");
-        JDatePanelImpl roomDatePanel = new JDatePanelImpl(roomDateModel, roomDateProps);
-        roomDatePicker = new JDatePickerImpl(roomDatePanel, new DefaultFormatter());
-        roomDatePicker.addActionListener(e -> updateRoomEntrancesChart());
+        // Styled header panel
+        JPanel roomHeaderPanel = createStyledHeaderPanel(
+                "Room Entrance Distribution",
+                "Analyze room entry patterns and track building access"
+        );
+        roomEntrancesPanel.add(roomHeaderPanel, BorderLayout.NORTH);
 
-        JPanel roomInputs = new JPanel(new GridLayout(2, 2, 5, 5));
-        roomInputs.add(new JLabel("Building:"));
-        roomInputs.add(buildingSelector);
-        roomInputs.add(new JLabel("Date:"));
-        roomInputs.add(roomDatePicker);
+        // Vertical, centered input container
+        JPanel roomInputsContainer = new JPanel();
+        roomInputsContainer.setLayout(new BoxLayout(roomInputsContainer, BoxLayout.Y_AXIS));
+        roomInputsContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Centered input panel
+        JPanel centeredInputPanel = new JPanel();
+        centeredInputPanel.setLayout(new BoxLayout(centeredInputPanel, BoxLayout.Y_AXIS));
+        centeredInputPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Create labeled inputs
+        roomDatePicker = new ModerDatePicker();
+        JPanel buildingInputPanel = createLabeledInput("Building:", buildingSelector);
+        JPanel dateInputPanel = createLabeledInput("Date:", roomDatePicker);
+
+        centeredInputPanel.add(buildingInputPanel);
+        centeredInputPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Vertical spacing
+        centeredInputPanel.add(dateInputPanel);
+
+        roomInputsContainer.add(Box.createHorizontalGlue());
+        roomInputsContainer.add(centeredInputPanel);
+        roomInputsContainer.add(Box.createHorizontalGlue());
 
         roomEntrancesChartPanel = new ChartPanel(null);
         roomEntrancesChartPanel.setPreferredSize(new Dimension(500, 350));
 
-        roomEntrancesPanel.add(roomHeader);
-        roomEntrancesPanel.add(roomInputs);
-        roomEntrancesPanel.add(roomEntrancesChartPanel);
+        roomEntrancesPanel.add(roomInputsContainer, BorderLayout.CENTER);
+        roomEntrancesPanel.add(roomEntrancesChartPanel, BorderLayout.SOUTH);
         tabbedPane.addTab("Room Entrance Distribution", roomEntrancesPanel);
 
-        JPanel unconfirmedPanel = new JPanel();
-        unconfirmedPanel.setLayout(new BoxLayout(unconfirmedPanel, BoxLayout.Y_AXIS));
-        JLabel unconfirmedHeader = new JLabel("Unconfirmed Entrances per Room");
-        unconfirmedHeader.setFont(headerFont);
-        unconfirmedHeader.setBorder(padding);
+        // Unconfirmed Entrances Chart Tab
+        JPanel unconfirmedPanel = new JPanel(new BorderLayout(10, 10));
+
+        JPanel unconfirmedHeaderPanel = createStyledHeaderPanel(
+                "Unconfirmed Entrances per Room",
+                "Track and analyze unconfirmed room entries"
+        );
+        unconfirmedPanel.add(unconfirmedHeaderPanel, BorderLayout.NORTH);
 
         unconfirmedEntrancesChartPanel = new ChartPanel(null);
         unconfirmedEntrancesChartPanel.setPreferredSize(new Dimension(500, 350));
 
-        unconfirmedPanel.add(unconfirmedHeader);
-        unconfirmedPanel.add(unconfirmedEntrancesChartPanel);
+        unconfirmedPanel.add(unconfirmedEntrancesChartPanel, BorderLayout.CENTER);
         tabbedPane.addTab("Daily Trend", unconfirmedPanel);
 
         // Enrollment Confirmation Chart Tab
-        JPanel enrollmentPanel = new JPanel();
-        enrollmentPanel.setLayout(new BoxLayout(enrollmentPanel, BoxLayout.Y_AXIS));
-        JLabel enrollmentHeader = new JLabel("Hourly Enrollments");
-        enrollmentHeader.setFont(headerFont);
-        enrollmentHeader.setBorder(padding);
+        JPanel enrollmentPanel = new JPanel(new BorderLayout(5, 5));
 
-        JPanel enrollmentInputs = new JPanel();
-        enrollmentInputs.setLayout(new BoxLayout(enrollmentInputs, BoxLayout.Y_AXIS));
-        enrollmentInputs.add(createLabeledPanel("User:", userSelector));
+        JPanel enrollmentHeaderPanel = createStyledHeaderPanel(
+                "User's Unconfirmed Enrollments By Finger Type",
+                "Chart shows user's unconfirmed enrollments to rooms that he is assigned"
+        );
+        enrollmentPanel.add(enrollmentHeaderPanel, BorderLayout.NORTH);
+
+        JPanel enrollmentInputsContainer = new JPanel(new GridBagLayout());
+        enrollmentInputsContainer.setBorder(BorderFactory.createEmptyBorder(5, 5, 5, 5));
+
+        JPanel enrollmentCenteredPanel = new JPanel();
+        enrollmentCenteredPanel.setLayout(new BoxLayout(enrollmentCenteredPanel, BoxLayout.Y_AXIS));
+        enrollmentCenteredPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        JPanel userInputPanel = createLabeledInput("User:", hourlyEnrollmentsUserSelector);
+        userInputPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        enrollmentCenteredPanel.add(userInputPanel);
+
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.anchor = GridBagConstraints.CENTER;
+        gbc.fill = GridBagConstraints.NONE;
+        enrollmentInputsContainer.add(enrollmentCenteredPanel, gbc);
 
         enrollmentConfirmationChartPanel = new ChartPanel(null);
-        enrollmentConfirmationChartPanel.setPreferredSize(new Dimension(500, 350));
+        enrollmentConfirmationChartPanel.setPreferredSize(new Dimension(500, 450));
 
-        enrollmentPanel.add(enrollmentHeader);
-        enrollmentPanel.add(enrollmentInputs);
-        enrollmentPanel.add(enrollmentConfirmationChartPanel);
+        enrollmentPanel.add(enrollmentInputsContainer, BorderLayout.CENTER);
+        enrollmentPanel.add(enrollmentConfirmationChartPanel, BorderLayout.SOUTH);
         tabbedPane.addTab("Enrollment Confirmation", enrollmentPanel);
 
-        JPanel lateControlPanel = new JPanel();
-        lateControlPanel.setLayout(new BoxLayout(lateControlPanel, BoxLayout.Y_AXIS));
-        JLabel lateControlHeader = new JLabel("User Enrollments");
-        lateControlHeader.setFont(headerFont);
-        lateControlHeader.setBorder(padding);
+        // Late Control Chart Tab
+        JPanel lateControlPanel = new JPanel(new BorderLayout(10, 10));
 
-        UtilDateModel lateControlDateModel = new UtilDateModel();
-        Properties lateControlDateProps = new Properties();
-        lateControlDateProps.put("text.today", "Today");
-        lateControlDateProps.put("text.month", "Month");
-        lateControlDateProps.put("text.year", "Year");
-        JDatePanelImpl lateControlDatePanel = new JDatePanelImpl(lateControlDateModel, lateControlDateProps);
-        lateControlDatePicker = new JDatePickerImpl(lateControlDatePanel, new DefaultFormatter());
-        lateControlDatePicker.addActionListener(e -> updateLateControlChart());
+        JPanel lateControlHeaderPanel = createStyledHeaderPanel(
+                "User Enrollments",
+                "Monitor and analyze user late enrollments"
+        );
+        lateControlPanel.add(lateControlHeaderPanel, BorderLayout.NORTH);
 
-        JPanel lateControlInputs = new JPanel(new GridLayout(3, 2, 10, 10));
-        lateControlInputs.add(new JLabel("User:"));
-        lateControlInputs.add(userSelector);
-        lateControlInputs.add(new JLabel("Date:"));
-        lateControlInputs.add(lateControlDatePicker);
-        lateControlInputs.add(new JLabel("Hour:"));
-        lateControlInputs.add(hourSpinner);
+        // Vertical, centered input container for Late Control tab
+        JPanel lateControlInputsContainer = new JPanel();
+        lateControlInputsContainer.setLayout(new BoxLayout(lateControlInputsContainer, BoxLayout.Y_AXIS));
+        lateControlInputsContainer.setBorder(BorderFactory.createEmptyBorder(10, 10, 10, 10));
+
+        // Centered input panel
+        JPanel lateControlCenteredPanel = new JPanel();
+        lateControlCenteredPanel.setLayout(new BoxLayout(lateControlCenteredPanel, BoxLayout.Y_AXIS));
+        lateControlCenteredPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Create labeled inputs
+        lateControlDatePicker = new ModerDatePicker();
+        JPanel userInputPanel2 = createLabeledInput("User:", lateControlUserSelector);
+        JPanel dateInputPanel3 = createLabeledInput("Date:", lateControlDatePicker);
+        JPanel hourInputPanel = createLabeledInput("Hour:", hourSpinner);
+
+        lateControlCenteredPanel.add(userInputPanel2);
+        lateControlCenteredPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Vertical spacing
+        lateControlCenteredPanel.add(dateInputPanel3);
+        lateControlCenteredPanel.add(Box.createRigidArea(new Dimension(0, 10))); // Vertical spacing
+        lateControlCenteredPanel.add(hourInputPanel);
+
+        lateControlInputsContainer.add(Box.createHorizontalGlue());
+        lateControlInputsContainer.add(lateControlCenteredPanel);
+        lateControlInputsContainer.add(Box.createHorizontalGlue());
 
         lateControlChartPanel = new ChartPanel(null);
         lateControlChartPanel.setPreferredSize(new Dimension(500, 350));
 
-        lateControlPanel.add(lateControlHeader);
-        lateControlPanel.add(lateControlInputs);
-        lateControlPanel.add(lateControlChartPanel);
+        lateControlPanel.add(lateControlInputsContainer, BorderLayout.CENTER);
+        lateControlPanel.add(lateControlChartPanel, BorderLayout.SOUTH);
         tabbedPane.addTab("Late Control", lateControlPanel);
 
         return tabbedPane;
-    }
-
-    private JPanel createLabeledPanel(String labelText, JComponent component) {
-        JPanel panel = new JPanel();
-        panel.setLayout(new BoxLayout(panel, BoxLayout.X_AXIS));
-        JLabel label = new JLabel(labelText);
-        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        panel.add(label);
-        panel.add(component);
-        return panel;
     }
 
     private void loadBuildings() {
@@ -220,8 +270,12 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
     private void loadUsers() {
         userService.getAllUsers(users -> {
-            userSelector.removeAllItems();
-            users.forEach(user -> userSelector.addItem(user));
+            hourlyEnrollmentsUserSelector.removeAllItems();
+            lateControlUserSelector.removeAllItems();
+            users.forEach(user -> {
+                hourlyEnrollmentsUserSelector.addItem(user);
+                lateControlUserSelector.addItem(user);
+            });
         }, this);
     }
 
@@ -236,15 +290,8 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
         BuildingDTO selectedBuilding = (BuildingDTO) buildingSelector.getSelectedItem();
         if (selectedBuilding == null) return;
 
-        Date selectedDate = (Date) roomDatePicker.getModel().getValue();
-        LocalDate localDate = selectedDate != null ?
-                selectedDate
-                        .toInstant()
-                        .atZone(systemDefault())
-                        .toLocalDate() :
-                now();
         enrollmentService.getNumberOfEntrancesToEachRoomOnDate(
-                localDate,
+                roomDatePicker.getDate(),
                 selectedBuilding.id(),
                 (roomEntranceData) -> {
                     DefaultCategoryDataset dataset = new DefaultCategoryDataset();
@@ -254,7 +301,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
                     });
 
                     JFreeChart chart = ChartFactory.createBarChart(
-                            "Room Entrance Distribution",
+                            null,
                             "Rooms",
                             "Number of Entrances",
                             dataset,
@@ -281,7 +328,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
                     // Create the pie chart
                     JFreeChart chart = ChartFactory.createPieChart(
-                            "Unconfirmed Entrances per Room",
+                            null,
                             dataset,
                             true, true, false
                     );
@@ -296,7 +343,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
 
     private void updateEnrollmentConfirmationChart() {
-        UserDTO selectedUser = (UserDTO) userSelector.getSelectedItem();
+        UserDTO selectedUser = (UserDTO) hourlyEnrollmentsUserSelector.getSelectedItem();
         if (selectedUser == null) return;
 
         enrollmentService.getUserEnrollmentConfirmationRate(
@@ -322,7 +369,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
                     // Create the bar chart
                     JFreeChart chart = ChartFactory.createBarChart(
-                            "User Enrollment Confirmation Rate",
+                            null,
                             "Finger Types",
                             "Count",
                             dataset,
@@ -340,19 +387,12 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
 
     private void updateLateControlChart() {
-        UserDTO selectedUser = (UserDTO) userSelector.getSelectedItem();
+        UserDTO selectedUser = (UserDTO) lateControlUserSelector.getSelectedItem();
 
         if (selectedUser == null) return;
 
-        Date selectedDate = (Date) roomDatePicker.getModel().getValue();
-        LocalDate localDate = selectedDate != null ?
-                selectedDate
-                        .toInstant()
-                        .atZone(systemDefault())
-                        .toLocalDate() :
-                now();
         enrollmentService.getLateControlByUserAndRoom(
-                localDate,
+                lateControlDatePicker.getDate(),
                 selectedUser.id(),
                 (int) hourSpinner.getValue(),
                 (lateControlData) -> {
@@ -366,7 +406,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
                     });
 
                     JFreeChart chart = ChartFactory.createBarChart(
-                            "Late Entries by Room",
+                            null,
                             "Rooms",
                             "Number of Late Entries",
                             dataset,
@@ -387,13 +427,17 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
         if (buildingSelector.getItemCount() > 0) {
             buildingSelector.setSelectedIndex(0);
         }
-        if (userSelector.getItemCount() > 0) {
-            userSelector.setSelectedIndex(0);
+        if (hourlyEnrollmentsUserSelector.getItemCount() > 0) {
+            hourlyEnrollmentsUserSelector.setSelectedIndex(0);
+        }
+        if (lateControlUserSelector.getItemCount() > 0) {
+            lateControlUserSelector.setSelectedIndex(0);
         }
         if (roomSelector.getItemCount() > 0) {
             roomSelector.setSelectedIndex(0);
         }
-//        datePicker.setDate(LocalDate.now());
+//        roomDatePicker.setDate(LocalDate.now());
+//        lateControlDatePicker.setDate(LocalDate.now());
     }
 
     @Override
@@ -412,6 +456,99 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
     @Override
     public void actionPerformed(ActionEvent e) {
 
+    }
+
+    private JPanel createStyledHeaderPanel(String title, String subTitle) {
+        JPanel headerPanel = new JPanel(new GridLayout(2, 1));
+        headerPanel.setBackground(new Color(245, 245, 245)); // Light gray
+        headerPanel.setBorder(new EmptyBorder(10, 10, 10, 10));
+
+        JLabel headerTitle = new JLabel(title, SwingConstants.CENTER);
+        headerTitle.setFont(new Font("Segoe UI", Font.BOLD, 18));
+        headerTitle.setForeground(new Color(52, 73, 94)); // Dark blue-gray
+
+        JLabel headerDetails = new JLabel(subTitle, SwingConstants.CENTER);
+        headerDetails.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        headerDetails.setForeground(new Color(100, 100, 100)); // Subtle gray
+
+        headerPanel.add(headerTitle);
+        headerPanel.add(headerDetails);
+
+        return headerPanel;
+    }
+
+    private Component styleComponent(JComponent component) {
+        component.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        component.setBorder(BorderFactory.createCompoundBorder(
+                BorderFactory.createLineBorder(Color.LIGHT_GRAY, 1),
+                BorderFactory.createEmptyBorder(5, 10, 5, 10)
+        ));
+        component.setPreferredSize(new Dimension(250, 40)); // Consistent size
+        return component;
+    }
+
+    private JPanel createLabeledInput(String labelText, JComponent inputComponent) {
+        JPanel panel = new JPanel(new BorderLayout(10, 0));
+        panel.setMaximumSize(new Dimension(Integer.MAX_VALUE, 50));
+
+        JLabel label = new JLabel(labelText);
+        label.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        label.setPreferredSize(new Dimension(100, 40));
+
+        panel.add(label, BorderLayout.WEST);
+        panel.add(inputComponent, BorderLayout.CENTER);
+
+        return panel;
+    }
+
+    private class ModerDatePicker extends JPanel {
+        private final JDateChooser dateChooser;
+
+        public ModerDatePicker() {
+            super(new BorderLayout());
+
+            JTextField dateField = new JTextField();
+            dateField.setEditable(false);
+
+            JButton datePickerButton = new JButton("Select Date");
+            datePickerButton.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+
+            add(dateField, BorderLayout.CENTER);
+            add(datePickerButton, BorderLayout.EAST);
+
+            styleComponent(dateField);
+            styleComponent(datePickerButton);
+
+            this.dateChooser = new JDateChooser();
+            this.dateChooser.setDateFormatString("yyyy-MM-dd");
+
+            SimpleDateFormat sdf = new SimpleDateFormat("yyyy-MM-dd");
+            dateField.setText(sdf.format(new Date()));
+
+            datePickerButton.addActionListener(e -> {
+                int result = JOptionPane.showConfirmDialog(
+                        null,
+                        dateChooser,
+                        "Select Date",
+                        JOptionPane.OK_CANCEL_OPTION,
+                        JOptionPane.PLAIN_MESSAGE
+                );
+
+                if (result == JOptionPane.OK_OPTION) {
+                    Date selectedDate = dateChooser.getDate();
+                    if (selectedDate != null) {
+
+                        dateField.setText(sdf.format(selectedDate));
+                    }
+                }
+            });
+        }
+
+        public LocalDate getDate() {
+            return dateChooser.getDate() != null ?
+                    dateChooser.getDate().toInstant().atZone(systemDefault()).toLocalDate() :
+                    now();
+        }
     }
 }
 
