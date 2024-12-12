@@ -33,7 +33,6 @@ public class UserController {
         return ResponseEntity.status(CREATED).build();
     }
 
-    // TODO: it not should be here!
     @GetMapping("/fingerprint")
     public ResponseEntity<List<FingerprintDTO>> getAllFingerprints() {
         List<FingerprintDTO> all = fingerprintService.getAllFingerprints();
@@ -41,8 +40,8 @@ public class UserController {
     }
 
     @GetMapping
-    public List<UserDTO> getAllUsers() {
-        return userService.getAllUsers();
+    public List<UserDTO> getAllUsers(@RequestParam(value = "search", required = false) String search) {
+        return userService.searchUsers(search);
     }
 
     @PutMapping

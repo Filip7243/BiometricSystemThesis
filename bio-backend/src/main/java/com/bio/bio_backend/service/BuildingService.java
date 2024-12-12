@@ -110,4 +110,8 @@ public class BuildingService {
 
         return toDTO(newBuilding);
     }
+
+    public List<BuildingDTO> searchBuildings(String search) {
+        return toDTOS(buildingRepository.searchByFields(search));
+    }
 }

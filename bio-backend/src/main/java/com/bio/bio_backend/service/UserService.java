@@ -116,4 +116,8 @@ public class UserService {
 
         return UserMapper.toDTO(user);
     }
+
+    public List<UserDTO> searchUsers(String search) {
+        return toDTOS(userRepository.searchByFields(search));
+    }
 }

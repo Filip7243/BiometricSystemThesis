@@ -20,9 +20,10 @@ public class BuildingController {
     private final BuildingService buildingService;
 
     @GetMapping
-    public ResponseEntity<List<BuildingDTO>> getAllBuildings() {
-        List<BuildingDTO> all = buildingService.getAllBuildings();
-        return ResponseEntity.ok(all);  // TODO: GROUP_BY STREET
+    public ResponseEntity<List<BuildingDTO>> getAllBuildings(
+            @RequestParam(value = "search", required = false) String search) {
+        List<BuildingDTO> all = buildingService.searchBuildings(search);
+        return ResponseEntity.ok(all);
     }
 
     @PutMapping("/{id}")
