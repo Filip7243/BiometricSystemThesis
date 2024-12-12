@@ -2,6 +2,7 @@ package com.bio.bio_backend.respository;
 
 import com.bio.bio_backend.model.FingerType;
 import com.bio.bio_backend.model.Fingerprint;
+import com.bio.bio_backend.model.Role;
 import com.bio.bio_backend.model.User;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.stereotype.Repository;
@@ -17,4 +18,6 @@ public interface FingerprintRepository extends JpaRepository<Fingerprint, Long> 
     Optional<Fingerprint> findByFingerTypeAndUser(FingerType fingerType, User user);
 
     List<Fingerprint> findByUserId(Long userId);
+
+    List<Fingerprint> findByFingerTypeAndUserRole(FingerType fingerType, Role role);
 }

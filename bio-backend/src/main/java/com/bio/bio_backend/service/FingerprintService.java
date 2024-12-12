@@ -3,7 +3,9 @@ package com.bio.bio_backend.service;
 import com.bio.bio_backend.dto.FingerCreationRequest;
 import com.bio.bio_backend.dto.FingerprintDTO;
 import com.bio.bio_backend.dto.UpdateFingerprintRequest;
+import com.bio.bio_backend.model.FingerType;
 import com.bio.bio_backend.model.Fingerprint;
+import com.bio.bio_backend.model.Role;
 import com.bio.bio_backend.respository.FingerprintRepository;
 import com.bio.bio_backend.respository.UserRepository;
 import jakarta.persistence.EntityNotFoundException;
@@ -54,5 +56,9 @@ public class FingerprintService {
 
         fingerprint.setToken(request.token());
         fingerprint.setOriginalImage(request.originalImage());
+    }
+
+    public List<FingerprintDTO> findByFingerTypeAndUserRole(FingerType fingerType, Role role) {
+        return toDTOS(fingerprintRepository.findByFingerTypeAndUserRole(fingerType, role));
     }
 }

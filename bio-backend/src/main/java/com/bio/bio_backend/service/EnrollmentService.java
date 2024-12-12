@@ -72,9 +72,6 @@ public class EnrollmentService {
         if (enrollStatus == NBiometricStatus.OK) {
             NBiometricStatus identifyStatus = FingersTools.getInstance().getClient().identify(subject);
 
-            System.out.println("THRESH: " + FingersTools.getInstance().getClient().getMatchingThreshold());
-            System.out.println("SPEED: " + FingersTools.getInstance().getClient().getFingersMatchingSpeed());
-
             if (identifyStatus == NBiometricStatus.OK) {
                 for (NMatchingResult result : subject.getMatchingResults()) {
                     System.out.format("Matched with ID: '%s' with score %d\n", result.getId(), result.getScore());
