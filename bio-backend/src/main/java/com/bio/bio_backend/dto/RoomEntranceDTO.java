@@ -1,4 +1,4 @@
 package com.bio.bio_backend.dto;
 
-public class RoomEntranceDTO {
+public record RoomEntranceDTO(String roomNumber, String buildingNumber, Long entranceCount) {
 }

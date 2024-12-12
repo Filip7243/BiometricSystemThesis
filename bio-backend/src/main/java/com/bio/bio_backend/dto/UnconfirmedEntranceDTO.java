@@ -1,4 +1,8 @@
 package com.bio.bio_backend.dto;
 
-public class UnconfirmedEntranceDTO {
+public record UnconfirmedEntranceDTO(String firstName,
+                                     String lastName,
+                                     String roomNumber,
+                                     String buildingNumber,
+                                     Long count) {
 }

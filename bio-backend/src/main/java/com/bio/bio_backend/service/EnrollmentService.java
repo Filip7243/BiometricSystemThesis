@@ -1,7 +1,6 @@
 package com.bio.bio_backend.service;
 
-import com.bio.bio_backend.dto.EnrollmentRequest;
-import com.bio.bio_backend.dto.EnrollmentResponse;
+import com.bio.bio_backend.dto.*;
 import com.bio.bio_backend.model.Enrollment;
 import com.bio.bio_backend.model.Fingerprint;
 import com.bio.bio_backend.model.Room;
@@ -109,7 +108,7 @@ public class EnrollmentService {
                 if (roomId != null) {
                     Room room = roomRepository.findById(roomId)
                             .orElseThrow(
-                                    () -> new EntityNotFoundException("Room with id: %d not found".formatted(roomId))
+                                    () -> new EntityNotFoundException("Room with id: %d not found" .formatted(roomId))
                             );
 
                     Enrollment enrollment = new Enrollment(
@@ -184,7 +183,7 @@ public class EnrollmentService {
         return enrollmentRepository.getEnrollmentsPerFingerprint();
     }
 
-    public List<Object[]> getUserEnrollmentConfirmationRate(Long userId) {
+    public List<UserEnrollmentConfirmationDTO> getUserEnrollmentConfirmationRate(Long userId) {
         return enrollmentRepository.getUserEnrollmentConfirmationRate(userId);
     }
 
@@ -200,15 +199,15 @@ public class EnrollmentService {
         return enrollmentRepository.getRoomUsageByUser();
     }
 
-    public List<Object[]> getNumberOfEntrancesToEachRoomOnDate(LocalDate date, Long buildingId) {
+    public List<RoomEntranceDTO> getNumberOfEntrancesToEachRoomOnDate(LocalDate date, Long buildingId) {
         return enrollmentRepository.getNumberOfEntrancesToEachRoomOnDate(date, buildingId);
     }
 
-    public List<Object[]> getUnconfirmedEntrancesPerUserByRoom() {
+    public List<UnconfirmedEntranceDTO> getUnconfirmedEntrancesPerUserByRoom() {
         return enrollmentRepository.getUnconfirmedEntrancesPerUserByRoom();
     }
 
-    public List<Object[]> getLateControlByUserAndRoom(int expectedHour, LocalDate date, Long userId) {
+    public List<LateControlDTO> getLateControlByUserAndRoom(int expectedHour, LocalDate date, Long userId) {
         return enrollmentRepository.getLateControlByUserAndRoom(date, userId, expectedHour);
     }
 }

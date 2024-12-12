@@ -1,7 +1,6 @@
 package com.bio.bio_backend.controller;
 
-import com.bio.bio_backend.dto.EnrollmentRequest;
-import com.bio.bio_backend.dto.EnrollmentResponse;
+import com.bio.bio_backend.dto.*;
 import com.bio.bio_backend.service.EnrollmentService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -83,26 +82,28 @@ public class EnrollmentController {
         return ResponseEntity.ok(enrollmentService.getRoomUsageByUser());
     }
 
+    // NEW
+
     @GetMapping("/entrances-to-room")
-    public List<Object[]> getEntrancesToRoom(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                                             @RequestParam("buildingId") Long buildingId) {
+    public List<RoomEntranceDTO> getEntrancesToRoom(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                    @RequestParam("buildingId") Long buildingId) {
         return enrollmentService.getNumberOfEntrancesToEachRoomOnDate(date, buildingId);
     }
 
     @GetMapping("/unconfirmed-entrances-per-user-by-room")
-    public List<Object[]> getUnconfirmedEntrancesPerUserByRoom() {
+    public List<UnconfirmedEntranceDTO> getUnconfirmedEntrancesPerUserByRoom() {
         return enrollmentService.getUnconfirmedEntrancesPerUserByRoom();
     }
 
     @GetMapping("/enrollments-confirmation-rate")
-    public ResponseEntity<?> getUserEnrollmentConfirmationRate(@RequestParam("userId") Long userId) {
+    public ResponseEntity<List<UserEnrollmentConfirmationDTO>> getUserEnrollmentConfirmationRate(@RequestParam("userId") Long userId) {
         return ResponseEntity.ok(enrollmentService.getUserEnrollmentConfirmationRate(userId));
     }
 
     @GetMapping("/late-control")
-    public ResponseEntity<?> getLateControlByUserAndRoom(@RequestParam("expectedHour") Integer expectedHour,
-                                                         @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
-                                                         @RequestParam("userId") Long userId) {
+    public ResponseEntity<List<LateControlDTO>> getLateControlByUserAndRoom(@RequestParam("expectedHour") Integer expectedHour,
+                                                                            @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
+                                                                            @RequestParam("userId") Long userId) {
         return ResponseEntity.ok(enrollmentService.getLateControlByUserAndRoom(expectedHour, date, userId));
     }
 }

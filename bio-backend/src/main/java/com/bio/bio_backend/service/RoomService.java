@@ -4,6 +4,7 @@ import com.bio.bio_backend.dto.AddRoomRequest;
 import com.bio.bio_backend.dto.AssignDeviceToRoomRequest;
 import com.bio.bio_backend.dto.RoomDTO;
 import com.bio.bio_backend.dto.UpdateRoomRequest;
+import com.bio.bio_backend.mapper.RoomMapper;
 import com.bio.bio_backend.model.Device;
 import com.bio.bio_backend.model.Room;
 import com.bio.bio_backend.respository.BuildingRepository;
@@ -14,6 +15,9 @@ import jakarta.persistence.EntityNotFoundException;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+
+import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.bio.bio_backend.mapper.RoomMapper.toDTO;
 
@@ -115,5 +119,12 @@ public class RoomService {
                 .orElseThrow(() -> new EntityNotFoundException("Room with id " + roomId + " not found"));
 
         return toDTO(room);
+    }
+
+    public List<RoomDTO> getAllRooms() {
+        return roomRepository.findAll()
+                .stream()
+                .map(RoomMapper::toDTO)
+                .collect(Collectors.toList());
     }
 }
