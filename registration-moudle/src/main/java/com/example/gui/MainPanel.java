@@ -43,21 +43,6 @@ public final class MainPanel extends JPanel implements ChangeListener {
         this.tabbedPane.addChangeListener(this);
         this.tabbedPane.setTabLayoutPolicy(SCROLL_TAB_LAYOUT);
 
-        // Register tab
-//        this.registerUserTab = new RegisterUserTab();
-//        this.registerUserTab.init();
-//        this.tabbedPane.addTab("Register User", this.registerUserTab);
-
-        // Assign device to room
-//        this.menageDevicesTab = new MenageDevicesTab();
-//        this.menageDevicesTab.init();
-//        this.tabbedPane.addTab("Menage Devices", this.menageDevicesTab);
-
-        // Manage buildings and rooms
-//        this.menageBuildingsRoomsTab = new MenageBuildingsRoomsTab();
-//        this.menageBuildingsRoomsTab.init();
-//        this.tabbedPane.addTab("Menage Buildings", this.menageBuildingsRoomsTab);
-
         addUserTab = new AddUserTab();
         addUserTab.init();
         this.tabbedPane.addTab("Add User", addUserTab);

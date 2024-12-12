@@ -260,66 +260,6 @@ public class FingerScanForm extends JPanel {
         middleView.setFinger(null);
     }
 
-//    private JPanel createFingerPanel(String title, NFingerView view, JButton scanBtn, JButton cancelBtn) {
-//        JPanel mainPanel = new JPanel(new BorderLayout());
-//        mainPanel.setBackground(new Color(245, 245, 245)); // Light background for panels
-//
-//        JScrollPane scrollPane = new JScrollPane();
-//        scrollPane.setBorder(BorderFactory.createTitledBorder(
-//                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
-//                title,
-//                TitledBorder.DEFAULT_JUSTIFICATION,
-//                TitledBorder.DEFAULT_POSITION,
-//                new Font("Segoe UI", Font.BOLD, 14),
-//                new Color(52, 73, 94)
-//        ));
-//
-//        mainPanel.add(scrollPane, BorderLayout.CENTER);
-//
-//        view.setShownImage(ORIGINAL);
-//        view.setAutofit(true);
-//        scrollPane.setViewportView(view);
-//
-//        view.setPreferredSize(new Dimension(300, 400));
-//
-//        view.addMouseListener(new MouseAdapter() {
-//            @Override
-//            public void mouseEntered(MouseEvent e) {
-//                if (view.getFinger() != null) {
-//                    view.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-//                }
-//            }
-//
-//            @Override
-//            public void mouseExited(MouseEvent e) {
-//                view.setCursor(Cursor.getDefaultCursor());
-//            }
-//
-//            @Override
-//            public void mouseClicked(MouseEvent e) {
-//                if (e.getClickCount() == 1 && view.getFinger() != null) {
-//                    showZoomedView(view, title);
-//                }
-//            }
-//        });
-//
-//        cancelBtn.setEnabled(false);
-//        styleButton(scanBtn, new Color(52, 152, 219), 120, 40);
-//        styleButton(cancelBtn, new Color(231, 76, 60), 120, 40);
-//
-//        JPanel btnPanel = new JPanel(new GridLayout(1, 2, 10, 0));
-//        btnPanel.add(scanBtn);
-//        btnPanel.add(cancelBtn);
-//
-//        styleButton(scanBtn, new Color(52, 152, 219), 150, 40);
-//        styleButton(cancelBtn, new Color(231, 76, 60), 150, 40);
-//
-//        mainPanel.add(btnPanel, BorderLayout.SOUTH);// TODO:  do tego dodac analzie enrollmentow, jaki user gdzie wchodzi, najczesciej uzeszczane pokoje, wykresy do tego, po dacie, tabele maja oreder po id, mozna klikajac w kolumne zmieniac order, ANFIS, spis tresci koniec!
-//        # TODO: manage devices tab i enrollments tab
-
-//        return mainPanel;
-//    }
-
     private void showZoomedView(NFingerView originalView, String title) {
         if (zoomDialog != null) {
             zoomDialog.dispose();

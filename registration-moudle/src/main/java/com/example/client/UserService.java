@@ -1,6 +1,8 @@
 package com.example.client;
 
 import com.example.client.dto.*;
+import com.example.model.FingerType;
+import com.example.model.Role;
 
 import java.awt.*;
 import java.util.List;
@@ -85,6 +87,17 @@ public class UserService {
     public void getUserFingerprints(Long userId, Consumer<List<FingerprintDTO>> onSuccess, Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> userClient.getUserFingerprints(userId),
+                onSuccess,
+                parentComponent
+        );
+    }
+
+    public void getFingerprintsByTypeAndUserRole(FingerType fingerType,
+                                                 Role role,
+                                                 Consumer<List<FingerprintDTO>> onSuccess,
+                                                 Component parentComponent) {
+        BaseResourceWorker.execute(
+                () -> userClient.getFingerprintsByTypeAndUserRole(fingerType, role),
                 onSuccess,
                 parentComponent
         );

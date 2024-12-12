@@ -17,6 +17,7 @@ public class Main {
 
         NLicenseManager.setTrialMode(false);
 
+        // TODO: Login panel based on fingerprint and clean code test db
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame();
             frame.setTitle("Admin Panel");

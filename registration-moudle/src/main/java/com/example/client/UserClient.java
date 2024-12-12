@@ -2,6 +2,8 @@ package com.example.client;
 
 import com.example.client.dto.*;
 import com.example.client.request.UserCreationRequest;
+import com.example.model.FingerType;
+import com.example.model.Role;
 import com.fasterxml.jackson.core.type.TypeReference;
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -199,6 +201,26 @@ public final class UserClient {
         }
     }
 
+    public List<FingerprintDTO> getFingerprintsByTypeAndUserRole(FingerType fingerType, Role role) {
+        try {
+            HttpRequest request = createGetFingerprintsByTypeAndUserRole(fingerType, role);
+
+            HttpResponse<String> response = MyHttpClient.getInstance().send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to retrieve fingerprints. Status code: " + response.statusCode());
+            }
+
+            return MyObjectMapper.getInstance().readValue(
+                    response.body(),
+                    new TypeReference<>() {
+                    }
+            );
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException(e);
+        }
+    }
+
     private static HttpRequest createGetAllUsersRequest(String search) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/users?search=" + search))
@@ -257,6 +279,14 @@ public final class UserClient {
     private static HttpRequest createGetUserByIdRequest(Long userId) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/users/" + userId))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+    }
+
+    private static HttpRequest createGetFingerprintsByTypeAndUserRole(FingerType fingerType, Role role) {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/fingerprints?fingerType=" + fingerType + "&role=" + role))
                 .header("Accept", "application/json")
                 .GET()
                 .build();
