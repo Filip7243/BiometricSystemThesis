@@ -14,4 +14,9 @@ public record RoomDTO(Long roomId,
             throw new IllegalArgumentException("Floor number must be a positive integer.");
         }
     }
+
+    @Override
+    public String toString() {
+        return "Room ID: %d, Room Number: %s, Floor: %d".formatted(roomId, roomNumber, floor);
+    }
 }

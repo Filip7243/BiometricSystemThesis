@@ -1,5 +1,10 @@
 package com.example.client;
 
+import com.example.client.dto.LateControlDTO;
+import com.example.client.dto.RoomEntranceDTO;
+import com.example.client.dto.UnconfirmedEntranceDTO;
+import com.example.client.dto.UserEnrollmentConfirmationDTO;
+
 import java.awt.*;
 import java.time.LocalDate;
 import java.util.List;
@@ -15,7 +20,7 @@ public class EnrollmentService {
 
     public void getNumberOfEntrancesToEachRoomOnDate(LocalDate date,
                                                      Long buildingId,
-                                                     Consumer<List<Object[]>> onSuccess,
+                                                     Consumer<List<RoomEntranceDTO>> onSuccess,
                                                      Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> enrollmentClient.getNumberOfEntrancesToEachRoomOnDate(date, buildingId),
@@ -24,7 +29,7 @@ public class EnrollmentService {
         );
     }
 
-    public void getUnconfirmedEntrancesPerUserByRoom(Consumer<List<Object[]>> onSuccess,
+    public void getUnconfirmedEntrancesPerUserByRoom(Consumer<List<UnconfirmedEntranceDTO>> onSuccess,
                                                      Component parentComponent) {
         BaseResourceWorker.execute(
                 enrollmentClient::getUnconfirmedEntrancesPerUserByRoom,
@@ -34,7 +39,7 @@ public class EnrollmentService {
     }
 
     public void getUserEnrollmentConfirmationRate(Long userId,
-                                                  Consumer<List<Object[]>> onSuccess,
+                                                  Consumer<List<UserEnrollmentConfirmationDTO>> onSuccess,
                                                   Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> enrollmentClient.getUserEnrollmentConfirmationRate(userId),
@@ -46,7 +51,7 @@ public class EnrollmentService {
     public void getLateControlByUserAndRoom(LocalDate date,
                                             Long userId,
                                             int expectedHour,
-                                            Consumer<List<Object[]>> onSuccess,
+                                            Consumer<List<LateControlDTO>> onSuccess,
                                             Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> enrollmentClient.getLateControlByUserAndRoom(date, userId, expectedHour),

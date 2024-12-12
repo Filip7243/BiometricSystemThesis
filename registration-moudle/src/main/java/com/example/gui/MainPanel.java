@@ -2,6 +2,7 @@ package com.example.gui;
 
 import com.example.FingersTools;
 import com.example.gui.tabs.AddUserTab;
+import com.example.gui.tabs.EnrollmentTab;
 import com.example.gui.tabs.ManageBuildingsRoomsTab;
 import com.example.gui.tabs.ManageUsersTab;
 
@@ -20,6 +21,7 @@ public final class MainPanel extends JPanel implements ChangeListener {
     private AddUserTab addUserTab;
     private ManageBuildingsRoomsTab manageBuildingsRoomsTab;
     private ManageUsersTab manageUsersTab;
+    private EnrollmentTab enrollmentTab;
 
     public MainPanel() {
         super(new GridLayout(1, 1));
@@ -68,8 +70,12 @@ public final class MainPanel extends JPanel implements ChangeListener {
         manageUsersTab.init();
         this.tabbedPane.addTab("Manage Users", manageUsersTab);
 
+        enrollmentTab = new EnrollmentTab();
+        enrollmentTab.init();
+        this.tabbedPane.addTab("Enrollments", enrollmentTab);
+
         add(tabbedPane);
-        setPreferredSize(new Dimension(880, 780));
+        setPreferredSize(new Dimension(900, 800));
     }
 
     @Override

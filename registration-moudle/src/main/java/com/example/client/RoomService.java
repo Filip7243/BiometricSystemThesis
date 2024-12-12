@@ -5,6 +5,7 @@ import com.example.client.dto.RoomDTO;
 import com.example.client.dto.UpdateRoomRequest;
 
 import java.awt.*;
+import java.util.List;
 import java.util.function.Consumer;
 
 public class RoomService {
@@ -84,6 +85,15 @@ public class RoomService {
                             Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> roomClient.getRoomById(roomId),
+                onSuccess,
+                parentComponent
+        );
+    }
+
+    public void getAllRooms(Consumer<List<RoomDTO>> onSuccess,
+                            Component parentComponent) {
+        BaseResourceWorker.execute(
+                roomClient::getAllRooms,
                 onSuccess,
                 parentComponent
         );

@@ -16,4 +16,10 @@ public record BuildingDTO(Long id, String buildingNumber, String street, List<Ro
             throw new IllegalArgumentException("Street cannot be null or blank.");
         }
     }
+
+    @Override
+    public String toString() {
+        return "Building ID: %d, Building Number: %s, Street: %s"
+                .formatted(id, buildingNumber, street);
+    }
 }

@@ -34,8 +34,6 @@ public class BuildingClient {
                 throw new IOException("Failed to retrieve buildings. Status code: " + response.statusCode());
             }
 
-            System.out.println("DUPA" + response.body());
-
             return objectMapper.readValue(
                     response.body(),
                     new TypeReference<>() {
@@ -99,7 +97,6 @@ public class BuildingClient {
 
     public List<BuildingDTO> getAllBuildingsNotAssignedToUser(Long id) {
         try {
-            System.out.println("ID: " + id);
             HttpRequest request = createGetAllBuildingsNotAssignedToUserRequest(id);
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
@@ -122,7 +119,6 @@ public class BuildingClient {
     public BuildingDTO saveBuilding(CreateBuildingRequest createBuildingRequest) {
         try {
             HttpRequest request = createAddBuildingRequest(createBuildingRequest);
-            System.out.println(request);
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 

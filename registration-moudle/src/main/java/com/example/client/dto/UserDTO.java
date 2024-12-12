@@ -25,4 +25,10 @@ public record UserDTO(Long id, String firstName, String lastName, String pesel, 
             throw new IllegalArgumentException("Role cannot be null or blank.");
         }
     }
+
+
+    @Override
+    public String toString() {
+        return "%s %s, Pesel: %s, Role: %s".formatted(firstName, lastName, pesel, role);
+    }
 }

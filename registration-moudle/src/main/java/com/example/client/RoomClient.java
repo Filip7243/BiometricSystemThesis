@@ -2,12 +2,14 @@ package com.example.client;
 
 import com.example.client.dto.*;
 import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.core.type.TypeReference;
 
 import java.io.IOException;
 import java.net.URI;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpResponse;
+import java.util.List;
 
 public class RoomClient {
 
@@ -138,6 +140,27 @@ public class RoomClient {
         }
     }
 
+    public List<RoomDTO> getAllRooms() {
+        try {
+            HttpRequest request = createGetAllRooms();
+
+            HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
+
+            if (response.statusCode() != 200) {
+                throw new IOException("Failed to get room. Status code: " + response.statusCode());
+            }
+
+            return MyObjectMapper.getInstance().readValue(
+                    response.body(),
+                    new TypeReference<>() {
+                    }
+            );
+        } catch (IOException | InterruptedException e) {
+            System.out.println("Failed to get room");
+            throw new RuntimeException(e);
+        }
+    }
+
     private HttpRequest createDeleteRoomWithIdRequest(Long id) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/rooms/" + id))
@@ -188,6 +211,14 @@ public class RoomClient {
     private static HttpRequest createGetRoomById(Long roomId) {
         return HttpRequest.newBuilder()
                 .uri(URI.create("http://localhost:8080/api/v1/rooms/" + roomId))
+                .header("Accept", "application/json")
+                .GET()
+                .build();
+    }
+
+    private static HttpRequest createGetAllRooms() {
+        return HttpRequest.newBuilder()
+                .uri(URI.create("http://localhost:8080/api/v1/rooms"))
                 .header("Accept", "application/json")
                 .GET()
                 .build();
