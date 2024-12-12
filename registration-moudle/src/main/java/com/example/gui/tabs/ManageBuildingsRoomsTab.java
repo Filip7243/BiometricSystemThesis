@@ -260,7 +260,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
         button.setFocusPainted(false);
         button.setBorderPainted(false);
         button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
+        button.setPreferredSize(new Dimension(width, height));
 
         button.addMouseListener(new MouseAdapter() {
             @Override
