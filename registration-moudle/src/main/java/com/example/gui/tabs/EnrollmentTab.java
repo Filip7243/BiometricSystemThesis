@@ -333,9 +333,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
                 (unconfirmedEntranceData) -> {
                     DefaultPieDataset dataset = new DefaultPieDataset();
 
-                    // Iterate through the UnconfirmedEntranceDTO list to populate the dataset
                     unconfirmedEntranceData.forEach(entry -> {
-                        // Create a more detailed label with room, building, name, and count
                         String label = String.format(
                                 "Room %s (Building: %s) - User: %s %s (%d)",
                                 entry.roomNumber(),
@@ -347,21 +345,18 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
                         dataset.setValue(label, entry.count());
                     });
 
-                    // Create the pie chart with custom rendering
                     JFreeChart chart = ChartFactory.createPieChart(
                             null,
                             dataset,
                             true, true, false
                     );
 
-                    // Customize chart appearance
                     PiePlot plot = (PiePlot) chart.getPlot();
                     plot.setLabelGenerator(new StandardPieSectionLabelGenerator("{0}: {2}"));
                     plot.setMaximumLabelWidth(0.35);
                     plot.setSimpleLabels(false);
                     plot.setExplodePercent("Your Label Here", 0.1);
 
-                    // Update the chart panel
                     unconfirmedEntrancesChartPanel.setChart(chart);
                     unconfirmedEntrancesChartPanel.repaint();
                 },
