@@ -11,6 +11,7 @@
 #include <finger_types.h>
 #include <send.h>
 #include <get_device_mac.h>
+#include <pigpio.h>
 
 typedef struct tagBITMAPINFOHEADER
 {
@@ -196,6 +197,13 @@ void print_error_message(unsigned long nErrCode)
 
 int main(int argc, char *argv[])
 {
+    // INIT GPIO lib
+    if (gpioInitialise() < 0)
+    {
+        fprintf(stderr, "pigpio initialization failed\n");
+        return 1;
+    }
+
     char mac_address[18];
     get_mac("wlan0", mac_address); // TODO: Obsluga bledow
 
