@@ -89,7 +89,7 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
             // Open or close the lock based on the response
             if (resp.success)
             {
-                display_message_on_screen("Dupa!");
+                // display_message_on_screen("Dupa!");
                 open_lock(0); // Open the lock
                 sleep(3);     // Wait for 2 seconds
                 open_lock(1); // Close the lock
