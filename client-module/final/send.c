@@ -7,6 +7,8 @@
 #include <unistd.h>
 #include <devices_controller.h>
 
+#include "data_encryption.h"
+
 size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
 {
     size_t total_size = size * nmemb;
@@ -34,6 +36,24 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
     CURLcode res;
     struct Memory chunk = {NULL, 0};
 
+    printf("\n=== Starting file upload ===\n");
+
+    // Parametry szyfrowania
+    const char *secret = "YourSecretKey123";
+    unsigned char iv[AES_BLOCK_SIZE];
+    char encrypted_filename[64] = "encrypted_file.dat";
+
+    // Generuj IV
+    generate_iv(iv);
+
+    // Zaszyfruj plik wejściowy
+    printf("Encrypting file...\n");
+    if (encrypt_aes(filename, encrypted_filename, secret, iv) != 0)
+    {
+        fprintf(stderr, "Error: File encryption failed\n");
+        return -1;
+    }
+
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
@@ -45,11 +65,12 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
 
         mime = curl_mime_init(curl);
 
-        // Add file part
+        // Add encrypted file part - zmiana typu MIME na application/octet-stream
         part = curl_mime_addpart(mime);
-        curl_mime_filedata(part, filename);
+        curl_mime_filedata(part, encrypted_filename);
         curl_mime_name(part, "file");
-        curl_mime_type(part, IMAGE_TYPE);
+        curl_mime_type(part, "application/octet-stream");
+        printf("Added encrypted file to mime: %s\n", encrypted_filename);
 
         // Add type part
         part = curl_mime_addpart(mime);
@@ -61,17 +82,23 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
         curl_mime_name(part, "hardwareId");
         curl_mime_data(part, mac_addr, CURL_ZERO_TERMINATED);
 
+        // Ustawienia curl
         curl_easy_setopt(curl, CURLOPT_URL, UPLOAD_URL);
         curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
-
-        // Set write callback to capture response
         curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
         curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
 
-        // Perform the request
+        // Wyłącz follow location aby uniknąć przekierowań
+        curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 0L);
+
+        // Dodaj nagłówek Content-Type
+        struct curl_slist *headers = NULL;
+        headers = curl_slist_append(headers, "Content-Type: multipart/form-data");
+        curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
+
+        printf("Sending request...\n");
         res = curl_easy_perform(curl);
 
-        // Check for errors
         if (res != CURLE_OK)
         {
             fprintf(stderr, "curl_easy_perform() failed: %s\n",
@@ -79,34 +106,30 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
         }
         else
         {
-            // Parse and print the response
-            struct JsonResponse resp = parse_json_response(chunk.response);
-            printf("Parsed response:\n");
-            printf("Success: %s\n", resp.success ? "true" : "false");
-            printf("Message: %s\n", resp.message);
-            printf("Name of User: %s\n", resp.nameOfUser);
+            long response_code;
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
+            printf("HTTP response code: %ld\n", response_code);
 
-            // Open or close the lock based on the response
-            if (resp.success)
+            // Parse and print the response
+            if (chunk.response)
             {
-                // display_message_on_screen("Dupa!");
-                open_lock(0); // Open the lock
-                sleep(3);     // Wait for 2 seconds
-                open_lock(1); // Close the lock
-            }
-            else
-            {
-                // display_message_on_screen(resp.message);
+                printf("Server response: %s\n", chunk.response);
             }
         }
 
         // Clean up
+        curl_slist_free_all(headers);
         curl_mime_free(mime);
         curl_easy_cleanup(curl);
         free(chunk.response);
     }
 
+    // Usuń tymczasowy plik
+    printf("Removing temporary file: %s\n", encrypted_filename);
+    remove(encrypted_filename);
+
     curl_global_cleanup();
 
+    printf("=== Upload completed ===\n\n");
     return 0;
 }

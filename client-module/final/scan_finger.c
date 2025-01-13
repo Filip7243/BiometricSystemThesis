@@ -12,6 +12,7 @@
 #include <send.h>
 #include <get_device_mac.h>
 #include <pigpio.h>
+#include <devices_controller.h>
 
 typedef struct tagBITMAPINFOHEADER
 {
@@ -203,6 +204,8 @@ int main(int argc, char *argv[])
         fprintf(stderr, "pigpio initialization failed\n");
         return 1;
     }
+
+    // lcd_init(); // Init lcd screen
 
     char mac_address[18];
     get_mac("wlan0", mac_address); // TODO: Obsluga bledow
