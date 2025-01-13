@@ -114,6 +114,25 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
             if (chunk.response)
             {
                 printf("Server response: %s\n", chunk.response);
+
+                struct JsonResponse resp = parse_json_response(chunk.response);
+                printf("Parsed response:\n");
+                printf("Success: %s\n", resp.success ? "true" : "false");
+                printf("Message: %s\n", resp.message);
+                printf("Name of User: %s\n", resp.nameOfUser);
+
+                // Open or close the lock based on the response
+                if (resp.success)
+                {
+                    // display_message_on_screen("Dupa!");
+                    open_lock(0); // Open the lock
+                    sleep(3);     // Wait for 2 seconds
+                    open_lock(1); // Close the lock
+                }
+                else
+                {
+                    // display_message_on_screen(resp.message);
+                }
             }
         }
 

@@ -205,7 +205,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
-    // lcd_init(); // Init lcd screen
+    lcd_init(); // Init lcd screen
 
     char mac_address[18];
     get_mac("wlan0", mac_address); // TODO: Obsluga bledow

@@ -3,8 +3,8 @@
 
 #include <finger_types.h>
 
-// #define UPLOAD_URL "http://192.168.43.29:8080/api/v1/enrollments"
-#define UPLOAD_URL "http://10.100.123.17:8080/api/v1/enrollments"
+#define UPLOAD_URL "http://192.168.43.29:8080/api/v1/enrollments"
+// #define UPLOAD_URL "http://10.100.123.17:8080/api/v1/enrollments"
 #define IMAGE_TYPE "image/bmp"
 #define IMAGE_NAME "frame_Ex.bmp"
 

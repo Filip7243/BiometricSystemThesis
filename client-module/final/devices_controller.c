@@ -20,6 +20,7 @@ void open_lock(int state)
 {
     // Set the GPIO pin for the lock as output
     gpioSetMode(LOCK_PIN, PI_OUTPUT);
+    gpioSetMode(BUZZER_PIN, PI_OUTPUT);
 
     // Control the lock based on the provided state
     if (state == 0) // Low state (open the lock)
@@ -65,13 +66,6 @@ void lcd_send_byte(int value, int mode)
 
 void lcd_init()
 {
-    // Initialize GPIO
-    // if (gpioInitialise() < 0)
-    // {
-    //     fprintf(stderr, "pigpio initialization failed\n");
-    //     return;
-    // }
-
     // Set pins as outputs
     gpioSetMode(LCD_RS, PI_OUTPUT);
     gpioSetMode(LCD_E, PI_OUTPUT);
