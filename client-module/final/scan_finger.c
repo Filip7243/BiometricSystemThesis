@@ -276,12 +276,18 @@ int main(int argc, char *argv[])
             }
 
             printf("Capturing fingerprint ......\n");
+            lcd_string("Capturing\0", LCD_LINE_1);
+            lcd_string("fingerprint...", LCD_LINE_2);
+            usleep(500000); // 0.5 sec
             // Przechwytywanie obrazu odcisku palca
             while (1)
             {
                 if (ftrScanGetFrame(hDevice, pBuffer, NULL))
                 {
                     printf("Done!\nWriting to file......\n");
+                    lcd_string("Scanning done,", LCD_LINE_1);
+                    lcd_string("Wait...\0  ", LCD_LINE_2);
+                    usleep(500000); // 0.5 sec
                     char filename[50];
                     write_bmp_file(pBuffer, ImageSize.nWidth, ImageSize.nHeight, filename);
 

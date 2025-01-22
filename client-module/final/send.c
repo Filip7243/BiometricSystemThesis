@@ -143,7 +143,9 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
                 }
                 else
                 {
-                    // display_message_on_screen(resp.message);
+                    lcd_string("You have no access", LCD_LINE_1);
+                    lcd_string("To this room!", LCD_LINE_2);
+                    sleep(1);
                 }
             }
         }
