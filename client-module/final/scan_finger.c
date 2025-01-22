@@ -205,6 +205,7 @@ int main(int argc, char *argv[])
         return 1;
     }
 
+    init_lock_and_buzzer();
     lcd_init(); // Init lcd screen
 
     char mac_address[18];
@@ -245,42 +246,63 @@ int main(int argc, char *argv[])
         printf("Image size is %d\n", ImageSize.nImageSize);
         pBuffer = (unsigned char *)malloc(ImageSize.nImageSize);
 
-        FingerType randomFinger = get_random_finger();
-        const char *fingerType = finger_to_string(randomFinger);
+        while (1) // Główna pętla programu
+        {
+            FingerType randomFinger = get_random_finger();
+            const char *fingerType = finger_to_string(randomFinger);
 
-        printf("Please put your finger: %s on the scanner:\n", fingerType);
-        while (1)
-        {
-            if (ftrScanIsFingerPresent(hDevice, NULL))
-                break;
-            for (i = 0; i < 100; i++)
-                ; // sleep
-        }
-        printf("Capturing fingerprint ......\n");
-        while (1)
-        {
-            if (ftrScanGetFrame(hDevice, pBuffer, NULL))
+            // Stworzenie bufora na połączony tekst
+            char full_message[LCD_WIDTH + 1]; // +1 na znak null (terminator)
+
+            // Zainicjalizowanie pełnej wiadomości pustym ciągiem
+            full_message[0] = '\0';
+
+            // Zapisz tekst w zmiennej full_message, nie przekraczając rozmiaru LCD_WIDTH
+            snprintf(full_message, LCD_WIDTH + 1, "%s%s", "Put your, ", fingerType);
+
+            lcd_string(full_message, LCD_LINE_1);
+            lcd_string("On Scanner!\0", LCD_LINE_2);
+            sleep(1);
+
+            printf("Please put your finger: %s on the scanner:\n", fingerType);
+
+            // Czekanie na obecność palca na skanerze
+            while (1)
             {
-                printf("Done!\nWriting to file......\n");
-                char filename[50];
-                write_bmp_file(pBuffer, ImageSize.nWidth, ImageSize.nHeight, filename);
-
-                printf("Sending to server with name: %s\n", filename);
-
-                send_file(randomFinger, mac_address, filename);
-
-                break;
+                if (ftrScanIsFingerPresent(hDevice, NULL))
+                    break;
+                for (int i = 0; i < 100; i++)
+                    ; // sleep
             }
-            else
+
+            printf("Capturing fingerprint ......\n");
+            // Przechwytywanie obrazu odcisku palca
+            while (1)
             {
-                print_error_message(ftrScanGetLastError());
-                for (i = 0; i < 100; i++)
-                    ;
+                if (ftrScanGetFrame(hDevice, pBuffer, NULL))
+                {
+                    printf("Done!\nWriting to file......\n");
+                    char filename[50];
+                    write_bmp_file(pBuffer, ImageSize.nWidth, ImageSize.nHeight, filename);
+
+                    printf("Sending to server with name: %s\n", filename);
+
+                    send_file(randomFinger, mac_address, filename);
+
+                    break; // Wyjście z wewnętrznej pętli, aby powrócić do losowania palca
+                }
+                else
+                {
+                    print_error_message(ftrScanGetLastError());
+                    for (int i = 0; i < 100; i++)
+                        ;
+                }
             }
         }
         free(pBuffer);
     }
 
     ftrScanCloseDevice(hDevice);
+    gpioTerminate();
     return 0;
 }

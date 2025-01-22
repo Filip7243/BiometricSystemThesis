@@ -124,7 +124,19 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
                 // Open or close the lock based on the response
                 if (resp.success)
                 {
-                    // display_message_on_screen("Dupa!");
+                    // Stworzenie bufora na połączony tekst
+                    char full_message[LCD_WIDTH + 1]; // +1 na znak null (terminator)
+
+                    // Zainicjalizowanie pełnej wiadomości pustym ciągiem
+                    full_message[0] = '\0';
+
+                    // Zapisz tekst w zmiennej full_message, nie przekraczając rozmiaru LCD_WIDTH
+                    int max_name_length = LCD_WIDTH - strlen("Dear, ");
+                    snprintf(full_message, LCD_WIDTH + 1, "%s%.*s", "Dear, ", max_name_length, resp.nameOfUser);
+
+                    lcd_string("Welcome back! ", LCD_LINE_1);
+                    lcd_string(full_message, LCD_LINE_2);
+                    sleep(1);
                     open_lock(0); // Open the lock
                     sleep(3);     // Wait for 2 seconds
                     open_lock(1); // Close the lock

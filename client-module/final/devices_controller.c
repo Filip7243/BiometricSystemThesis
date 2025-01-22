@@ -3,25 +3,16 @@
 #include <unistd.h>
 #include "devices_controller.h" // Include the header file for declarations
 
-// Define GPIO pin for lock control
-#define LOCK_PIN 16
-#define BUZZER_PIN 12
-
-// GPIO pins for the LCD screen
-#define LCD_RS 5  // D8
-#define LCD_E 3   // D9
-#define LCD_D4 37 // D4
-#define LCD_D5 35 // D5
-#define LCD_D6 33 // D6
-#define LCD_D7 31 // D7
-
-// Function to open or close the lock
-void open_lock(int state)
+void init_lock_and_buzzer()
 {
     // Set the GPIO pin for the lock as output
     gpioSetMode(LOCK_PIN, PI_OUTPUT);
     gpioSetMode(BUZZER_PIN, PI_OUTPUT);
+}
 
+// Function to open or close the lock
+void open_lock(int state)
+{
     // Control the lock based on the provided state
     if (state == 0) // Low state (open the lock)
     {
@@ -41,32 +32,41 @@ void open_lock(int state)
     }
 }
 
-// Funkcja do wysyłania pół-bajtów (4-bit mode)
-void lcd_send_nibble(int nibble)
+void lcd_toggle_enable()
 {
-    gpioWrite(LCD_D4, nibble & 0x01);
-    gpioWrite(LCD_D5, (nibble >> 1) & 0x01);
-    gpioWrite(LCD_D6, (nibble >> 2) & 0x01);
-    gpioWrite(LCD_D7, (nibble >> 3) & 0x01);
-
     gpioWrite(LCD_E, 1);
-    usleep(1000); // Krótka przerwa
+    usleep(E_PULSE);
     gpioWrite(LCD_E, 0);
-    usleep(1000);
+    usleep(E_DELAY);
 }
 
-// Funkcja wysyłająca bajt (dane/komenda)
-void lcd_send_byte(int value, int mode)
+void lcd_byte(int bits, int mode)
 {
-    gpioWrite(LCD_RS, mode); // 0 = komenda, 1 = dane
-    lcd_send_nibble(value >> 4);
-    lcd_send_nibble(value & 0x0F);
-    usleep(2000); // Czekaj na wykonanie
+    // Set RS pin mode (command/data)
+    gpioWrite(LCD_RS, mode);
+
+    // High bits
+    gpioWrite(LCD_D4, (bits & 0x10) >> 4);
+    gpioWrite(LCD_D5, (bits & 0x20) >> 5);
+    gpioWrite(LCD_D6, (bits & 0x40) >> 6);
+    gpioWrite(LCD_D7, (bits & 0x80) >> 7);
+
+    // Toggle enable pin
+    lcd_toggle_enable();
+
+    // Low bits
+    gpioWrite(LCD_D4, bits & 0x01);
+    gpioWrite(LCD_D5, (bits & 0x02) >> 1);
+    gpioWrite(LCD_D6, (bits & 0x04) >> 2);
+    gpioWrite(LCD_D7, (bits & 0x08) >> 3);
+
+    // Toggle enable pin
+    lcd_toggle_enable();
 }
 
 void lcd_init()
 {
-    // Set pins as outputs
+    // Set GPIO pins as output
     gpioSetMode(LCD_RS, PI_OUTPUT);
     gpioSetMode(LCD_E, PI_OUTPUT);
     gpioSetMode(LCD_D4, PI_OUTPUT);
@@ -74,44 +74,28 @@ void lcd_init()
     gpioSetMode(LCD_D6, PI_OUTPUT);
     gpioSetMode(LCD_D7, PI_OUTPUT);
 
-    // LCD initialization sequence
-    usleep(50000);
-    lcd_send_nibble(0x03);
-    usleep(4500);
-    lcd_send_nibble(0x03);
-    usleep(4500);
-    lcd_send_nibble(0x03);
-    usleep(150);
-    lcd_send_nibble(0x02);
-
-    // Function set: 4-bit mode, 2 lines, 5x8 dots
-    lcd_send_byte(0x28, 0);
-    // Display control: display on, cursor off, blink off
-    lcd_send_byte(0x0C, 0);
-    // Clear display
-    lcd_send_byte(0x01, 0);
-    usleep(2000);
-    // Entry mode set: increment cursor, no display shift
-    lcd_send_byte(0x06, 0);
+    lcd_byte(0x33, LCD_CMD); // Initialize
+    lcd_byte(0x32, LCD_CMD); // Initialize
+    lcd_byte(0x28, LCD_CMD); // 2 line 5x7 matrix
+    lcd_byte(0x0C, LCD_CMD); // Turn cursor off
+    lcd_byte(0x06, LCD_CMD); // Shift cursor right
+    lcd_byte(0x01, LCD_CMD); // Clear display
+    usleep(E_DELAY);
 }
 
-void lcd_clear()
+void lcd_string(const char *message, int line)
 {
-    lcd_send_byte(0x01, 0);
-    usleep(2000);
-}
+    lcd_byte(line, LCD_CMD);
 
-void lcd_setCursor(int row, int col)
-{
-    int row_offsets[] = {0x00, 0x40};
-    lcd_send_byte(0x80 | (col + row_offsets[row]), 0);
-}
-
-void display_message_on_screen(const char *message)
-{
-    printf("Displaying message: %s\n", message);
-    while (*message)
+    for (int i = 0; i < LCD_WIDTH; i++)
     {
-        lcd_send_byte(*message++, 1);
+        if (message[i] != '\0')
+        {
+            lcd_byte(message[i], LCD_CHR);
+        }
+        else
+        {
+            lcd_byte(' ', LCD_CHR); // Pad with spaces
+        }
     }
 }
