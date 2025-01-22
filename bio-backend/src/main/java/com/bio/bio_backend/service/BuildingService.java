@@ -22,6 +22,13 @@ import static com.bio.bio_backend.mapper.BuildingMapper.toDTO;
 import static com.bio.bio_backend.mapper.BuildingMapper.toDTOS;
 import static java.util.stream.Collectors.groupingBy;
 
+/**
+ * Serwis zarządzający operacjami na budynkach.
+ * <p>
+ * Klasa odpowiada za obsługę operacji CRUD na budynkach, takich jak tworzenie, edytowanie, usuwanie, wyszukiwanie,
+ * a także zarządzanie przypisanymi pokojami i urządzeniami.
+ * </p>
+ */
 @Service
 @RequiredArgsConstructor
 public class BuildingService {
@@ -34,6 +41,13 @@ public class BuildingService {
         return toDTOS(buildingRepository.findAll());
     }
 
+    /**
+     * Aktualizuje dane budynku o podanym identyfikatorze.
+     *
+     * @param buildingId Identyfikator budynku.
+     * @param request    Obiekt żądania zawierający nowe dane budynku.
+     * @throws EntityNotFoundException Jeśli budynek o podanym ID nie istnieje.
+     */
     @Transactional
     public void updateBuildingWithId(Long buildingId, UpdateBuildingRequest request) {
         var building = buildingRepository.findById(buildingId)
@@ -43,6 +57,15 @@ public class BuildingService {
         building.setStreet(request.street());
     }
 
+    /**
+     * Usuwa budynek o podanym identyfikatorze.
+     * <p>
+     * Przed usunięciem usuwa powiązania pokoi i urządzeń z użytkownikami.
+     * </p>
+     *
+     * @param buildingId Identyfikator budynku.
+     * @throws EntityNotFoundException Jeśli budynek o podanym ID nie istnieje.
+     */
     @Transactional
     public void deleteBuildingWithId(Long buildingId) {
         var building = buildingRepository.findById(buildingId)
@@ -56,6 +79,13 @@ public class BuildingService {
         buildingRepository.deleteById(buildingId);
     }
 
+    /**
+     * Pobiera budynek o podanym identyfikatorze.
+     *
+     * @param buildingId Identyfikator budynku.
+     * @return Obiekt DTO budynku.
+     * @throws EntityNotFoundException Jeśli budynek o podanym ID nie istnieje.
+     */
     @Transactional(readOnly = true)
     public BuildingDTO getBuildingById(Long buildingId) {
         var building = buildingRepository.findById(buildingId)
@@ -64,6 +94,12 @@ public class BuildingService {
         return toDTO(building);
     }
 
+    /**
+     * Pobiera listę budynków, które nie zostały przypisane do użytkownika o podanym ID.
+     *
+     * @param userId Identyfikator użytkownika.
+     * @return Lista obiektów DTO budynków.
+     */
     @Transactional(readOnly = true)
     public List<BuildingDTO> getAllBuildingsNotAssignedToUser(Long userId) {
         var allRoomsNotAssignedToUser = buildingRepository.findAllRoomsNotAssignedToUser(userId);
@@ -74,6 +110,13 @@ public class BuildingService {
         return toDTOS(roomsInBuilding);
     }
 
+    /**
+     * Tworzy nowy budynek na podstawie podanych danych.
+     *
+     * @param request Obiekt żądania zawierający dane nowego budynku i pokoi.
+     * @return Obiekt DTO nowo utworzonego budynku.
+     * @throws IllegalArgumentException Jeśli urządzenie jest już przypisane do innego pokoju.
+     */
     @Transactional
     public BuildingDTO createBuilding(CreateBuildingRequest request) {
         var building = new Building(request.buildingNumber(), request.street());
@@ -111,6 +154,12 @@ public class BuildingService {
         return toDTO(newBuilding);
     }
 
+    /**
+     * Wyszukuje budynki na podstawie frazy wprowadzanej przez użytkownika.
+     *
+     * @param search Fraza wyszukiwana w danych budynków.
+     * @return Lista obiektów DTO budynków spełniających kryteria wyszukiwania.
+     */
     public List<BuildingDTO> searchBuildings(String search) {
         return toDTOS(buildingRepository.searchByFields(search));
     }

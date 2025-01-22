@@ -29,7 +29,8 @@ public class Fingerprint {
     @JoinColumn(name = "user_id")
     private User user;
 
-    public Fingerprint(byte[] token, FingerType fingerType, User user, byte[] originalImage) {
+    public Fingerprint(byte[] token, FingerType fingerType,
+                       User user, byte[] originalImage) {
         this.token = token;
         this.fingerType = fingerType;
         this.user = user;

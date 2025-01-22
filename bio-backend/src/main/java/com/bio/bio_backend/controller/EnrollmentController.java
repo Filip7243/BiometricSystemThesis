@@ -2,19 +2,27 @@ package com.bio.bio_backend.controller;
 
 import com.bio.bio_backend.dto.*;
 import com.bio.bio_backend.service.EnrollmentService;
+import com.neurotec.biometrics.NSubject;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
 import java.util.concurrent.ExecutionException;
-import java.util.concurrent.TimeUnit;
 import java.util.concurrent.TimeoutException;
 
+import static java.util.concurrent.TimeUnit.SECONDS;
+import static org.springframework.http.HttpStatus.CREATED;
+
+/**
+ * Kontroler REST do zarządzania procesem zapisu użytkownika do pokoju.
+ * Umożliwia operację wysyłania pliku z danymi zapisu i przetwarzania tego zapisu.
+ */
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/enrollments")
@@ -22,18 +30,23 @@ public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
 
+    /**
+     * Przesyła dane biometryczne użytkownika, sprawdzając, czy użytkownik ma dostęp do pomieszczenia.
+     *
+     * @param request Obiekt zawierający dane zapisu użytkownika.
+     * @return Odpowiedź HTTP z odpowiednim statusem i wynikami zapisu.
+     */
     @PostMapping
-    public ResponseEntity<?> uploadFile(@ModelAttribute EnrollmentRequest request) {
+    public ResponseEntity<?> canUserEnterRoom(@ModelAttribute EnrollmentRequest request) {
         try {
-            CompletableFuture<EnrollmentResponse> enrollmentResponseCompletableFuture =
-                    enrollmentService.canUserEnterRoom(request);
+            // Rozpoczęcie asynchronicznego procesu weryfikacji użytkownika
+            CompletableFuture<EnrollmentResponse> future = enrollmentService.canUserEnterRoom(request);
 
-            return ResponseEntity.ok(enrollmentResponseCompletableFuture.get(10, TimeUnit.SECONDS));
-
-        } catch (IOException ex) {
-            return ResponseEntity.internalServerError().body("Could not store file: " + ex.getMessage());
-        } catch (ExecutionException | InterruptedException | TimeoutException e) {
-            throw new RuntimeException(e);
+            // Zwrócenie odpowiedzi po zakończeniu procesu weryfikacji (maksymalny czas oczekiwania: 10 sekund)
+            return ResponseEntity.ok(future.get(10, SECONDS));
+        } catch (IOException | ExecutionException | InterruptedException | TimeoutException ex) {
+            // W przypadku problemu z zapisaniem danych biometrycznych lub problemem identyfikacji - zwrócenie błędu z odpowiednim komunikatem
+            return ResponseEntity.internalServerError().body("Something went wrong: " + ex.getMessage());
         }
     }
 
@@ -105,5 +118,15 @@ public class EnrollmentController {
                                                                             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                                             @RequestParam("userId") Long userId) {
         return ResponseEntity.ok(enrollmentService.getLateControlByUserAndRoom(expectedHour, date, userId));
+    }
+
+    @PostMapping("/tests")
+    public ResponseEntity<Void> test(@RequestParam("file") MultipartFile file) throws IOException {
+        CompletableFuture<NSubject> statusFuture = enrollmentService.createTemplateFromFile(file.getBytes());
+        statusFuture.thenAccept(status -> {
+            System.out.println("Status: " + status);
+        });
+
+        return ResponseEntity.status(CREATED).build();
     }
 }

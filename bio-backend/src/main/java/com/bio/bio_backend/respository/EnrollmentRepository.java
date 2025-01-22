@@ -94,6 +94,7 @@ public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
             "e.user.firstName, e.isConfirmed, e.fingerprint.fingerType, COUNT(e)) " +
             "FROM Enrollment e " +
             "WHERE e.user.id = :userId " +
+            "AND e.isConfirmed = false " +
             "AND e.room IN (SELECT r FROM User u JOIN u.rooms r WHERE u.id = :userId) " +
             "GROUP BY e.user.firstName, e.isConfirmed, e.fingerprint.fingerType")
     List<UserEnrollmentConfirmationDTO> getUserEnrollmentConfirmationRate(@Param("userId") Long userId);

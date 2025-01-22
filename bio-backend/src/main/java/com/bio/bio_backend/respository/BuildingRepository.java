@@ -21,7 +21,9 @@ public interface BuildingRepository extends JpaRepository<Building, Long> {
     List<Room> findAllRoomsNotAssignedToUser(@Param("userId") Long userId);
 
     @Query("SELECT b FROM Building b WHERE " +
-            "(LOWER(b.buildingNumber) LIKE LOWER(CONCAT('%', :search, '%')) OR :search IS NULL OR :search = '') " +
-            "OR (LOWER(b.street) LIKE LOWER(CONCAT('%', :search, '%')) OR :search IS NULL OR :search = '')")
+            "(LOWER(b.buildingNumber) " +
+            "LIKE LOWER(CONCAT('%', :search, '%')) OR :search IS NULL OR :search = '') " +
+            "OR (LOWER(b.street) " +
+            "LIKE LOWER(CONCAT('%', :search, '%')) OR :search IS NULL OR :search = '')")
     List<Building> searchByFields(@Param("search") String search);
 }
