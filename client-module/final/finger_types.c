@@ -26,5 +26,6 @@ FingerType get_random_finger()
         seeded = 1;
     }
 
+    // Zwrócenie losowego typu palca (THUMB, INDEX, MIDDLE - od 0 do 2)
     return (FingerType)((rand() % 3));
 }

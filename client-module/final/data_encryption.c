@@ -6,6 +6,7 @@
 #include <stdlib.h>
 #include <openssl/sha.h>
 
+// Generowanie klucz z podanego sekretu przy użyciu algorytmu SHA-256
 void generate_key_from_secret(const char *secret, unsigned char *key)
 {
     unsigned char hash[SHA256_DIGEST_LENGTH];
@@ -18,6 +19,7 @@ void generate_key_from_secret(const char *secret, unsigned char *key)
     memcpy(key, hash, 16);
 }
 
+// Szyfrowanie pliku za pomocą algorytmu AES-128-CBC
 int encrypt_aes(const char *input_filename, const char *output_filename, const char *secret, unsigned char *iv)
 {
     // Generowanie klucza
@@ -39,24 +41,10 @@ int encrypt_aes(const char *input_filename, const char *output_filename, const c
         return -1;
     }
 
-    // Debug: Print IV and key
-    printf("IV being used: ");
-    for (int i = 0; i < AES_BLOCK_SIZE; i++)
-    {
-        printf("%02x", iv[i]);
-    }
-    printf("\n");
-
-    printf("Key being used (SHA-256 derived): ");
-    for (int i = 0; i < 16; i++)
-    {
-        printf("%02x", key[i]);
-    }
-    printf("\n");
-
     // Zapisz IV na początku pliku
     fwrite(iv, 1, AES_BLOCK_SIZE, output_file);
 
+    // Utworzenie nowego kontekstu szyfrowania
     EVP_CIPHER_CTX *ctx = EVP_CIPHER_CTX_new();
     if (!ctx)
     {
@@ -66,10 +54,10 @@ int encrypt_aes(const char *input_filename, const char *output_filename, const c
         return -1;
     }
 
-    // Explicit set padding
+    // Ustawienie paddingu (dodawanie wypełnienia)
     EVP_CIPHER_CTX_set_padding(ctx, 1);
 
-    // Inicjalizacja szyfrowania
+    // Inicjalizacja szyfrowania AES-128-CBC
     if (EVP_EncryptInit_ex(ctx, EVP_aes_128_cbc(), NULL, key, iv) != 1)
     {
         perror("Failed to initialize encryption");
@@ -79,12 +67,14 @@ int encrypt_aes(const char *input_filename, const char *output_filename, const c
         return -1;
     }
 
+    // Bufory na dane wejściowe i wyjściowe
     unsigned char input_buffer[1024];
-    unsigned char output_buffer[1024 + EVP_MAX_BLOCK_LENGTH];
+    unsigned char output_buffer[1024 + EVP_MAX_BLOCK_LENGTH]; // Bufor na dane wyjściowe (z uwzględnieniem paddingu)
     int input_len, output_len;
-    long total_input_len = 0;
-    long total_output_len = AES_BLOCK_SIZE;
+    long total_input_len = 0;               // Liczba odczytanych bajtów z pliku wejściowego
+    long total_output_len = AES_BLOCK_SIZE; // Rozmiar bloku danych wyjściowych
 
+    // Przetwarzanie pliku wejściowego w blokach
     while ((input_len = fread(input_buffer, 1, sizeof(input_buffer), input_file)) > 0)
     {
         if (EVP_EncryptUpdate(ctx, output_buffer, &output_len, input_buffer, input_len) != 1)
@@ -100,6 +90,7 @@ int encrypt_aes(const char *input_filename, const char *output_filename, const c
         total_output_len += output_len;
     }
 
+    // Finalizacja szyfrowania (przetwarzanie pozostałych bajtów)
     if (EVP_EncryptFinal_ex(ctx, output_buffer, &output_len) != 1)
     {
         perror("Encryption finalization failed");
@@ -111,9 +102,7 @@ int encrypt_aes(const char *input_filename, const char *output_filename, const c
     fwrite(output_buffer, 1, output_len, output_file);
     total_output_len += output_len;
 
-    printf("Input file size: %ld bytes\n", total_input_len);
-    printf("Output file size (including IV): %ld bytes\n", total_output_len);
-
+    // Czyszczenie kontekstu szyfrowania
     EVP_CIPHER_CTX_free(ctx);
     fclose(input_file);
     fclose(output_file);
@@ -121,6 +110,7 @@ int encrypt_aes(const char *input_filename, const char *output_filename, const c
     return 0;
 }
 
+// Funkcja generująca losowy wektor inicjalizacyjny (IV)
 void generate_iv(unsigned char *iv)
 {
     RAND_bytes(iv, AES_BLOCK_SIZE);

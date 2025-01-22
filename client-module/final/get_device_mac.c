@@ -7,10 +7,10 @@
 
 void get_mac(const char *interface, char *mac_address)
 {
-    int fd;
-    struct ifreq ifr;
+    int fd;           // Deskryptor gniazda
+    struct ifreq ifr; // Struktura przechowująca dane o interfejsie sieciowym
 
-    // Open a socket
+    // Otwarcie gniazda (socket) dla komunikacji z interfejsem sieciowym
     fd = socket(AF_INET, SOCK_DGRAM, 0);
     if (fd == -1)
     {
@@ -18,11 +18,11 @@ void get_mac(const char *interface, char *mac_address)
         return;
     }
 
-    // Copy the interface name (e.g., "eth0" or "wlan0") to the ifreq structure
+    // Skopiowanie nazwy interfejsu (np. "wlan0") do struktury ifreq
     strncpy(ifr.ifr_name, interface, IFNAMSIZ - 1);
     ifr.ifr_name[IFNAMSIZ - 1] = '\0';
 
-    // Perform an ioctl to get the hardware address
+    // Wywołanie ioctl w celu uzyskania adresu sprzętowego (adresu MAC)
     if (ioctl(fd, SIOCGIFHWADDR, &ifr) == -1)
     {
         perror("ioctl error");
@@ -30,11 +30,11 @@ void get_mac(const char *interface, char *mac_address)
         return;
     }
 
-    // Convert the MAC address to a readable format
+    // Konwersja adresu MAC do formatu czytelnego (szesnastkowego)
     unsigned char *hwaddr = (unsigned char *)ifr.ifr_hwaddr.sa_data;
     sprintf(mac_address, "%02X:%02X:%02X:%02X:%02X:%02X",
             hwaddr[0], hwaddr[1], hwaddr[2], hwaddr[3], hwaddr[4], hwaddr[5]);
 
-    // Close the socket
+    // Zamknięcie deskryptora po wykonaniu operacji
     close(fd);
 }

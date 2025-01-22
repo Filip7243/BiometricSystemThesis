@@ -11,10 +11,13 @@
 
 size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
 {
+    // Całkowity rozmiar pobranych danych
     size_t total_size = size * nmemb;
+
+    // Przypisanie pod userp struktury Memory, ktora przechowuje dane z odpowiedzi
     struct Memory *mem = (struct Memory *)userp;
 
-    // Reallocate memory for the new data
+    // Realokacja pamięci dla nowych danych
     char *ptr = realloc(mem->response, mem->size + total_size + 1);
     if (ptr == NULL)
     {
@@ -22,7 +25,11 @@ size_t write_callback(void *data, size_t size, size_t nmemb, void *userp)
         return 0;
     }
 
+    // Zaktualizowanie wskaźnika na odpowiedź
     mem->response = ptr;
+
+    // Skopiowanie nowych danych do zarezerwowanej pamięci, czyli
+    // Dodajemy do istniejacych juz danych kolejne na koncu tych juz istniejacych
     memcpy(&(mem->response[mem->size]), data, total_size);
     mem->size += total_size;
     mem->response[mem->size] = '\0';
@@ -39,64 +46,62 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
     printf("\n=== Starting file upload ===\n");
 
     // Parametry szyfrowania
-    const char *secret = "YourSecretKey123";
-    unsigned char iv[AES_BLOCK_SIZE];
-    char encrypted_filename[64] = "encrypted_file.dat";
+    const char *secret = "YourSecretKey123";            // Klucz do szyfrowania (taki sam powinien byc na serwerze)
+    unsigned char iv[AES_BLOCK_SIZE];                   // Inicjalizator miejsca w pamieci dla wektora (IV)
+    char encrypted_filename[64] = "encrypted_file.dat"; // Nazwa pliku po zaszyfrowaniu
 
-    // Generuj IV
+    // Generowanie IV
     generate_iv(iv);
 
-    // Zaszyfruj plik wejściowy
-    printf("Encrypting file...\n");
+    // Szyfrowanie pliku wejściowego
     if (encrypt_aes(filename, encrypted_filename, secret, iv) != 0)
     {
         fprintf(stderr, "Error: File encryption failed\n");
         return -1;
     }
 
+    // Inicjalizacja CURL
     curl_global_init(CURL_GLOBAL_ALL);
     curl = curl_easy_init();
 
     if (curl)
     {
-        // Create form
+        // Tworzenie formularza MIME
         curl_mime *mime;
         curl_mimepart *part;
 
         mime = curl_mime_init(curl);
 
-        // Add encrypted file part - zmiana typu MIME na application/octet-stream
+        // Dodanie zaszyfrowanego pliku do formularza MIME
         part = curl_mime_addpart(mime);
         curl_mime_filedata(part, encrypted_filename);
         curl_mime_name(part, "file");
         curl_mime_type(part, "application/octet-stream");
-        printf("Added encrypted file to mime: %s\n", encrypted_filename);
 
-        // Add type part
+        // Dodanie typu palca do formularza
         part = curl_mime_addpart(mime);
         curl_mime_name(part, "type");
         curl_mime_data(part, finger_to_string(type), CURL_ZERO_TERMINATED);
 
-        // Add hardwareId part
+        // Dodanie adresu MAC urządzenia
         part = curl_mime_addpart(mime);
         curl_mime_name(part, "hardwareId");
         curl_mime_data(part, mac_addr, CURL_ZERO_TERMINATED);
 
-        // Ustawienia curl
-        curl_easy_setopt(curl, CURLOPT_URL, UPLOAD_URL);
-        curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);
-        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback);
-        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);
+        // Ustawienia CURL
+        curl_easy_setopt(curl, CURLOPT_URL, UPLOAD_URL);               // Endpoint
+        curl_easy_setopt(curl, CURLOPT_MIMEPOST, mime);                // Formularz z danymi
+        curl_easy_setopt(curl, CURLOPT_WRITEFUNCTION, write_callback); // Funkcja callback do zapisu odpowiedzi
+        curl_easy_setopt(curl, CURLOPT_WRITEDATA, (void *)&chunk);     // Dane z response (struktura Memory)
 
-        // Wyłącz follow location aby uniknąć przekierowań
+        // Wyłączenie follow location aby uniknąć przekierowań
         curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 0L);
 
-        // Dodaj nagłówek Content-Type
+        // Dodanie nagłówek Content-Type
         struct curl_slist *headers = NULL;
         headers = curl_slist_append(headers, "Content-Type: multipart/form-data");
         curl_easy_setopt(curl, CURLOPT_HTTPHEADER, headers);
 
-        printf("Sending request...\n");
         res = curl_easy_perform(curl);
 
         if (res != CURLE_OK)
@@ -107,42 +112,38 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
         else
         {
             long response_code;
-            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code);
-            printf("HTTP response code: %ld\n", response_code);
+            curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &response_code); // Odczytanie kodu odpowiedzi HTTP
 
-            // Parse and print the response
+            // Parsowanie odpowiedzi serwera
             if (chunk.response)
             {
-                printf("Server response: %s\n", chunk.response);
-
                 struct JsonResponse resp = parse_json_response(chunk.response);
-                printf("Parsed response:\n");
-                printf("Success: %s\n", resp.success ? "true" : "false");
-                printf("Message: %s\n", resp.message);
-                printf("Name of User: %s\n", resp.nameOfUser);
 
-                // Open or close the lock based on the response
-                if (resp.success)
+                if (resp.success) // Identyfikacja przebiegła pomyślnie - otwarcie zamka
                 {
                     // Stworzenie bufora na połączony tekst
                     char full_message[LCD_WIDTH + 1]; // +1 na znak null (terminator)
 
-                    // Zainicjalizowanie pełnej wiadomości pustym ciągiem
+                    // Zainicjalizowanie wiadomości
                     full_message[0] = '\0';
 
-                    // Zapisz tekst w zmiennej full_message, nie przekraczając rozmiaru LCD_WIDTH
+                    // Zapisanie tekstu w zmiennej full_message
                     int max_name_length = LCD_WIDTH - strlen("Dear, ");
+                    // Jesli imie jest za dlugie to zostanie przyciete
                     snprintf(full_message, LCD_WIDTH + 1, "%s%.*s", "Dear, ", max_name_length, resp.nameOfUser);
 
+                    // Wyświetlenie na ekranie LCD
                     lcd_string("Welcome back! ", LCD_LINE_1);
                     lcd_string(full_message, LCD_LINE_2);
                     sleep(1);
-                    open_lock(0); // Open the lock
-                    sleep(3);     // Wait for 2 seconds
-                    open_lock(1); // Close the lock
+
+                    open_lock(0); // Otwórz zamek
+                    sleep(3);     // Czekaj przez 3 sekundy
+                    open_lock(1); // Zamknij zamek
                 }
-                else
+                else // Identyfikacja przebiegła niepomyślnie - zamkniecie zamka
                 {
+                    // Wyświetlenie na ekranie LCD
                     lcd_string("You have no access", LCD_LINE_1);
                     lcd_string("To this room!", LCD_LINE_2);
                     sleep(1);
@@ -150,17 +151,17 @@ int send_file(FingerType type, char mac_addr[18], char filename[50])
             }
         }
 
-        // Clean up
+        // Czyszcczenie CURL
         curl_slist_free_all(headers);
         curl_mime_free(mime);
         curl_easy_cleanup(curl);
         free(chunk.response);
     }
 
-    // Usuń tymczasowy plik
-    printf("Removing temporary file: %s\n", encrypted_filename);
+    // Usuwanie tymczasowego pliku zaszyfrowanego
     remove(encrypted_filename);
 
+    // Czyszczenie globalnych zasobów CURL
     curl_global_cleanup();
 
     printf("=== Upload completed ===\n\n");
