@@ -5,6 +5,7 @@ import com.example.client.UserService;
 import com.example.client.dto.FingerprintDTO;
 import com.example.client.dto.UpdateFingerprintRequest;
 import com.example.gui.ScannersListPanel;
+import com.example.utils.EncryptionUtils;
 import com.neurotec.biometrics.NBiometricTask;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
@@ -44,7 +45,7 @@ public class FingerprintViewDialog extends JDialog {
     private NSubject subject;
     private Runnable onFingerprintUpdate;
 
-    public FingerprintViewDialog(Frame parent, FingerprintDTO fingerprint, UserService userService, Runnable onFingerprintUpdate) {
+    public FingerprintViewDialog(Frame parent, FingerprintDTO fingerprint, UserService userService, Runnable onFingerprintUpdate) throws Exception {
         super(parent, "Fingerprint Details", true);
         this.fingerprint = fingerprint;
         this.userService = userService;
@@ -54,7 +55,7 @@ public class FingerprintViewDialog extends JDialog {
         initComponents();
     }
 
-    private void initComponents() {
+    private void initComponents() throws Exception {
         setLayout(new BorderLayout());
         setSize(700, 600);
         setLocationRelativeTo(null);
@@ -108,10 +109,11 @@ public class FingerprintViewDialog extends JDialog {
         return headerPanel;
     }
 
-    private void updateImageDisplay() {
+    private void updateImageDisplay() throws Exception {
         try {
             if (currentImageBytes != null && currentImageBytes.length > 0) {
-                BufferedImage image = ImageIO.read(new ByteArrayInputStream(currentImageBytes));
+                byte[] decryptedImage = EncryptionUtils.decrypt(currentImageBytes);
+                BufferedImage image = ImageIO.read(new ByteArrayInputStream(decryptedImage));
                 ImageIcon icon = new ImageIcon(image.getScaledInstance(400, 400, Image.SCALE_SMOOTH));
                 imageLabel.setIcon(icon);
             } else {
@@ -220,7 +222,7 @@ public class FingerprintViewDialog extends JDialog {
 
         NBiometricTask task = FingersTools.getInstance()
                 .getClient()
-                .createTask(EnumSet.of(CAPTURE, CREATE_TEMPLATE), subject);
+                .createTask(EnumSet.of(CAPTURE), subject);  // TODO: maybe to repair
         FingersTools.getInstance().getClient().performTask(task, null, new CaptureHandler());
     }
 
@@ -266,7 +268,6 @@ public class FingerprintViewDialog extends JDialog {
         try {
             UpdateFingerprintRequest updatedFingerprint = new UpdateFingerprintRequest(
                     fingerprint.id(),
-                    subject.getTemplateBuffer().toByteArray(),
                     subject.getFingers().get(0).getImage().save().toByteArray()
             );
 
@@ -302,7 +303,7 @@ public class FingerprintViewDialog extends JDialog {
         public void completed(final NBiometricTask result, final Object attachment) {
             SwingUtilities.invokeLater(() -> {
                 if (result.getStatus() == OK) {
-                    System.out.println("SUCCESS");  // tODO: add here real handler
+                    System.out.println("SUCCESS");  // TODO: add here real handler
                     saveButton.setEnabled(true);
                     btnScan.setEnabled(true);
                     stopButton.setEnabled(false);

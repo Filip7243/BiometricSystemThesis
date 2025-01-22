@@ -37,9 +37,9 @@ public class UpdateBasicRoomDialog extends JDialog {
         setSize(650, 400); // Adjust the size to fit better
         setLayout(new BorderLayout(10, 10));
 
-        JPanel headerPanel = createHeader("Update Room Details");
+        JPanel headerPanel = createHeader("Edit Room Details");
         JPanel inputPanel = createInputPanel();
-        JButton btnSubmit = createStyledButton("Update Room", new Color(46, 204, 113));
+        JButton btnSubmit = createStyledButton("Save Changes", new Color(46, 204, 113));
 
         btnSubmit.addActionListener(e -> updateRoom());
 

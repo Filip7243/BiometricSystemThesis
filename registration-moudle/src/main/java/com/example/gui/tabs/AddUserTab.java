@@ -12,6 +12,7 @@ import com.example.gui.ScannersListPanel;
 import com.example.model.FingerType;
 import com.example.model.Fingerprint;
 import com.example.model.Role;
+import com.example.utils.EncryptionUtils;
 import com.neurotec.biometrics.NBiometricTask;
 import com.neurotec.biometrics.NFinger;
 import com.neurotec.biometrics.NSubject;
@@ -25,11 +26,10 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
-import java.util.*;
 import java.util.List;
+import java.util.*;
 
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
-import static com.neurotec.biometrics.NBiometricOperation.CREATE_TEMPLATE;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.BorderLayout.*;
@@ -262,7 +262,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
         NBiometricTask task = FingersTools.getInstance()
                 .getClient()
-                .createTask(EnumSet.of(CAPTURE, CREATE_TEMPLATE), subject);
+                .createTask(EnumSet.of(CAPTURE), subject);
         FingersTools.getInstance().getClient().performTask(task, null, captureHandler);
 
         fingerScanForm.setScanning(true);
@@ -300,11 +300,18 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
         Map<BuildingDTO, List<RoomDTO>> selectedRooms = roomAssignmentForm.getSelectedRooms();
 
-        // TODO: clear all fileds after saving!
-        Map<FingerType, byte[]> fingerprintTokenData = scannedFingers.stream()
-                .collect(toMap(Fingerprint::fingerType, Fingerprint::token));
-        Map<FingerType, byte[]> fingerprintImageData = scannedFingers.stream()
-                .collect(toMap(Fingerprint::fingerType, Fingerprint::originalImage));
+        Map<FingerType, byte[]> encryptedFingerprintData = new HashMap<>();
+
+        for (Fingerprint fingerprint : scannedFingers) {
+            try {
+                byte[] encryptedImage = EncryptionUtils.encrypt(fingerprint.originalImage());
+                encryptedFingerprintData.put(fingerprint.fingerType(), encryptedImage);
+            } catch (Exception e) {
+//                logger.error("Failed to encrypt fingerprint data", e);
+                showError("Error processing fingerprint data!");
+                return;
+            }
+        }
 
         List<Long> userRoomIds = selectedRooms.values()
                 .stream()
@@ -317,8 +324,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
                 lastName,
                 pesel,
                 role,
-                fingerprintTokenData,
-                fingerprintImageData,
+                encryptedFingerprintData,  // Now using encrypted data
                 userRoomIds
         );
 
@@ -345,13 +351,11 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
                     if (duplicate.isPresent()) {
                         scannedFingers.set(scannedFingers.indexOf(duplicate.get()), new Fingerprint(
-                                subject.getTemplateBuffer().toByteArray(),
                                 currentFingerCapturing,
                                 subject.getFingers().get(0).getImage().save().toByteArray()
                         ));
                     } else {
                         scannedFingers.add(new Fingerprint(
-                                subject.getTemplateBuffer().toByteArray(),
                                 currentFingerCapturing,
                                 subject.getFingers().get(0).getImage().save().toByteArray()
                         ));

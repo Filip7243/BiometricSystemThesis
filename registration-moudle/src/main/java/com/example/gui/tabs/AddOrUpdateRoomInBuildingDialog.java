@@ -45,7 +45,7 @@ public class AddOrUpdateRoomInBuildingDialog extends JDialog {
         this.roomListModel = roomListModel;
         this.building = building;
 
-        JButton btnSubmit = createStyledButton("Submit Registration", new Color(46, 204, 113));
+        JButton btnSubmit = createStyledButton("Submit", new Color(46, 204, 113));
 
         btnSubmit.addActionListener(e -> {
             if (isUpdate) {

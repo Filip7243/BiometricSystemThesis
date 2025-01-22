@@ -172,7 +172,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
     private void createUnconfirmedEnrollmentsPanel(JPanel enrollmentPanel, JTabbedPane tabbedPane) {
         JPanel enrollmentHeaderPanel = createStyledHeaderPanel(
                 "User's Unconfirmed Enrollments By Finger Type",
-                "Chart shows user's unconfirmed enrollments to rooms that he is assigned"
+                "Chart shows user's unconfirmed enrollments to rooms that he is assigned to"
         );
         enrollmentPanel.add(enrollmentHeaderPanel, BorderLayout.NORTH);
 
@@ -198,7 +198,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
         enrollmentPanel.add(enrollmentInputsContainer, BorderLayout.CENTER);
         enrollmentPanel.add(enrollmentConfirmationChartPanel, BorderLayout.SOUTH);
-        tabbedPane.addTab("Enrollment Confirmation", enrollmentPanel);
+        tabbedPane.addTab("Failed Identifications", enrollmentPanel);
     }
 
     private void createUnconfirmedChartPanel(JTabbedPane tabbedPane) {
@@ -206,7 +206,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
 
         JPanel unconfirmedHeaderPanel = createStyledHeaderPanel(
                 "Unconfirmed Entrances per Room",
-                "Track and analyze unconfirmed room users entries to rooms that they are not assigned to"
+                "Track and analyze unconfirmed users entries to rooms that they are not assigned to."
         );
         unconfirmedPanel.add(unconfirmedHeaderPanel, BorderLayout.NORTH);
 
@@ -214,7 +214,7 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
         unconfirmedEntrancesChartPanel.setPreferredSize(new Dimension(500, 350));
 
         unconfirmedPanel.add(unconfirmedEntrancesChartPanel, BorderLayout.CENTER);
-        tabbedPane.addTab("Daily Trend", unconfirmedPanel);
+        tabbedPane.addTab("Unconfirmed Entrances", unconfirmedPanel);
     }
 
     private void createRoomEntranceChartPanel(JTabbedPane tabbedPane) {

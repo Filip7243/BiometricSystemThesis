@@ -88,7 +88,7 @@ public class BuildingDetailsDialog extends JDialog {
         panel.add(headerPanel, BorderLayout.NORTH);
 
         // Room Table
-        String[] columnNames = {"Room ID", "Room Number", "Floor", "Update", "Delete", "Set Device"};
+        String[] columnNames = {"Room ID", "Room Number", "Floor", "Edit", "Delete", "Set Device"};
         roomTableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -113,7 +113,7 @@ public class BuildingDetailsDialog extends JDialog {
                     room.roomId(),
                     room.roomNumber(),
                     room.floor(),
-                    "Update",
+                    "Edit",
                     "Delete",
                     "Set Device"
             });
@@ -170,7 +170,7 @@ public class BuildingDetailsDialog extends JDialog {
                         room.roomId(),
                         room.roomNumber(),
                         room.floor(),
-                        "Update",
+                        "Edit",
                         "Delete",
                         "Set Device"
                 });
