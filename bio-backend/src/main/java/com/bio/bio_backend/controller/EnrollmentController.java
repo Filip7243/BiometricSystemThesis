@@ -45,9 +45,36 @@ public class EnrollmentController {
             // Zwrócenie odpowiedzi po zakończeniu procesu weryfikacji (maksymalny czas oczekiwania: 10 sekund)
             return ResponseEntity.ok(future.get(10, SECONDS));
         } catch (IOException | ExecutionException | InterruptedException | TimeoutException ex) {
-            // W przypadku problemu z zapisaniem danych biometrycznych lub problemem identyfikacji - zwrócenie błędu z odpowiednim komunikatem
+            // W przypadku problemu z zapisaniem danych biometrycznych lub problemem identyfikacji-
+            // zwrócenie błędu z odpowiednim komunikatem
             return ResponseEntity.internalServerError().body("Something went wrong: " + ex.getMessage());
         }
+    }
+
+    /**
+     * Przesyła dane biometryczne użytkownika, sprawdzając, czy użytkownik ma dostęp do panelu administratora.
+     *
+     * @param request Obiekt zawierający dane biometryczne administratora.
+     * @return Odpowiedź HTTP z odpowiednim statusem i wynikam logowania.
+     */
+    @PostMapping("/login-biometrics")
+    public ResponseEntity<LoginResponse> loginToAdminPanelWithBiometrics(@RequestBody BiometricsLoginRequest request) {
+        try {
+            // Rozpoczęcie asynchronicznego procesu weryfikacji użytkownika
+            CompletableFuture<LoginResponse> future = enrollmentService.loginToAdminPanelWithBiometrics(request);
+
+            // Zwrócenie odpowiedzi po zakończeniu procesu weryfikacji (maksymalny czas oczekiwania: 10 sekund)
+            return ResponseEntity.ok(future.get(10, SECONDS));
+        } catch (ExecutionException | InterruptedException | TimeoutException ex) {
+            // W przypadku problemu z przetworzeniem danych biometrycznych lub problemem identyfikacji-
+            // zwrócenie błędu z odpowiednim komunikatem
+            return ResponseEntity.internalServerError().body(new LoginResponse(false));
+        }
+    }
+
+    @PostMapping("/login-password")
+    public ResponseEntity<LoginResponse> loginToAdminPanelWithPassword(@RequestBody PasswordLoginRequest request) {
+        return ResponseEntity.ok(enrollmentService.loginToAdminPanelWithPassword(request));
     }
 
     @GetMapping("/daily-trend")

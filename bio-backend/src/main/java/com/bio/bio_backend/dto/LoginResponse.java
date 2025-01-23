@@ -1,4 +1,4 @@
 package com.bio.bio_backend.dto;
 
-public class LoginResponse {
+public record LoginResponse(Boolean isLoggedIn) {
 }
