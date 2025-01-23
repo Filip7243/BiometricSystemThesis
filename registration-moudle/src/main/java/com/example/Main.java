@@ -1,12 +1,9 @@
 package com.example;
 
 import com.example.client.UserClient;
-import com.example.client.dto.BuildingDTO;
-import com.example.client.dto.RoomDTO;
 import com.example.client.request.UserCreationRequest;
-import com.example.gui.MainPanel;
+import com.example.gui.LoginPanel;
 import com.example.model.FingerType;
-import com.example.model.Fingerprint;
 import com.example.model.Role;
 import com.example.utils.EncryptionUtils;
 import com.example.utils.LibraryManager;
@@ -14,7 +11,6 @@ import com.neurotec.licensing.NLicenseManager;
 import com.neurotec.samples.util.Utils;
 
 import javax.swing.*;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -24,8 +20,6 @@ import java.util.List;
 import java.util.Map;
 
 import static java.awt.BorderLayout.CENTER;
-import static javax.swing.JOptionPane.PLAIN_MESSAGE;
-import static javax.swing.JOptionPane.showMessageDialog;
 import static javax.swing.WindowConstants.EXIT_ON_CLOSE;
 
 public class Main {
@@ -35,18 +29,19 @@ public class Main {
 
         NLicenseManager.setTrialMode(false);
 
+        LoginPanel loginPanel = new LoginPanel();
+        loginPanel.init();
+
         // TODO: Login panel based on fingerprint and clean code test db refresh btn to assign rooms
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame();
             frame.setTitle("Admin Panel");
             frame.setDefaultCloseOperation(EXIT_ON_CLOSE);
-            frame.add(new MainPanel(), CENTER);
+            frame.add(loginPanel, CENTER);
             frame.pack();
             frame.setLocationRelativeTo(null);
             frame.setVisible(true);
         });
-
-//        saveUser();
     }
 
 

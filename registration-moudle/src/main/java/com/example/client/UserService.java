@@ -73,6 +73,26 @@ public class UserService {
         );
     }
 
+    public void loginToAdminPanelWithPassword(PasswordLoginRequest request,
+                                                Consumer<LoginResponse> onSuccess,
+                                                Component parentComponent) {
+        BaseResourceWorker.execute(
+                () -> userClient.loginToAdminPanelWithPassword(request),
+                onSuccess,
+                parentComponent
+        );
+    }
+
+    public void loginToAdminPanelWithBiometrics(BiometricsLoginRequest request,
+                                                Consumer<LoginResponse> onSuccess,
+                                                Component parentComponent) {
+        BaseResourceWorker.execute(
+                () -> userClient.loginToAdminPanelWithBiometrics(request),
+                onSuccess,
+                parentComponent
+        );
+    }
+
     public void updateUserFingerprint(UpdateFingerprintRequest request, Consumer<Void> onSuccess, Component parentComponent) {
         BaseResourceWorker.execute(
                 () -> {

@@ -128,7 +128,6 @@ public class FingerScanForm extends JPanel {
         middleView.setPreferredSize(preferredViewSize);
     }
 
-    // New method to calculate view size based on screen width
     private Dimension calculatePreferredViewSize(int screenWidth) {
         if (screenWidth < 1200) {
             // Compact size for smaller screens
@@ -162,7 +161,6 @@ public class FingerScanForm extends JPanel {
         view.setAutofit(true);
         scrollPane.setViewportView(view);
 
-        // Existing view configuration remains the same
         view.addMouseListener(new MouseAdapter() {
             @Override
             public void mouseEntered(MouseEvent e) {
@@ -200,10 +198,6 @@ public class FingerScanForm extends JPanel {
 
     void updateStatus(String info) {
         infoLabel.setText(info);
-    }
-
-    void updateShownImage(NFingerView view) {
-        view.setShownImage(ORIGINAL);
     }
 
     NFingerView getThumbView() {

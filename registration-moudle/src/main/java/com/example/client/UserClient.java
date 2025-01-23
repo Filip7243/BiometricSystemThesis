@@ -54,6 +54,69 @@ public final class UserClient {
         }
     }
 
+    public LoginResponse loginToAdminPanelWithBiometrics(BiometricsLoginRequest requestBody) {
+        try {
+            // Przygotowanie payload jako JSON
+            JSONObject payload = new JSONObject();
+            payload.put("file", requestBody.file());
+            payload.put("type", requestBody.type());
+
+            // Budowanie żądania HTTP
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/api/v1/enrollments/login-biometrics"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                    .build();
+
+            // Wysyłanie żądania i odbieranie odpowiedzi
+            HttpResponse<String> response = MyHttpClient.getInstance()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Obsługa odpowiedzi
+            if (response.statusCode() == 200) {
+                JSONObject responseBody = new JSONObject(response.body());
+                Boolean isLoggedIn = responseBody.getBoolean("isLoggedIn");
+                return new LoginResponse(isLoggedIn);
+            } else {
+                // Rzucenie wyjątku w przypadku błędnego statusu odpowiedzi
+                throw new RuntimeException("Request failed with status code: " + response.statusCode());
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("An error occurred while sending the request.", e);
+        }
+    }
+
+    public LoginResponse loginToAdminPanelWithPassword(PasswordLoginRequest requestBody) {
+        try {
+            // Przygotowanie payload jako JSON
+            JSONObject payload = new JSONObject();
+            payload.put("encryptedPassword", requestBody.encryptedPassword());
+
+            // Budowanie żądania HTTP
+            HttpRequest request = HttpRequest.newBuilder()
+                    .uri(URI.create("http://localhost:8080/api/v1/enrollments/login-password"))
+                    .header("Content-Type", "application/json")
+                    .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
+                    .build();
+
+            // Wysyłanie żądania i odbieranie odpowiedzi
+            HttpResponse<String> response = MyHttpClient.getInstance()
+                    .send(request, HttpResponse.BodyHandlers.ofString());
+
+            // Obsługa odpowiedzi
+            if (response.statusCode() == 200) {
+                JSONObject responseBody = new JSONObject(response.body());
+                Boolean isLoggedIn = responseBody.getBoolean("isLoggedIn");
+                return new LoginResponse(isLoggedIn);
+            } else {
+                // Rzucenie wyjątku w przypadku błędnego statusu odpowiedzi
+                throw new RuntimeException("Request failed with status code: " + response.statusCode());
+            }
+        } catch (IOException | InterruptedException e) {
+            throw new RuntimeException("An error occurred while sending the request.", e);
+        }
+    }
+
     public List<UserDTO> getAllUsers(String search) {
         try {
             HttpRequest request = createGetAllUsersRequest(search);

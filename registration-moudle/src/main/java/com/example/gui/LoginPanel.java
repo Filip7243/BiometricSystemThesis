@@ -3,168 +3,443 @@ package com.example.gui;
 import com.example.FingersTools;
 import com.example.client.UserClient;
 import com.example.client.UserService;
-import com.example.client.dto.FingerprintDTO;
+import com.example.client.dto.BiometricsLoginRequest;
+import com.example.client.dto.PasswordLoginRequest;
 import com.example.model.FingerType;
-import com.example.model.Fingerprint;
-import com.example.model.Role;
-import com.example.model.User;
-import com.neurotec.biometrics.*;
+import com.example.utils.EncryptionUtils;
+import com.neurotec.biometrics.NBiometricTask;
+import com.neurotec.biometrics.NFinger;
+import com.neurotec.biometrics.NSubject;
 import com.neurotec.biometrics.swing.NFingerView;
-import com.neurotec.devices.NDeviceManager;
-import com.neurotec.devices.NFingerScanner;
-import com.neurotec.io.NBuffer;
 import com.neurotec.util.concurrent.CompletionHandler;
 
 import javax.swing.*;
+import javax.swing.border.CompoundBorder;
+import javax.swing.border.EmptyBorder;
+import javax.swing.border.LineBorder;
+import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.util.Comparator;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.io.IOException;
+import java.util.ArrayList;
 import java.util.EnumSet;
-import java.util.List;
 import java.util.Random;
 
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
-import static com.neurotec.biometrics.NBiometricOperation.CREATE_TEMPLATE;
+import static com.neurotec.biometrics.NBiometricStatus.CANCELED;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
-import static com.neurotec.devices.NDeviceType.FINGER_SCANNER;
+import static java.awt.Cursor.HAND_CURSOR;
+import static java.awt.Cursor.getPredefinedCursor;
+import static javax.swing.JOptionPane.PLAIN_MESSAGE;
+import static javax.swing.JOptionPane.showMessageDialog;
 
-public class LoginPanel extends JPanel {
+public class LoginPanel extends BasePanel {
 
     private NSubject subject;
-    private Runnable onAuthenticationDone;
-    private NDeviceManager deviceManager;
-    private FingerType fingerToScan;
 
-    private JLabel welcomeLabel;
+    private final ScannersListPanel slp = new ScannersListPanel();
+    private final NFingerView view = new NFingerView();
+    private boolean isScanning = false;
+    private final JButton scanBtn = new JButton("SCAN");
+    private final JButton cancelBtn = new JButton("CANCEL");
+    private final CaptureHandler captureHandler = new CaptureHandler();
     private final UserService userService = new UserService(new UserClient());
 
-    public LoginPanel(Runnable onAuthenticationDone) {
-        FingersTools.getInstance().getClient().reset();
-        FingersTools.getInstance().getClient().setUseDeviceManager(true);
-        FingersTools.getInstance().getClient().setFingersReturnBinarizedImage(true);
+    private FingerType fingerToScan;
+    private JLabel subHeaderLabel;
 
-        this.onAuthenticationDone = onAuthenticationDone;
+    public LoginPanel() {
+        super();
 
-        deviceManager = FingersTools.getInstance().getClient().getDeviceManager();
-        deviceManager.setDeviceTypes(EnumSet.of(FINGER_SCANNER));
-        deviceManager.initialize();
+        fingerToScan = getRandomFinger();
+        requiredLicenses = new ArrayList<>();
+        requiredLicenses.add("Devices.FingerScanners");
 
-        NFingerScanner scanner = (NFingerScanner) FingersTools.getInstance().getClient().getFingerScanner();
-        if (scanner == null) {
-            JOptionPane.showMessageDialog(
-                    this,
-                    "No fingerprint scanner found",
-                    "Error",
-                    JOptionPane.ERROR_MESSAGE);
+        optionalLicenses = new ArrayList<>();
+        optionalLicenses.add("Images.WSQ");  // TODO: maybe to remove
+    }
+
+    @Override
+    protected void initGUI() {
+        try {
+            obtainLicenses(this);
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
 
-        setLayout(new BoxLayout(this, BoxLayout.Y_AXIS));
+        updateFingersTools();
+        slp.updateScannerList();
 
-        JLabel loginLabel = new JLabel("Login to admin panel");
-        loginLabel.setAlignmentX(CENTER_ALIGNMENT);
-        fingerToScan = getRandomFinger();
-        JLabel fingerprintLabel = new JLabel("Place your " + fingerToScan.name() + " finger on the scanner");
-        fingerprintLabel.setAlignmentX(CENTER_ALIGNMENT);
-        welcomeLabel = new JLabel();
-        welcomeLabel.setAlignmentX(CENTER_ALIGNMENT);
+        setPreferredSize(new Dimension(800, 600));
+        setLayout(new GridBagLayout()); // Dodanie GridBagLayout dla wyśrodkowania
 
-        NFingerView view = new NFingerView();
-        NFinger finger = new NFinger();
-        subject = new NSubject();
-        subject.getFingers().add(finger);
-        view.setFinger(finger);
+        JTabbedPane tabbedPane = new JTabbedPane();
+
+        // Zakładka logowania
+        JPanel loginTab = createLoginTab();
+
+        // Zakładka skanowania palca
+        JPanel fingerprintTab = createFingerTab();
+
+        // Dodanie zakładek do panelu
+        tabbedPane.addTab("Login with biometrics", fingerprintTab);
+        tabbedPane.addTab("Login with password", loginTab);
+
+        // Dodanie zakładek do głównego okna i wyśrodkowanie
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.weightx = 1.0;
+        gbc.weighty = 1.0;
+        gbc.anchor = GridBagConstraints.CENTER; // Wyśrodkowanie
+        gbc.fill = GridBagConstraints.BOTH;    // Rozciąganie zakładek
+        add(tabbedPane, gbc);
+    }
+
+    @Override
+    protected void setDefaultValues() {
+
+    }
+
+    @Override
+    protected void updateControls() {
+        scanBtn.setEnabled(!isScanning);
+        cancelBtn.setEnabled(isScanning);
+
+        subHeaderLabel.setText("Finger to scan: " + fingerToScan);
+    }
+
+    @Override
+    protected void updateFingersTools() {
+
+    }
+
+    private JPanel createLoginTab() {
+        // Tworzenie głównego panelu
+        JPanel loginPanel = new JPanel(new BorderLayout(10, 10));
+        loginPanel.setBorder(BorderFactory.createEmptyBorder(20, 20, 20, 20)); // Padding wokół panelu
+
+        // Nagłówek
+        JLabel headerLabel = new JLabel("Login with password", SwingConstants.CENTER);
+        headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 32));
+        headerLabel.setForeground(new Color(52, 73, 94));
+        headerLabel.setBorder(BorderFactory.createEmptyBorder(30, 0, 10, 0)); // Marginesy
+        headerLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Wyśrodkowanie
+        loginPanel.add(headerLabel, BorderLayout.NORTH);
+
+        // Panel centralny z układem GridBagLayout
+        JPanel centerPanel = new JPanel(new GridBagLayout());
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.insets = new Insets(10, 10, 10, 10);
+        gbc.fill = GridBagConstraints.HORIZONTAL;
+
+        // Label "Password"
+        JLabel passwordLabel = new JLabel("Password:");
+        passwordLabel.setFont(new Font("Segoe UI", Font.PLAIN, 16));
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        centerPanel.add(passwordLabel, gbc);
+
+        // Pole hasła
+        JPasswordField passwordField = createStyledPasswordField();
+        gbc.gridx = 1;
+        gbc.gridy = 0;
+        centerPanel.add(passwordField, gbc);
+
+        // Przycisk "Zaloguj"
+        JButton loginButton = new JButton("Submit");
+        styleButton(loginButton, new Color(52, 152, 219), 150, 45);
+        gbc.gridx = 1;
+        gbc.gridy = 1;
+        gbc.anchor = GridBagConstraints.CENTER;
+        centerPanel.add(loginButton, gbc);
+
+        // Label statusu logowania
+        JLabel loginStatusLabel = new JLabel("", SwingConstants.CENTER);
+        loginStatusLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        loginStatusLabel.setForeground(Color.RED); // Domyślnie czerwony
+        gbc.gridx = 1;
+        gbc.gridy = 2;
+        centerPanel.add(loginStatusLabel, gbc);
+
+        loginPanel.add(centerPanel, BorderLayout.CENTER);
+        loginPanel.setAlignmentX(Component.CENTER_ALIGNMENT);
+
+        // Obsługa przycisku logowania
+        loginButton.addActionListener(e -> {
+            String password = new String(passwordField.getPassword());
+            try {
+                byte[] encryptedPassword = EncryptionUtils.encrypt(password.getBytes());
+
+                // send request to backend
+                userService.loginToAdminPanelWithPassword(new PasswordLoginRequest(encryptedPassword),
+                        (response) -> {
+                            if (response.isLoggedIn()) {
+                                loginStatusLabel.setText("Logged in successfully!");
+                                loginStatusLabel.setForeground(new Color(34, 139, 34)); // Zielony kolor
+
+                                SwingUtilities.invokeLater(() -> {
+                                    JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(LoginPanel.this);
+                                    frame.getContentPane().removeAll();
+                                    frame.add(new MainPanel(), BorderLayout.CENTER);
+                                    frame.revalidate();
+                                    frame.repaint();
+                                });
+                            } else {
+                                loginStatusLabel.setText("Invalid password!");
+                                loginStatusLabel.setForeground(Color.RED);
+                            }
+                        },
+                        getParent());
+            } catch (Exception ex) {
+                throw new RuntimeException(ex);
+            }
+        });
+
+        return loginPanel;
+    }
+
+    private JPanel createFingerTab() {
+        // Tworzenie głównego panelu
+        JPanel mainPanel = new JPanel(new BorderLayout());
+        mainPanel.setBackground(new Color(245, 245, 245));
+
+        // Tworzenie panelu na nagłówki i ScannersListPanel
+        JPanel topPanel = new JPanel();
+        topPanel.setLayout(new BoxLayout(topPanel, BoxLayout.Y_AXIS));
+        topPanel.setBackground(new Color(245, 245, 245));
+
+        // Dodanie ScannersListPanel do topPanel na samej górze
+        topPanel.add(slp);
+
+        // Tworzenie panelu dla nagłówków
+        JPanel headerPanel = new JPanel();
+        headerPanel.setLayout(new BoxLayout(headerPanel, BoxLayout.Y_AXIS));
+        headerPanel.setBackground(new Color(245, 245, 245));
+
+        // Nagłówek
+        JLabel headerLabel = new JLabel("Login with your biometrics", SwingConstants.CENTER);
+        headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 20));
+        headerLabel.setForeground(new Color(52, 73, 94));
+        headerLabel.setBorder(BorderFactory.createEmptyBorder(10, 0, 10, 0)); // Marginesy
+        headerLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Wyśrodkowanie
+        headerPanel.add(headerLabel);
+
+        // Podtytuł
+        String fingerToScanTxt = "Finger to scan: " + fingerToScan;
+        subHeaderLabel = new JLabel(fingerToScanTxt, SwingConstants.CENTER);
+        subHeaderLabel.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        subHeaderLabel.setForeground(new Color(100, 100, 100));
+        subHeaderLabel.setBorder(BorderFactory.createEmptyBorder(0, 0, 10, 0)); // Marginesy
+        subHeaderLabel.setAlignmentX(Component.CENTER_ALIGNMENT); // Wyśrodkowanie
+        headerPanel.add(subHeaderLabel);
+
+        // Dodanie headerPanel do topPanel poniżej ScannersListPanel
+        topPanel.add(headerPanel);
+
+        // Dodanie topPanel (nagłówki + slp) do głównego panelu (na górze)
+        mainPanel.add(topPanel, BorderLayout.NORTH);
+
+        // Tworzenie panelu do widoku Fingerprint (scrollPane)
+        JScrollPane scrollPane = new JScrollPane();
+        scrollPane.setBorder(BorderFactory.createTitledBorder(
+                BorderFactory.createLineBorder(new Color(52, 73, 94), 1),
+                "Fingerprint View",
+                TitledBorder.DEFAULT_JUSTIFICATION,
+                TitledBorder.DEFAULT_POSITION,
+                new Font("Segoe UI", Font.BOLD, 14),
+                new Color(52, 73, 94)
+        ));
+
         view.setShownImage(ORIGINAL);
+        view.setAutofit(true);
+        scrollPane.setViewportView(view);
 
-        add(Box.createVerticalGlue());
-        add(loginLabel);
-        add(Box.createVerticalStrut(10));
-        add(fingerprintLabel);
-        add(Box.createVerticalStrut(10));
-        add(view);
-        add(Box.createVerticalStrut(20));
-        add(welcomeLabel);
-        add(Box.createVerticalGlue());
+        // Ustawienie rozmiaru FingerView (2/3 ekranu)
+        scrollPane.setPreferredSize(new Dimension(600, 400));
+        mainPanel.add(scrollPane, BorderLayout.CENTER); // Umieszczenie na środku
 
-        NBiometricTask task = FingersTools.getInstance()
-                .getClient()
-                .createTask(EnumSet.of(CAPTURE, CREATE_TEMPLATE), subject);
-        FingersTools.getInstance().getClient().performTask(task, null, new CaptureHandler());
+        // Listener do FingerView
+        view.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                if (view.getFinger() != null) {
+                    view.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+                }
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                view.setCursor(Cursor.getDefaultCursor());
+            }
+        });
+
+        scanBtn.addActionListener(e -> startCapturing());
+        cancelBtn.addActionListener(e -> cancelCapturing());
+
+        // Stylizacja przycisków
+        styleButton(scanBtn, new Color(52, 152, 219), 150, 60);
+        styleButton(cancelBtn, new Color(231, 76, 60), 150, 60);
+
+        // Panel przycisków
+        JPanel btnPanel = new JPanel(new GridBagLayout());
+        btnPanel.setBackground(new Color(245, 245, 245));
+
+        // Układ dla przycisków
+        GridBagConstraints gbc = new GridBagConstraints();
+        gbc.gridx = 0;
+        gbc.gridy = 0;
+        gbc.insets = new Insets(10, 20, 10, 20);
+        btnPanel.add(scanBtn, gbc);
+
+        gbc.gridx = 1;
+        btnPanel.add(cancelBtn, gbc);
+
+        // Dodanie panelu przycisków na dole
+        mainPanel.add(btnPanel, BorderLayout.SOUTH);
+
+        return mainPanel;
+    }
+
+    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
+        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
+        button.setBackground(backgroundColor);
+        button.setForeground(Color.WHITE);
+        button.setFocusPainted(false);
+        button.setBorderPainted(false);
+        button.setCursor(getPredefinedCursor(HAND_CURSOR));
+        button.setPreferredSize(new Dimension(width, height)); // Set button size
+
+
+        button.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseEntered(MouseEvent e) {
+                button.setBackground(backgroundColor.darker());
+            }
+
+            @Override
+            public void mouseExited(MouseEvent e) {
+                button.setBackground(backgroundColor);
+            }
+        });
+    }
+
+    private JPasswordField createStyledPasswordField() {
+        JPasswordField passwordField = new JPasswordField(20);
+        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
+        passwordField.setBorder(new CompoundBorder(
+                new LineBorder(Color.LIGHT_GRAY, 1, true),
+                new EmptyBorder(5, 5, 5, 5)
+        ));
+        passwordField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
+        return passwordField;
     }
 
     public static FingerType getRandomFinger() {
         FingerType[] values = FingerType.values();
         Random random = new Random();
-        int randomIndex = random.nextInt(values.length);
+        int randomIndex = random.nextInt(values.length - 1); // -1, żeby pominąć NONE
         return values[randomIndex];
+    }
+
+    private void startCapturing() {
+        if (FingersTools.getInstance().getClient().getFingerScanner() == null) {
+            SwingUtilities.invokeLater(() -> showMessageDialog(
+                    this,
+                    "Please select scanner from the list.",
+                    "No scanner selected",
+                    PLAIN_MESSAGE)
+            );
+        }
+
+        NFinger finger = new NFinger();
+
+        subject = new NSubject();
+        subject.getFingers().add(finger);
+
+        view.setFinger(finger);
+        view.setShownImage(ORIGINAL);
+
+        NBiometricTask task = FingersTools.getInstance()
+                .getClient()
+                .createTask(EnumSet.of(CAPTURE), subject);
+        FingersTools.getInstance().getClient().performTask(task, null, captureHandler);
+
+        isScanning = true;
+        updateControls();
+    }
+
+    private void cancelCapturing() {
+        FingersTools.getInstance().getClient().cancel();
+
+        isScanning = false;
+        updateControls();
+    }
+
+    public void obtainLicenses(BasePanel panel) throws IOException {
+        if (!panel.isObtained()) {
+            boolean status = FingersTools.getInstance().obtainLicenses(panel.getRequiredLicenses());
+            FingersTools.getInstance().obtainLicenses(panel.getOptionalLicenses());
+        }
     }
 
     private final class CaptureHandler implements CompletionHandler<NBiometricTask, Object> {
         @Override
         public void completed(final NBiometricTask result, final Object attachment) {
             SwingUtilities.invokeLater(() -> {
-                if (result.getStatus() == NBiometricStatus.OK) {
-                    // Example: Handle the authentication logic
-                    userService.getFingerprintsByTypeAndUserRole(
-                            fingerToScan,
-                            Role.ADMIN,
-                            (fingerprints) -> {
-                                NBiometricTask enrollTask = new NBiometricTask(EnumSet.of(NBiometricOperation.ENROLL));
+                isScanning = false;
 
-                                for (FingerprintDTO fingerprint : fingerprints) {
-                                    NBuffer buffer = new NBuffer(fingerprint.token());
-                                    NSubject subjectFromDB = NSubject.fromMemory(buffer);
-                                    Long id = fingerprint.userId();
-                                    subjectFromDB.setId(id.toString());
-                                    enrollTask.getSubjects().add(subjectFromDB);
-                                }
+                if (result.getStatus() == OK) {
+                    byte[] file = subject.getFingers()
+                            .get(0)
+                            .getImage()
+                            .save()
+                            .toByteArray();
 
-                                FingersTools.getInstance().getClient().performTask(enrollTask);
-                                NBiometricStatus enrollStatus = enrollTask.getStatus();
-                                if (enrollStatus == NBiometricStatus.OK) {
-                                    NBiometricStatus identifyStatus = FingersTools.getInstance().getClient().identify(subject);
+                    try {
+                        byte[] encryptedFile = EncryptionUtils.encrypt(file);
 
-                                    if (identifyStatus == NBiometricStatus.OK) {
-                                        for (NMatchingResult matchingResult : subject.getMatchingResults()) {
-                                            System.out.format("Matched with ID: '%s' with score %d\n",
-                                                    matchingResult.getId(), matchingResult.getScore());
-                                        }
+                        BiometricsLoginRequest request = new BiometricsLoginRequest(encryptedFile, fingerToScan);
+
+                        userService.loginToAdminPanelWithBiometrics(request,
+                                (response) -> {
+                                    if (response.isLoggedIn()) {
+                                        SwingUtilities.invokeLater(() -> {
+                                            JFrame frame = (JFrame) SwingUtilities.getWindowAncestor(LoginPanel.this);
+                                            frame.getContentPane().removeAll();
+                                            frame.add(new MainPanel(), BorderLayout.CENTER);
+                                            frame.revalidate();
+                                            frame.repaint();
+                                        });
                                     } else {
-                                        System.out.format("Identification failed. Status: %s\n", identifyStatus);
-                                        FingersTools.getInstance().getClient().clear();
-                                        onAuthenticationDone.run();
+                                        showError("Login failed");
                                     }
-                                }
-                                if (!subject.getMatchingResults().isEmpty()) {
-                                    NMatchingResult matchingResult = subject.getMatchingResults()
-                                            .stream()
-                                            .max(Comparator.comparing(NMatchingResult::getScore))
-                                            .orElseThrow(() -> new RuntimeException("No matching results"));
+                                },
+                                getParent());
 
-                                    System.out.println("MATCHING RESULT " + matchingResult);
-
-                                    userService.getUserById(Long.parseLong(subject.getId()), (user) -> {
-                                        welcomeLabel.setText("Welcome " + user.firstName() + " " + user.lastName());
-                                        FingersTools.getInstance().getClient().clear();
-                                        onAuthenticationDone.run();
-                                    }, null);
-
-                                    FingersTools.getInstance().getClient().clear();
-                                    onAuthenticationDone.run();
-                                }
-                            }, null);
+                        fingerToScan = getRandomFinger();
+                    } catch (Exception e) {
+                        updateControls();
+                        throw new RuntimeException("Something went wrong when encrypting: " + e.getMessage());
+                    }
+                } else if (result.getStatus() == CANCELED) {
+                    System.out.println("Canceled");
+                } else {
+                    showError("Something went wrong: " + result.getStatus().toString());
                 }
+
+                updateControls();
             });
         }
 
         @Override
         public void failed(final Throwable throwable, final Object attachment) {
             SwingUtilities.invokeLater(() -> {
-                FingersTools.getInstance().getClient().clear();
-                JOptionPane.showMessageDialog(
-                        LoginPanel.this,
-                        throwable.getMessage(),
-                        "Error",
-                        JOptionPane.ERROR_MESSAGE);
+                isScanning = false;
+                showError(throwable);
+                updateControls();
             });
         }
     }
