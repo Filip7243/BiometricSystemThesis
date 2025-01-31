@@ -36,3 +36,5 @@ build/
 /src/main/resources/native/
 /src/main/resources/libs/
 /src/main/resources/mm-data/
+
+docker_files/

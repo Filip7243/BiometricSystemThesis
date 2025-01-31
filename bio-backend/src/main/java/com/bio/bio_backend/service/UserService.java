@@ -50,32 +50,26 @@ public class UserService {
                 // Odszyfruj dane przesłane w żądaniu
                 byte[] decryptedImage = EncryptionUtils.decrypt(entry.getValue());
 
-                // Tworzenie szablonu z odszyfrowanych danych
-                CompletableFuture<NSubject> subjectFuture = enrollmentService.createTemplateFromFile(decryptedImage);
+                NSubject subject = enrollmentService.createTemplateFromFile(decryptedImage).join();
 
-                subjectFuture.thenAccept(subject -> {
-                    System.out.println("Template decryption");
+                byte[] template = subject.getTemplateBuffer().toByteArray();
+                try {
+                    byte[] encryptedTemplate = EncryptionUtils.encrypt(template);
 
-                    byte[] template = subject.getTemplateBuffer().toByteArray();
-                    try {
-                        // Szyfrowanie danych biometrycznych przed wysłaniem na serwer
-                        byte[] encryptedTemplate = EncryptionUtils.encrypt(template);
+                    Fingerprint fingerprint = new Fingerprint(
+                            encryptedTemplate,
+                            entry.getKey(),
+                            user,
+                            entry.getValue()
+                    );
 
-                        Fingerprint fingerprint = new Fingerprint(
-                                encryptedTemplate,
-                                entry.getKey(),
-                                user,
-                                entry.getValue()
-                        );
+                    user.getFingerprints().add(fingerprint);
+                    fingerprintRepository.save(fingerprint);
 
-                        user.getFingerprints().add(fingerprint);
-                        fingerprintRepository.save(fingerprint);
-
-                        System.out.println("Fingerprint added to user");
-                    } catch (Exception e) {
-                        throw new RuntimeException(e);
-                    }
-                });
+                    System.out.println("Fingerprint added to user");
+                } catch (Exception e) {
+                    throw new RuntimeException(e);
+                }
             } catch (Exception e) {
                 throw new RuntimeException("Error processing fingerprint data", e);
             }

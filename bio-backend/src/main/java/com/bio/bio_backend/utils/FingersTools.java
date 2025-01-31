@@ -80,9 +80,10 @@ public final class FingersTools {
                 System.out.println(license + ": " + " already obtained");
             } else {
                 // Licencja pobierana jest z pliku (.lic) znajdującego się na maszynie
-                String licPath = "C:\\Users\\Filip\\Desktop\\STUDIA\\inzynierka\\MM_13.0\\" +
-                        "Neurotec_Biometric_13_0_SDK\\Bin\\Win64_x64\\Activation\\" +
-                        "Trial_PC__Valid-until_2025-06-04_5170789018306794686_internet_license.lic";
+//                String licPath = "C:\\Users\\Filip\\Desktop\\STUDIA\\inzynierka\\MM_13.0\\" +
+//                        "Neurotec_Biometric_13_0_SDK\\Bin\\Win64_x64\\Activation\\" +
+//                        "Trial_PC__Valid-until_2025-06-04_5170789018306794686_internet_license.lic";
+                String licPath = "/app/license.lic";
 
                 // Odczytywanie pliku z licencją
                 byte[] bytes = Files.readAllBytes(Paths.get(licPath));

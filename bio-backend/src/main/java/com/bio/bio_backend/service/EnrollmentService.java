@@ -378,7 +378,7 @@ public class EnrollmentService {
 
             String password = new String(requestPassword);
 
-            System.out.println("PASSWORD: " + password);
+//            System.out.println("PASSWORD: " + password);
 
             return password.equals(adminPanelPassword)
                     ? new LoginResponse(true)
