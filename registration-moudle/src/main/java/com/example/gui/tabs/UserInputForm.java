@@ -54,11 +54,6 @@ public class UserInputForm extends JPanel {
         boolean lastName = lastNameField.getText().trim().isEmpty();
         boolean role = roleCombo.getSelectedItem() != null;
 
-        System.out.println("pesel: " + pesel);
-        System.out.println("first name: " + firstName);
-        System.out.println("last name: " + lastName);
-        System.out.println("role: " + role);
-
         return pesel && !firstName && !lastName && role;
     }
 

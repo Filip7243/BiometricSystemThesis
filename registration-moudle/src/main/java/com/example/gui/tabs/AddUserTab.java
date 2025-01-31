@@ -109,7 +109,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
         // Create a tabbed pane for mobile view
         tabbedPane = new JTabbedPane();
 
-        List allBuildings = buildingClient.getAllBuildings("");
+        List<BuildingDTO> allBuildings = buildingClient.getAllBuildings("");
 
         userInputForm = new UserInputForm();
         fingerScanForm = new FingerScanForm();
@@ -304,6 +304,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
         for (Fingerprint fingerprint : scannedFingers) {
             try {
+                System.out.println("Encrypting image data for " + fingerprint.fingerType());
                 byte[] encryptedImage = EncryptionUtils.encrypt(fingerprint.originalImage());
                 encryptedFingerprintData.put(fingerprint.fingerType(), encryptedImage);
             } catch (Exception e) {

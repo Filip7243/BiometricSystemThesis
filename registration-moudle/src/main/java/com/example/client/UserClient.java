@@ -44,7 +44,6 @@ public final class UserClient {
                     .POST(HttpRequest.BodyPublishers.ofString(payload.toString()))
                     .build();
 
-
             HttpResponse<String> response = MyHttpClient.getInstance().send(postRequest, HttpResponse.BodyHandlers.ofString());
 
             System.out.println("Response Status Code: " + response.statusCode());
