@@ -68,7 +68,7 @@ public class BuildingClient {
 
             HttpResponse<String> response = httpClient.send(request, HttpResponse.BodyHandlers.ofString());
 
-            if (response.statusCode() != 204) {  // TODO: do 204
+            if (response.statusCode() != 204) {
                 throw new IOException("Failed to delete building. Status code: " + response.statusCode());
             }
         } catch (IOException | InterruptedException e) {
@@ -92,8 +92,6 @@ public class BuildingClient {
             throw new RuntimeException(e);
         }
     }
-
-    // TODO: add BASIC URL CONST
 
     public List<BuildingDTO> getAllBuildingsNotAssignedToUser(Long id) {
         try {

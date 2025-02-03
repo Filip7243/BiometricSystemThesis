@@ -16,6 +16,7 @@ import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 import java.util.EnumSet;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
 import static com.neurotec.devices.NDeviceType.FINGER_SCANNER;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
@@ -63,8 +64,8 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         listScanners.addListSelectionListener(new ScannerSelectionListener());
 
         // Styled Refresh Button
-        btnRefresh = new JButton("Refresh");
-        styleButton(btnRefresh, new Color(23, 162, 184), 150, 40);
+        btnRefresh = createStyledButton("Refresh", new Color(23, 162, 184), 150, 15);
+        btnRefresh.addActionListener(this);
 
         // GridBagConstraints for layout
         GridBagConstraints gbc = new GridBagConstraints();
@@ -123,29 +124,5 @@ public class ScannersListPanel extends JPanel implements ActionListener {
         public void valueChanged(ListSelectionEvent e) {
             FingersTools.getInstance().getClient().setFingerScanner(getSelectedScanner());
         }
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
-
-        button.addActionListener(this);
     }
 }

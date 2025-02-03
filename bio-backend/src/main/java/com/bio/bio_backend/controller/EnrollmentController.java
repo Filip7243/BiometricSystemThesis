@@ -2,12 +2,11 @@ package com.bio.bio_backend.controller;
 
 import com.bio.bio_backend.dto.*;
 import com.bio.bio_backend.service.EnrollmentService;
-import com.neurotec.biometrics.NSubject;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import org.springframework.web.multipart.MultipartFile;
 
 import java.io.IOException;
 import java.time.LocalDate;
@@ -17,7 +16,6 @@ import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeoutException;
 
 import static java.util.concurrent.TimeUnit.SECONDS;
-import static org.springframework.http.HttpStatus.CREATED;
 
 /**
  * Kontroler REST do zarządzania procesem zapisu użytkownika do pokoju.
@@ -26,6 +24,7 @@ import static org.springframework.http.HttpStatus.CREATED;
 @RestController
 @RequiredArgsConstructor
 @RequestMapping("/api/v1/enrollments")
+@Tag(name = "Enrollment Controller", description = "Endpointy do zarządzania zapisami (enrollments)")
 public class EnrollmentController {
 
     private final EnrollmentService enrollmentService;
@@ -72,88 +71,63 @@ public class EnrollmentController {
         }
     }
 
+    /**
+     * Loguje użytkownika do panelu administratora za pomocą hasła.
+     *
+     * @param request Obiekt zawierający dane logowania (np. login i hasło) wymagane do uwierzytelnienia.
+     * @return Odpowiedź HTTP zawierająca obiekt {@link LoginResponse} z wynikiem logowania.
+     */
     @PostMapping("/login-password")
     public ResponseEntity<LoginResponse> loginToAdminPanelWithPassword(@RequestBody PasswordLoginRequest request) {
         return ResponseEntity.ok(enrollmentService.loginToAdminPanelWithPassword(request));
     }
 
-    @GetMapping("/daily-trend")
-    public ResponseEntity<?> findDailyEnrollmentTrend() {
-        return ResponseEntity.ok(enrollmentService.findDailyEnrollmentTrend());
-    }
-
-    @GetMapping("/hours-peaks")
-    public ResponseEntity<?> findPeakEnrollmentHours() {
-        return ResponseEntity.ok(enrollmentService.findPeakEnrollmentHours());
-    }
-
-    @GetMapping("/most-active-users")
-    public ResponseEntity<?> findTopActiveUsers() {
-        return ResponseEntity.ok(enrollmentService.findTopActiveUsers());
-    }
-
-    @GetMapping("/enrollment-status-distribution")
-    public ResponseEntity<?> getEnrollmentStatusDistribution() {
-        return ResponseEntity.ok(enrollmentService.getEnrollmentStatusDistribution());
-    }
-
-    @GetMapping("/enrollments-by-room")
-    public ResponseEntity<?> getEnrollmentsByRoom() {
-        return ResponseEntity.ok(enrollmentService.getEnrollmentsByRoom());
-    }
-
-    @GetMapping("/enrollments-per-fingerprint")
-    public ResponseEntity<?> getEnrollmentsPerFingerprint() {
-        return ResponseEntity.ok(enrollmentService.getEnrollmentsPerFingerprint());
-    }
-
-    @GetMapping("/enrollments-by-time-of-day")
-    public ResponseEntity<?> getEnrollmentsByTimeOfDay() {
-        return ResponseEntity.ok(enrollmentService.getEnrollmentsByTimeOfDay());
-    }
-
-    @GetMapping("/enrollments-by-room-and-status")
-    public ResponseEntity<?> getEnrollmentsByRoomAndStatus() {
-        return ResponseEntity.ok(enrollmentService.getEnrollmentsByRoomAndStatus());
-    }
-
-    @GetMapping("/enrollments-room-usage-by-user")
-    public ResponseEntity<?> getRoomUsageByUser() {
-        return ResponseEntity.ok(enrollmentService.getRoomUsageByUser());
-    }
-
-    // NEW
-
+    /**
+     * Pobiera listę wejść do poszczególnych pomieszczeń w danym budynku na określony dzień.
+     *
+     * @param date       Data, dla której mają zostać zwrócone dane wejść (w formacie ISO DATE).
+     * @param buildingId Identyfikator budynku, dla którego mają zostać zwrócone dane wejść.
+     * @return Lista obiektów DTO zawierających informacje o wejściach do pomieszczeń.
+     */
     @GetMapping("/entrances-to-room")
     public List<RoomEntranceDTO> getEntrancesToRoom(@RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                     @RequestParam("buildingId") Long buildingId) {
         return enrollmentService.getNumberOfEntrancesToEachRoomOnDate(date, buildingId);
     }
 
+    /**
+     * Pobiera listę niepotwierdzonych wejść użytkowników, pogrupowanych według pomieszczeń.
+     *
+     * @return Lista obiektów DTO zawierających informacje o niepotwierdzonych wejściach użytkowników do poszczególnych pomieszczeń.
+     */
     @GetMapping("/unconfirmed-entrances-per-user-by-room")
     public List<UnconfirmedEntranceDTO> getUnconfirmedEntrancesPerUserByRoom() {
         return enrollmentService.getUnconfirmedEntrancesPerUserByRoom();
     }
 
+    /**
+     * Pobiera współczynnik potwierdzeń zapisów (enrollment) dla danego użytkownika.
+     *
+     * @param userId Identyfikator użytkownika, dla którego ma zostać obliczony współczynnik potwierdzeń.
+     * @return Odpowiedź HTTP zawierająca listę obiektów DTO z informacjami o współczynniku potwierdzeń zapisów użytkownika.
+     */
     @GetMapping("/enrollments-confirmation-rate")
     public ResponseEntity<List<UserEnrollmentConfirmationDTO>> getUserEnrollmentConfirmationRate(@RequestParam("userId") Long userId) {
         return ResponseEntity.ok(enrollmentService.getUserEnrollmentConfirmationRate(userId));
     }
 
+    /**
+     * Pobiera informacje o spóźnieniach użytkownika w danym pomieszczeniu na określony dzień i godzinę.
+     *
+     * @param expectedHour Godzina, do której użytkownik powinien był wejść do pomieszczenia.
+     * @param date         Data, dla której mają zostać zwrócone dane o spóźnieniach (w formacie ISO DATE).
+     * @param userId       Identyfikator użytkownika, dla którego mają zostać zwrócone dane o spóźnieniach.
+     * @return Odpowiedź HTTP zawierająca listę obiektów DTO z informacjami o spóźnieniach użytkownika.
+     */
     @GetMapping("/late-control")
     public ResponseEntity<List<LateControlDTO>> getLateControlByUserAndRoom(@RequestParam("expectedHour") Integer expectedHour,
                                                                             @RequestParam("date") @DateTimeFormat(iso = DateTimeFormat.ISO.DATE) LocalDate date,
                                                                             @RequestParam("userId") Long userId) {
         return ResponseEntity.ok(enrollmentService.getLateControlByUserAndRoom(expectedHour, date, userId));
-    }
-
-    @PostMapping("/tests")
-    public ResponseEntity<Void> test(@RequestParam("file") MultipartFile file) throws IOException {
-        CompletableFuture<NSubject> statusFuture = enrollmentService.createTemplateFromFile(file.getBytes());
-        statusFuture.thenAccept(status -> {
-            System.out.println("Status: " + status);
-        });
-
-        return ResponseEntity.status(CREATED).build();
     }
 }

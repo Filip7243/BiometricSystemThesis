@@ -8,9 +8,12 @@ services:
     ports:
       - "8080:8080"
     environment:
-      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/test
+      - SPRING_DATASOURCE_URL=jdbc:mysql://mysql:3306/bio-backend
       - SPRING_DATASOURCE_USERNAME=root
       - SPRING_DATASOURCE_PASSWORD=root
+      - ADMIN_PANEL_PASSWORD=secret_password12!
+      - SPRING_PROFILES_ACTIVE=container
+      - LIC_PATH=/app/license.lic
     depends_on:
       - mysql
     networks:
@@ -20,7 +23,7 @@ services:
     image: mysql:8.0
     environment:
       MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: test
+      MYSQL_DATABASE: bio-backend
     ports:
       - "3306:3306"
     networks:

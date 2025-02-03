@@ -27,13 +27,13 @@ public class LicenseManager {
                                     "Biometrics.FingerExtractionBase",
                                     "Devices.FingerScanners", // Obsługa skanerów linii papilarnych
                                     "Biometrics.FingerMatching", // Dopasowywanie odcisków palców (identyfikacja/weryfikacja)
-                                    "Images.WSQ" // Obsługa obrazów WSQ
+                                    "Images.WSQ" // Obsługa obrazów WSQ (opcjonalne)
                             )
                     );
 
             System.out.println("LICENSES OBTAINED: " + status);
         } catch (IOException e) {
-            System.out.println("EXCEPTION WHEN OBTAINING LICENSES");
+            System.out.println("EXCEPTION WHEN OBTAINING LICENSES: " + e.getMessage());
         }
     }
 }

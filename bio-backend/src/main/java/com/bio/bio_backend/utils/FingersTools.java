@@ -23,6 +23,13 @@ public final class FingersTools {
     private static final String ADDRESS = "/local"; // Adres serwera licencji
     private static final String PORT = "5000"; // Port serwera licencji
 
+    // Ścieżka do pliku z licencją (pobierana z application.properties)
+    private static String licPath;
+
+    private final Map<String, Boolean> licenses; // Mapa przechowująca status konkretnych licencji
+    private final NBiometricClient client; // Główny klient biometryczny - rozszerzenie klasy NBiometricEngine
+    private final NBiometricClient defaultClient; // Domyślny klient biometryczny
+
     /**
      * Pobiera instancję klasy FingersTools.
      * Używa wzorca projektowego Singleton, zapewniając jedną instancję tej klasy.
@@ -37,10 +44,6 @@ public final class FingersTools {
             return instance;
         }
     }
-
-    private final Map<String, Boolean> licenses; // Mapa przechowująca status konkretnych licencji
-    private final NBiometricClient client; // Główny klient biometryczny - rozszerzenie klasy NBiometricEngine
-    private final NBiometricClient defaultClient; // Domyślny klient biometryczny
 
 
     /**
@@ -79,12 +82,6 @@ public final class FingersTools {
             if (isLicenseObtained(license)) {
                 System.out.println(license + ": " + " already obtained");
             } else {
-                // Licencja pobierana jest z pliku (.lic) znajdującego się na maszynie
-//                String licPath = "C:\\Users\\Filip\\Desktop\\STUDIA\\inzynierka\\MM_13.0\\" +
-//                        "Neurotec_Biometric_13_0_SDK\\Bin\\Win64_x64\\Activation\\" +
-//                        "Trial_PC__Valid-until_2025-06-04_5170789018306794686_internet_license.lic";
-                String licPath = "/app/license.lic";
-
                 // Odczytywanie pliku z licencją
                 byte[] bytes = Files.readAllBytes(Paths.get(licPath));
                 ByteBuffer byteBuffer = ByteBuffer.wrap(bytes);
@@ -129,5 +126,9 @@ public final class FingersTools {
      */
     public NBiometricClient getDefaultClient() {
         return defaultClient;
+    }
+
+    public static void setLicPath(String licPath) {
+        FingersTools.licPath = licPath;
     }
 }

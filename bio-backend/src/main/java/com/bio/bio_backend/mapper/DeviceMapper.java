@@ -5,10 +5,13 @@ import com.bio.bio_backend.model.Device;
 
 import java.util.List;
 
+/**
+ * Klasa do mapowania obiektów typu {@link Device} na ich odpowiedniki DTO ({@link DeviceDTO}).
+ * Zawiera metody statyczne, które przekształcają obiekty typu {@link Device} oraz kolekcje tych obiektów na obiekty DTO.
+ */
 public final class DeviceMapper {
 
     private DeviceMapper() {
-
     }
 
     public static DeviceDTO toDTO(Device device) {

@@ -8,9 +8,6 @@ import com.example.gui.BasePanel;
 import com.example.gui.tabs.tables.MyTable;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.event.DocumentEvent;
 import javax.swing.event.DocumentListener;
 import javax.swing.table.DefaultTableCellRenderer;
@@ -23,10 +20,8 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
-import static java.awt.BorderLayout.CENTER;
-import static java.awt.BorderLayout.NORTH;
-import static java.awt.Cursor.HAND_CURSOR;
-import static java.awt.Cursor.getPredefinedCursor;
+import static com.example.gui.StyledComponentFactory.createStyledButton;
+import static com.example.gui.StyledComponentFactory.createStyledTextField;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 import static javax.swing.JOptionPane.YES_OPTION;
 
@@ -64,11 +59,11 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 20, 10));
         buttonPanel.setBackground(new Color(240, 240, 240));
 
-        addBuildingButton = new JButton("Add Building");
-        styleButton(addBuildingButton, new Color(46, 204, 113), 150, 40);
+        addBuildingButton = createStyledButton("Add Building", new Color(46, 204, 113), 150, 40);
+        addBuildingButton.addActionListener(this);
 
-        btnRefreshData = new JButton("Refresh Data");
-        styleButton(btnRefreshData, new Color(23, 162, 184), 150, 40);
+        btnRefreshData = createStyledButton("Refresh Data", new Color(23, 162, 184), 150, 40);
+        btnRefreshData.addActionListener(this);
 
         buttonPanel.add(addBuildingButton);
         buttonPanel.add(btnRefreshData);
@@ -79,8 +74,7 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
         JTextField searchBar = createStyledTextField("");
         searchBar.setPreferredSize(new Dimension(300, 40));
 
-        searchButton = new JButton("Search");
-        styleButton(searchButton, new Color(52, 152, 219), 150, 40);
+        searchButton = createStyledButton("Search", new Color(52, 152, 219), 150, 40);
         searchButton.setEnabled(false);
         searchButton.addActionListener(e -> getBuildings(searchBar.getText().trim()));
 
@@ -294,40 +288,5 @@ public class ManageBuildingsRoomsTab extends BasePanel implements ActionListener
                     updateBuildingTable();
                 }
         );
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height));
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
-
-        button.addActionListener(this);
-    }
-
-    private JTextField createStyledTextField(String text) {
-        JTextField textField = new JTextField(text, 20);
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        textField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        return textField;
     }
 }

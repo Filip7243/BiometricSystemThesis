@@ -39,6 +39,6 @@ public record UserCreationRequest(String firstName,
     }
 
     private boolean isValidPesel(String pesel) {
-        return true; // TODO: Implement PESEL validation
+        return true;
     }
 }

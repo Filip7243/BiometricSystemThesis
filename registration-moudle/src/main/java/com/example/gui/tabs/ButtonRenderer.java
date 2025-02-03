@@ -9,6 +9,7 @@ import java.awt.event.MouseEvent;
 import java.awt.geom.RoundRectangle2D;
 
 public class ButtonRenderer extends JButton implements TableCellRenderer {
+
     private static final Font DEFAULT_FONT = new Font("Segoe UI", Font.BOLD, 16);
     private static final Color EDIT_BACKGROUND = new Color(73, 128, 203);  // Softer blue
     private static final Color DELETE_BACKGROUND = new Color(220, 53, 69);  // Bootstrap-like red

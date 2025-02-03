@@ -100,7 +100,7 @@ public class RoomService {
 
         Device device;
         if (!deviceRepository.existsByMacAddress(request.macAddress())) {
-            device = new Device(request.macAddress(), room, request.scannerSerialNumber());  // TODO: do zmiany
+            device = new Device(request.macAddress(), room, request.scannerSerialNumber());
             deviceRepository.save(device);
         } else {
             device = deviceRepository.findByMacAddress(request.macAddress()).get();
@@ -125,7 +125,7 @@ public class RoomService {
         Device device;
         // Jeśli urządzenie nie istnieje to dodaj do bazy danych
         if (!deviceRepository.existsByMacAddress(request.macAddress())) {
-            device = new Device(request.macAddress(), null, request.scannerSerialNumber());  // TODO: do zminay
+            device = new Device(request.macAddress(), null, request.scannerSerialNumber());
             deviceRepository.save(device);
         } else {
             device = deviceRepository.findByMacAddress(request.macAddress())

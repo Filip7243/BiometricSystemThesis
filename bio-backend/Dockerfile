@@ -34,20 +34,11 @@ COPY wait-for-it.sh /app/wait-for-it.sh
 RUN chmod +x /app/wait-for-it.sh
 
 # Ustaw ścieżki do bibliotek natywnych
-ENV JAVA_LIBRARY_PATH=/app/resources/native
-ENV JNA_LIBRARY_PATH=/app/resources/native
-
-# Dodaj ścieżkę do bibliotek systemowych
-ENV LD_LIBRARY_PATH=/app/resources/native/linux-x86-64:${LD_LIBRARY_PATH}
+ENV JAVA_LIBRARY_PATH=/app/resources/native/linux-x86-64/
+ENV JNA_LIBRARY_PATH=/app/resources/native/linux-x86-64/
 
 WORKDIR /app
 EXPOSE 8080
 
 # Dodaj możliwość debugowania bibliotek
 ENTRYPOINT [ "./wait-for-it.sh", "mysql:3306", "--", "java", "-Djava.library.path=/app/resources/native/linux-x86-64", "-Djna.library.path=/app/resources/native/linux-x86-64", "-verbose:jni", "-jar", "app.jar" ]
-
-#ENTRYPOINT ["java", \
-#    "-Djava.library.path=/app/resources/native/linux-x86-64", \
-#    "-Djna.library.path=/app/resources/native/linux-x86-64", \
-#    "-verbose:jni", \
-#    "-jar", "app.jar"]

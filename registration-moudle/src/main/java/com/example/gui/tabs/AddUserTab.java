@@ -24,18 +24,14 @@ import javax.swing.border.EmptyBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.List;
 import java.util.*;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.BorderLayout.*;
-import static java.awt.Cursor.HAND_CURSOR;
-import static java.awt.Cursor.getPredefinedCursor;
-import static java.util.stream.Collectors.toMap;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -146,8 +142,7 @@ public class AddUserTab extends BasePanel implements ActionListener {
 
         add(mainPanel, CENTER);
 
-        btnSubmitForm = new JButton("Submit Form");
-        styleButton(btnSubmitForm, new Color(46, 204, 113), 150, 40);
+        btnSubmitForm = createStyledButton("Submit", new Color(46, 204, 113), 150, 40);
         btnSubmitForm.addActionListener(this);
 
         JPanel submitPanel = new JPanel(new FlowLayout(FlowLayout.CENTER));
@@ -343,8 +338,6 @@ public class AddUserTab extends BasePanel implements ActionListener {
                 fingerScanForm.setScanning(false);
 
                 if (result.getStatus() == OK) {
-                    fingerScanForm.updateStatus("Quality: " + subject.getFingers().get(0).getObjects().get(0).getQuality());
-
                     System.out.println("Saving finger: " + currentFingerCapturing);
                     Optional<Fingerprint> duplicate = scannedFingers.stream()
                             .filter(f -> f.fingerType().equals(currentFingerCapturing))
@@ -379,27 +372,5 @@ public class AddUserTab extends BasePanel implements ActionListener {
                 updateControls();
             });
         }
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height));
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
     }
 }

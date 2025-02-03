@@ -1,16 +1,17 @@
 package com.bio.bio_backend.mapper;
 
-import com.bio.bio_backend.dto.FingerprintDTO;
-import com.bio.bio_backend.dto.RoomDTO;
 import com.bio.bio_backend.dto.UserDTO;
 import com.bio.bio_backend.model.User;
 
 import java.util.List;
 
+/**
+ * Klasa do mapowania obiektów typu {@link User} na ich odpowiedniki DTO ({@link UserDTO}).
+ * Zawiera metody statyczne, które przekształcają obiekty typu {@link User} oraz kolekcje tych obiektów na obiekty DTO.
+ */
 public final class UserMapper {
 
     private UserMapper() {
-
     }
 
     public static UserDTO toDTO(User user) {

@@ -6,15 +6,12 @@ import com.example.client.dto.UserDTO;
 import com.example.model.Role;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 import java.util.Objects;
 import java.util.function.Consumer;
 
-import static java.awt.Cursor.*;
-import static java.awt.FlowLayout.RIGHT;
+import static com.example.gui.StyledComponentFactory.*;
 import static javax.swing.JOptionPane.INFORMATION_MESSAGE;
 
 public class EditUserDialog extends JDialog {
@@ -114,8 +111,8 @@ public class EditUserDialog extends JDialog {
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT));
 
-        JButton saveButton = createStyledButton("Save Changes");
-        JButton cancelButton = createStyledButton("Cancel");
+        JButton saveButton = createStyledButton("Save Changes", new Color(46, 204, 113));
+        JButton cancelButton = createStyledButton("Cancel", new Color(46, 204, 113));
 
         buttonPanel.add(saveButton);
         buttonPanel.add(cancelButton);
@@ -177,60 +174,5 @@ public class EditUserDialog extends JDialog {
         getRootPane().setDefaultButton(saveButton);
         setResizable(false);
         setVisible(true);
-    }
-
-    private JTextField createStyledTextField(String text) {
-        JTextField textField = new JTextField(text, 20);
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        textField.setCursor(Cursor.getPredefinedCursor(TEXT_CURSOR));
-        return textField;
-    }
-
-    private JComboBox<Role> createStyledComboBox(Role[] values, Role selectedRole) {
-        JComboBox<Role> comboBox = new JComboBox<>(values);
-        comboBox.setSelectedItem(selectedRole);
-        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        comboBox.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        comboBox.setCursor(Cursor.getPredefinedCursor(HAND_CURSOR));
-        return comboBox;
-    }
-
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(new Color(70, 70, 70));
-        return label;
-    }
-
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(new Color(46, 204, 113)); // Green
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(new CompoundBorder(
-                new LineBorder(new Color(39, 174, 96), 1, true),
-                new EmptyBorder(10, 20, 10, 20)
-        ));
-
-        // Hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(39, 174, 96)); // Darker green
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(46, 204, 113)); // Default green
-            }
-        });
-
-        return button;
     }
 }

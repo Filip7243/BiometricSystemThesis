@@ -22,7 +22,6 @@ import org.springframework.transaction.annotation.Transactional;
 
 import java.io.IOException;
 import java.time.LocalDate;
-import java.util.Arrays;
 import java.util.EnumSet;
 import java.util.List;
 import java.util.concurrent.CompletableFuture;
@@ -222,54 +221,44 @@ public class EnrollmentService {
         return responseFuture;
     }
 
-    public List<Object[]> findDailyEnrollmentTrend() {
-        return enrollmentRepository.findDailyEnrollmentTrend();
-    }
-
-    public List<Object[]> findPeakEnrollmentHours() {
-        return enrollmentRepository.findPeakEnrollmentHours();
-    }
-
-    public List<Object[]> findTopActiveUsers() {
-        return enrollmentRepository.findTopActiveUsers();
-    }
-
-    public List<Object[]> getEnrollmentStatusDistribution() {
-        return enrollmentRepository.getEnrollmentStatusDistribution();
-    }
-
-    public List<Object[]> getEnrollmentsByRoom() {
-        return enrollmentRepository.getEnrollmentsByRoom();
-    }
-
-    public List<Object[]> getEnrollmentsPerFingerprint() {
-        return enrollmentRepository.getEnrollmentsPerFingerprint();
-    }
-
+    /**
+     * Pobiera listę potwierdzonych i niepotwierdzonych zapisów użytkownika.
+     *
+     * @param userId Identyfikator użytkownika.
+     * @return Lista obiektów DTO z informacjami o zapisach użytkownika.
+     */
     public List<UserEnrollmentConfirmationDTO> getUserEnrollmentConfirmationRate(Long userId) {
         return enrollmentRepository.getUserEnrollmentConfirmationRate(userId);
     }
 
-    public List<Object[]> getEnrollmentsByTimeOfDay() {
-        return enrollmentRepository.getEnrollmentsByTimeOfDay();
-    }
-
-    public List<Object[]> getEnrollmentsByRoomAndStatus() {
-        return enrollmentRepository.getEnrollmentsByRoomAndStatus();
-    }
-
-    public List<Object[]> getRoomUsageByUser() {
-        return enrollmentRepository.getRoomUsageByUser();
-    }
-
+    /**
+     * Pobiera listę wejść do poszczególnych pomieszczeń w danym budynku na określony dzień.
+     *
+     * @param date       Data, dla której mają zostać zwrócone dane wejść.
+     * @param buildingId Identyfikator budynku, dla którego mają zostać zwrócone dane wejść.
+     * @return Lista obiektów DTO zawierających informacje o wejściach do pomieszczeń.
+     */
     public List<RoomEntranceDTO> getNumberOfEntrancesToEachRoomOnDate(LocalDate date, Long buildingId) {
         return enrollmentRepository.getNumberOfEntrancesToEachRoomOnDate(date, buildingId);
     }
 
+    /**
+     * Pobiera listę niepotwierdzonych wejść użytkowników, pogrupowanych według pomieszczeń.
+     *
+     * @return Lista obiektów DTO zawierających informacje o niepotwierdzonych wejściach użytkowników do poszczególnych pomieszczeń.
+     */
     public List<UnconfirmedEntranceDTO> getUnconfirmedEntrancesPerUserByRoom() {
         return enrollmentRepository.getUnconfirmedEntrancesPerUserByRoom();
     }
 
+    /**
+     * Pobiera informacje o spóźnieniach użytkownika w danym pomieszczeniu na określony dzień i godzinę.
+     *
+     * @param expectedHour Godzina, do której użytkownik powinien był wejść do pomieszczenia.
+     * @param date         Data, dla której mają zostać zwrócone dane o spóźnieniach.
+     * @param userId       Identyfikator użytkownika, dla którego mają zostać zwrócone dane o spóźnieniach.
+     * @return Lista obiektów DTO z informacjami o spóźnieniach użytkownika.
+     */
     public List<LateControlDTO> getLateControlByUserAndRoom(int expectedHour, LocalDate date, Long userId) {
         return enrollmentRepository.getLateControlByUserAndRoom(date, userId, expectedHour);
     }
@@ -369,16 +358,18 @@ public class EnrollmentService {
         }
     }
 
+    /**
+     * Funkcja do logowania do panelu administracyjnego z wykorzystaniem tajnego hasła.
+     *
+     * @param request Obiekt zawierający zaszyfrowane tajne hasło.
+     * @return LoginResponse Obiekt zawierający odpowiedź na próbę logowania (czy użytkownik jest administratorem).
+     */
     public LoginResponse loginToAdminPanelWithPassword(PasswordLoginRequest request) {
         try {
             // Odszyfrowanie hasła
             byte[] requestPassword = EncryptionUtils.decrypt(request.encryptedPassword());
 
-//            String password = Arrays.toString(requestPassword);
-
             String password = new String(requestPassword);
-
-//            System.out.println("PASSWORD: " + password);
 
             return password.equals(adminPanelPassword)
                     ? new LoginResponse(true)

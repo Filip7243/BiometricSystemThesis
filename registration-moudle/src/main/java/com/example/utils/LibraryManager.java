@@ -33,7 +33,6 @@ public final class LibraryManager {
                 return resourceUrl.toURI().getPath();
             }
         } catch (URISyntaxException e) {
-            // TODO: make logs
             e.printStackTrace();
         }
 

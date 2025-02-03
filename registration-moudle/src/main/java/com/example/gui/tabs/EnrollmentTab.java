@@ -37,8 +37,6 @@ import static java.time.LocalDate.now;
 import static java.time.ZoneId.systemDefault;
 import static java.util.stream.Collectors.summingLong;
 
-// TODO: search bar in users tabel and buildings table, sort by id, login panel, polaczyc zamek
-
 public class EnrollmentTab extends BasePanel implements ActionListener {
 
     private final EnrollmentService enrollmentService;
@@ -275,9 +273,9 @@ public class EnrollmentTab extends BasePanel implements ActionListener {
         buildingService.getAllBuildings(
                 "",
                 buildings -> {
-            buildingSelector.removeAllItems();
-            buildings.forEach(building -> buildingSelector.addItem(building));
-        }, this);
+                    buildingSelector.removeAllItems();
+                    buildings.forEach(building -> buildingSelector.addItem(building));
+                }, this);
     }
 
     private void loadUsers() {

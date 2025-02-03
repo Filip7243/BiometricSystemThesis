@@ -87,15 +87,6 @@ public class UserService {
         userRepository.save(user);
     }
 
-    /**
-     * Pobiera listę wszystkich użytkowników.
-     *
-     * @return lista użytkowników w formacie DTO.
-     */
-    @Transactional(readOnly = true)
-    public List<UserDTO> getAllUsers() {
-        return toDTOS(userRepository.findAll());
-    }
 
     /**
      * Aktualizuje dane użytkownika na podstawie żądania.

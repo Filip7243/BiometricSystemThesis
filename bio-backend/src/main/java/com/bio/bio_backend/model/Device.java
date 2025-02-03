@@ -28,11 +28,4 @@ public class Device {
         this.scannerSerialNumber = scannerSerialNumber;
         this.room = room;
     }
-
-    public void removeRoom() {
-        if (this.room != null) {
-            this.room.removeDevice();
-            this.room = null;
-        }
-    }
 }

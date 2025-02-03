@@ -15,59 +15,6 @@ import java.util.List;
 
 @Repository
 public interface EnrollmentRepository extends JpaRepository<Enrollment, Long> {
-
-    List<Enrollment> findByRoomId(Long roomId);
-
-    @Query("SELECT FUNCTION('DATE', e.enrollmentDate), COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY FUNCTION('DATE', e.enrollmentDate) " +
-            "ORDER BY FUNCTION('DATE', e.enrollmentDate)")
-    List<Object[]> findDailyEnrollmentTrend();
-
-    @Query("SELECT HOUR(e.enrollmentDate), COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY HOUR(e.enrollmentDate) " +
-            "ORDER BY COUNT(e) DESC")
-    List<Object[]> findPeakEnrollmentHours();
-
-    @Query("SELECT e.user.firstName, e.user.lastName, e.user.pesel, COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY e.user.firstName, e.user.lastName, e.user.pesel " +
-            "ORDER BY COUNT(e) DESC")
-    List<Object[]> findTopActiveUsers();
-
-    @Query("SELECT e.isConfirmed, COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY e.isConfirmed")
-    List<Object[]> getEnrollmentStatusDistribution();
-
-    @Query("SELECT e.room.roomNumber, e.room.building.buildingNumber, COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY e.room.roomNumber, e.room.building.buildingNumber")
-    List<Object[]> getEnrollmentsByRoom();
-
-    @Query("SELECT e.fingerprint.id, COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY e.fingerprint.id")
-    List<Object[]> getEnrollmentsPerFingerprint();
-
-    @Query("SELECT HOUR(e.enrollmentDate), e.room.id, COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY HOUR(e.enrollmentDate), e.room.id")
-    List<Object[]> getEnrollmentsByTimeOfDay();
-
-    @Query("SELECT e.room.roomNumber, e.isConfirmed, e.room.building.buildingNumber, COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY e.room.roomNumber, e.isConfirmed, e.room.building.buildingNumber")
-    List<Object[]> getEnrollmentsByRoomAndStatus();
-
-    @Query("SELECT e.user.firstName, e.room.roomNumber, COUNT(e) " +
-            "FROM Enrollment e " +
-            "GROUP BY e.user.firstName, e.room.roomNumber")
-    List<Object[]> getRoomUsageByUser();
-
-    // NEW
-
     @Query("SELECT new com.bio.bio_backend.dto.RoomEntranceDTO(" +
             "e.room.roomNumber, " +
             "b.buildingNumber, " +

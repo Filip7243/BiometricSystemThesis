@@ -3,14 +3,12 @@ package com.example.gui.tabs;
 import com.example.model.Role;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.KeyAdapter;
 import java.awt.event.KeyEvent;
 
+import static com.example.gui.StyledComponentFactory.*;
 import static java.awt.GridBagConstraints.NONE;
 import static java.awt.GridBagConstraints.WEST;
 
@@ -139,38 +137,5 @@ public class UserInputForm extends JPanel {
 
     private boolean validatePesel(String pesel) {
         return pesel.matches("\\d{11}");
-    }
-
-    // Method to create styled JTextField
-    private JTextField createStyledTextField(String text) {
-        JTextField textField = new JTextField(text, 20);
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        textField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        return textField;
-    }
-
-    // Method to create styled JComboBox
-    private JComboBox<Role> createStyledComboBox(Role[] values, Role selectedRole) {
-        JComboBox<Role> comboBox = new JComboBox<>(values);
-        comboBox.setSelectedItem(selectedRole);
-        comboBox.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        comboBox.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        comboBox.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        return comboBox;
-    }
-
-    // Method to create styled JLabel
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(new Color(70, 70, 70));
-        return label;
     }
 }

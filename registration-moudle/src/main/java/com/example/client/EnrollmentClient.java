@@ -20,7 +20,7 @@ public class EnrollmentClient {
             System.out.println("DATA: " + date.toString());
             String urlString = String.format(
                     "http://localhost:8080/api/v1/enrollments/entrances-to-room?date=%s&buildingId=%d",
-                    date.toString(),
+                    date,
                     buildingId
             );
             System.out.println("URL: " + urlString);

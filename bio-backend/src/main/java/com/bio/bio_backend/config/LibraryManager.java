@@ -14,7 +14,7 @@ import static java.lang.System.getProperty;
  * używanych przez aplikację.
  */
 public final class LibraryManager {
-    private final static String NATIVE_FOLDER_NAME = "native"; // Nazwa folderu z bibliotekami natywnymi
+    private final static String NATIVE_FOLDER_NAME = "native\\linux-x86-64"; // Nazwa folderu z bibliotekami natywnymi
 
     /**
      * Inicjalizuje ścieżki do bibliotek natywnych w systemie.
@@ -44,7 +44,7 @@ public final class LibraryManager {
     /**
      * Pobiera ścieżkę do folderu zawierającego biblioteki natywne.
      *
-     * @return ścieżka do folderu z bibliotekami, lub null, jeśli nie znaleziono
+     * @return ścieżka do folderu z bibliotekami lub null, jeśli nie znaleziono
      */
     private static String getLibraryPath() {
         try {

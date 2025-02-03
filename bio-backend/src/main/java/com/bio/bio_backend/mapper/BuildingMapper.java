@@ -10,6 +10,10 @@ import java.util.Map;
 
 import static java.util.stream.Collectors.toList;
 
+/**
+ * Klasa do mapowania obiektów typu {@link Building} na ich odpowiedniki DTO ({@link BuildingDTO}).
+ * Zawiera metody statyczne, które przekształcają obiekty typu {@link Building} oraz kolekcje tych obiektów na obiekty DTO.
+ */
 public final class BuildingMapper {
 
     private BuildingMapper() {

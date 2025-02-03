@@ -6,14 +6,14 @@ import com.example.client.dto.CreateBuildingRequest;
 import com.example.client.dto.CreateRoomRequest;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.plaf.basic.BasicScrollBarUI;
 import java.awt.*;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.function.Consumer;
+
+import static com.example.gui.StyledComponentFactory.*;
 
 public class AddBuildingDialog extends JDialog {
 
@@ -200,50 +200,6 @@ public class AddBuildingDialog extends JDialog {
         add(buttonPanel, BorderLayout.SOUTH); // Add buttons at the bottom
 
         setVisible(true);
-    }
-
-    private JTextField createStyledTextField(String text) {
-        JTextField textField = new JTextField(text, 20);
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        textField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        return textField;
-    }
-
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(new Color(70, 70, 70));
-        return label;
-    }
-
-    private JButton createStyledButton(String text, Color color) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(color); // Green
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(new CompoundBorder(
-                new LineBorder(color.darker(), 1, true),
-                new EmptyBorder(10, 20, 10, 20)
-        ));
-
-        // Hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(color.darker()); // Darker green
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(color); // Default green
-            }
-        });
-
-        return button;
     }
 
     private static class RoomListCellRenderer extends JLabel implements ListCellRenderer<CreateRoomRequest> {

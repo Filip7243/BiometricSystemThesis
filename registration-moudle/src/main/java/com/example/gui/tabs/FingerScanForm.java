@@ -9,6 +9,8 @@ import java.awt.*;
 import java.awt.event.MouseAdapter;
 import java.awt.event.MouseEvent;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
+import static com.example.gui.StyledComponentFactory.createStyledLabel;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.BorderLayout.SOUTH;
 import static java.awt.Cursor.HAND_CURSOR;
@@ -54,22 +56,22 @@ public class FingerScanForm extends JPanel {
             fingerPanel.add(createFingerPanel(
                     "THUMB",
                     thumbView = new NFingerView(),
-                    btnScanThumb = new JButton("SCAN THUMB"),
-                    btnCancelThumbScan = new JButton("CANCEL SCAN")
+                    btnScanThumb = createStyledButton("SCAN THUMB", new Color(52, 152, 219), 120, 40),
+                    btnCancelThumbScan = createStyledButton("CANCEL SCAN", new Color(231, 76, 60), 120, 40)
             ));
 
             fingerPanel.add(createFingerPanel(
                     "INDEX",
                     indexView = new NFingerView(),
-                    btnScanIndex = new JButton("SCAN INDEX"),
-                    btnCancelIndexScan = new JButton("CANCEL SCAN")
+                    btnScanIndex = createStyledButton("SCAN THUMB", new Color(52, 152, 219), 120, 40),
+                    btnCancelIndexScan = createStyledButton("CANCEL SCAN", new Color(231, 76, 60), 120, 40)
             ));
 
             fingerPanel.add(createFingerPanel(
                     "MIDDLE",
                     middleView = new NFingerView(),
-                    btnScanMiddle = new JButton("SCAN MIDDLE"),
-                    btnCancelMiddleScan = new JButton("CANCEL SCAN")
+                    btnScanMiddle = createStyledButton("SCAN THUMB", new Color(52, 152, 219), 120, 40),
+                    btnCancelMiddleScan =createStyledButton("CANCEL SCAN", new Color(231, 76, 60), 120, 40)
             ));
 
             add(fingerPanel, BorderLayout.CENTER);
@@ -83,24 +85,24 @@ public class FingerScanForm extends JPanel {
             add(createFingerPanel(
                     "THUMB",
                     thumbView = new NFingerView(),
-                    btnScanThumb = new JButton("SCAN THUMB"),
-                    btnCancelThumbScan = new JButton("CANCEL SCAN")
+                    btnScanThumb = createStyledButton("SCAN THUMB", new Color(52, 152, 219), 120, 40),
+                    btnCancelThumbScan = createStyledButton("CANCEL SCAN", new Color(231, 76, 60), 120, 40)
             ), gbc);
 
             gbc.gridx = 1;
             add(createFingerPanel(
                     "INDEX",
                     indexView = new NFingerView(),
-                    btnScanIndex = new JButton("SCAN INDEX"),
-                    btnCancelIndexScan = new JButton("CANCEL SCAN")
+                    btnScanIndex =createStyledButton("SCAN THUMB", new Color(52, 152, 219), 120, 40),
+                    btnCancelIndexScan = createStyledButton("CANCEL SCAN", new Color(231, 76, 60), 120, 40)
             ), gbc);
 
             gbc.gridx = 2;
             add(createFingerPanel(
                     "MIDDLE",
                     middleView = new NFingerView(),
-                    btnScanMiddle = new JButton("SCAN MIDDLE"),
-                    btnCancelMiddleScan = new JButton("CANCEL SCAN")
+                    btnScanMiddle = createStyledButton("SCAN THUMB", new Color(52, 152, 219), 120, 40),
+                    btnCancelMiddleScan = createStyledButton("CANCEL SCAN", new Color(231, 76, 60), 120, 40)
             ), gbc);
         }
 
@@ -184,8 +186,6 @@ public class FingerScanForm extends JPanel {
 
         // Button panel configuration
         cancelBtn.setEnabled(false);
-        styleButton(scanBtn, new Color(52, 152, 219), 120, 40);
-        styleButton(cancelBtn, new Color(231, 76, 60), 120, 40);
 
         JPanel btnPanel = new JPanel(new GridLayout(1, 2, 10, 0));
         btnPanel.add(scanBtn);
@@ -280,35 +280,5 @@ public class FingerScanForm extends JPanel {
         zoomDialog.pack();
         zoomDialog.setLocationRelativeTo(this);
         zoomDialog.setVisible(true);
-    }
-
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(new Color(70, 70, 70));
-        return label;
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
-
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
     }
 }

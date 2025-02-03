@@ -6,6 +6,10 @@ import com.bio.bio_backend.model.Room;
 import java.util.List;
 import java.util.Set;
 
+/**
+ * Klasa do mapowania obiektów typu {@link Room} na ich odpowiedniki DTO ({@link RoomDTO}).
+ * Zawiera metody statyczne, które przekształcają obiekty typu {@link Room} oraz kolekcje tych obiektów na obiekty DTO.
+ */
 public final class RoomMapper {
 
     private RoomMapper() {

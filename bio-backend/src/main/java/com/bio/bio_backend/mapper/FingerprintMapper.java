@@ -6,10 +6,13 @@ import com.bio.bio_backend.model.Fingerprint;
 import java.util.Collection;
 import java.util.List;
 
+/**
+ * Klasa do mapowania obiektów typu {@link Fingerprint} na ich odpowiedniki DTO ({@link FingerprintDTO}).
+ * Zawiera metody statyczne, które przekształcają obiekty typu {@link Fingerprint} oraz kolekcje tych obiektów na obiekty DTO.
+ */
 public final class FingerprintMapper {
 
     private FingerprintMapper() {
-
     }
 
     public static FingerprintDTO toDTO(Fingerprint fingerprint) {

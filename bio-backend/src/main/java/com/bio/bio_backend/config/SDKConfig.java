@@ -3,6 +3,7 @@ package com.bio.bio_backend.config;
 import com.bio.bio_backend.utils.FingersTools;
 import com.neurotec.biometrics.NMatchingSpeed;
 import jakarta.annotation.PostConstruct;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 import static com.neurotec.biometrics.NMatchingSpeed.LOW;
@@ -14,12 +15,18 @@ import static com.neurotec.biometrics.NMatchingSpeed.LOW;
 @Configuration
 public class SDKConfig {
 
+    @Value("${lic.path.file}")
+    private String licPath;
+
     /**
      * Metoda inicjalizująca ustawienia aplikacji po zainicjowaniu beana.
      * Ustawia ścieżkę do bibliotek, uzyskuje licencje oraz konfiguruje klienta biometrycznego.
      */
     @PostConstruct
     public void init() {
+        // Ustawienie ścieżki do licencji
+        FingersTools.setLicPath(licPath);
+
         // Inicjalizacja ścieżki do bibliotek natywnych
         LibraryManager.initLibraryPath();
 

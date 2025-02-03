@@ -37,10 +37,6 @@ public class BuildingService {
     private final RoomRepository roomRepository;
     private final DeviceRepository deviceRepository;
 
-    public List<BuildingDTO> getAllBuildings() {
-        return toDTOS(buildingRepository.findAll());
-    }
-
     /**
      * Aktualizuje dane budynku o podanym identyfikatorze.
      *

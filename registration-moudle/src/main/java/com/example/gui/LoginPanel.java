@@ -14,9 +14,6 @@ import com.neurotec.biometrics.swing.NFingerView;
 import com.neurotec.util.concurrent.CompletionHandler;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
-import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.MouseAdapter;
@@ -26,12 +23,12 @@ import java.util.ArrayList;
 import java.util.EnumSet;
 import java.util.Random;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
+import static com.example.gui.StyledComponentFactory.createStyledPasswordField;
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
 import static com.neurotec.biometrics.NBiometricStatus.CANCELED;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
-import static java.awt.Cursor.HAND_CURSOR;
-import static java.awt.Cursor.getPredefinedCursor;
 import static javax.swing.JOptionPane.PLAIN_MESSAGE;
 import static javax.swing.JOptionPane.showMessageDialog;
 
@@ -42,8 +39,8 @@ public class LoginPanel extends BasePanel {
     private final ScannersListPanel slp = new ScannersListPanel();
     private final NFingerView view = new NFingerView();
     private boolean isScanning = false;
-    private final JButton scanBtn = new JButton("SCAN");
-    private final JButton cancelBtn = new JButton("CANCEL");
+    private final JButton scanBtn;
+    private final JButton cancelBtn;
     private final CaptureHandler captureHandler = new CaptureHandler();
     private final UserService userService = new UserService(new UserClient());
 
@@ -53,12 +50,15 @@ public class LoginPanel extends BasePanel {
     public LoginPanel() {
         super();
 
+        scanBtn = createStyledButton("SCAN", new Color(52, 152, 219), 150, 40);
+        cancelBtn = createStyledButton("CANCEL", new Color(231, 76, 60), 150, 40);
+
         fingerToScan = getRandomFinger();
         requiredLicenses = new ArrayList<>();
         requiredLicenses.add("Devices.FingerScanners");
 
         optionalLicenses = new ArrayList<>();
-        optionalLicenses.add("Images.WSQ");  // TODO: maybe to remove
+        optionalLicenses.add("Images.WSQ");
     }
 
     @Override
@@ -149,8 +149,7 @@ public class LoginPanel extends BasePanel {
         centerPanel.add(passwordField, gbc);
 
         // Przycisk "Zaloguj"
-        JButton loginButton = new JButton("Submit");
-        styleButton(loginButton, new Color(52, 152, 219), 150, 45);
+        JButton loginButton = createStyledButton("Login", new Color(52, 152, 219), 150, 45);
         gbc.gridx = 1;
         gbc.gridy = 1;
         gbc.anchor = GridBagConstraints.CENTER;
@@ -279,10 +278,6 @@ public class LoginPanel extends BasePanel {
         scanBtn.addActionListener(e -> startCapturing());
         cancelBtn.addActionListener(e -> cancelCapturing());
 
-        // Stylizacja przycisków
-        styleButton(scanBtn, new Color(52, 152, 219), 150, 60);
-        styleButton(cancelBtn, new Color(231, 76, 60), 150, 60);
-
         // Panel przycisków
         JPanel btnPanel = new JPanel(new GridBagLayout());
         btnPanel.setBackground(new Color(245, 245, 245));
@@ -301,40 +296,6 @@ public class LoginPanel extends BasePanel {
         mainPanel.add(btnPanel, BorderLayout.SOUTH);
 
         return mainPanel;
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
-
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
-    }
-
-    private JPasswordField createStyledPasswordField() {
-        JPasswordField passwordField = new JPasswordField(20);
-        passwordField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        passwordField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        passwordField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        return passwordField;
     }
 
     public static FingerType getRandomFinger() {

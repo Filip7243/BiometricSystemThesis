@@ -16,15 +16,13 @@ import javax.imageio.ImageIO;
 import javax.swing.*;
 import javax.swing.border.EmptyBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.awt.image.BufferedImage;
 import java.io.ByteArrayInputStream;
 import java.io.IOException;
 import java.util.EnumSet;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
 import static com.neurotec.biometrics.NBiometricOperation.CAPTURE;
-import static com.neurotec.biometrics.NBiometricOperation.CREATE_TEMPLATE;
 import static com.neurotec.biometrics.NBiometricStatus.OK;
 import static com.neurotec.biometrics.swing.NFingerViewBase.ShownImage.ORIGINAL;
 import static java.awt.Color.BLACK;
@@ -71,8 +69,7 @@ public class FingerprintViewDialog extends JDialog {
 
         // Button panel
         JPanel buttonPanel = new JPanel(new FlowLayout());
-        JButton rescanButton = new JButton("Rescan Fingerprint");
-        styleButton(rescanButton, new Color(52, 152, 219), 200, 40);
+        JButton rescanButton = createStyledButton("Rescan", new Color(52, 152, 219), 200, 40);
 
         rescanButton.addActionListener(e -> performFingerScan());
         buttonPanel.add(rescanButton);
@@ -166,16 +163,13 @@ public class FingerprintViewDialog extends JDialog {
         NFingerView view = new NFingerView();
 
         // Style buttons using the existing styling function
-        btnScan = new JButton("Scan");
-        styleButton(btnScan, new Color(52, 152, 219), 120, 40);
+        btnScan = createStyledButton("Scan", new Color(52, 152, 219), 120, 40);
         btnScan.addActionListener(e -> startCapturing(view));
 
-        saveButton = new JButton("Save Changes");
-        styleButton(saveButton, new Color(46, 204, 113), 150, 40);
+        saveButton = createStyledButton("Save", new Color(46, 204, 113), 150, 40);
         saveButton.addActionListener(e -> saveFingerprint());
 
-        stopButton = new JButton("Stop");
-        styleButton(stopButton, new Color(231, 76, 60), 120, 40);
+        stopButton = createStyledButton("Stop", new Color(231, 76, 60), 120, 40);
         stopButton.addActionListener(e -> stopCapturing());
 
         JPanel fingerPanel = createFingerPanel(
@@ -222,7 +216,7 @@ public class FingerprintViewDialog extends JDialog {
 
         NBiometricTask task = FingersTools.getInstance()
                 .getClient()
-                .createTask(EnumSet.of(CAPTURE), subject);  // TODO: maybe to repair
+                .createTask(EnumSet.of(CAPTURE), subject);
         FingersTools.getInstance().getClient().performTask(task, null, new CaptureHandler());
     }
 
@@ -303,7 +297,7 @@ public class FingerprintViewDialog extends JDialog {
         public void completed(final NBiometricTask result, final Object attachment) {
             SwingUtilities.invokeLater(() -> {
                 if (result.getStatus() == OK) {
-                    System.out.println("SUCCESS");  // TODO: add here real handler
+                    System.out.println("SUCCESS");
                     saveButton.setEnabled(true);
                     btnScan.setEnabled(true);
                     stopButton.setEnabled(false);
@@ -319,27 +313,5 @@ public class FingerprintViewDialog extends JDialog {
                 System.out.println("FAILED TO CAPTURE FINGERPRINT in failed!!!");
             });
         }
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height));
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
     }
 }

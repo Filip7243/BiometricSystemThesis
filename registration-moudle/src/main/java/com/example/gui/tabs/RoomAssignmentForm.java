@@ -9,12 +9,12 @@ import javax.swing.border.TitledBorder;
 import java.awt.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+
+import static com.example.gui.StyledComponentFactory.createStyledButton;
 
 public class RoomAssignmentForm extends JPanel {
     private final JList<BuildingDTO> buildingList;
@@ -84,12 +84,8 @@ public class RoomAssignmentForm extends JPanel {
         ));
 
         // Styling buttons
-        btnAssignRoom = new JButton("Assign Rooms");
-        btnRemoveRoom = new JButton("Remove Selected Room");
-
-        // Apply custom button styling
-        styleButton(btnAssignRoom, new Color(52, 152, 219), 150, 40);
-        styleButton(btnRemoveRoom, new Color(231, 76, 60), 200, 40);
+        btnAssignRoom = createStyledButton("Assign Room", new Color(52, 152, 219), 150, 40);
+        btnRemoveRoom = createStyledButton("Remove Room", new Color(231, 76, 60), 150, 40);
 
         btnAssignRoom.addActionListener(new AssignButtonListener());
         btnRemoveRoom.addActionListener(new RemoveButtonListener());
@@ -112,29 +108,6 @@ public class RoomAssignmentForm extends JPanel {
 
         add(listsPanel, BorderLayout.CENTER);
         add(bottomPanel, BorderLayout.SOUTH);
-    }
-
-    // Custom button styling method
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
     }
 
     // Existing methods remain the same as in the original implementation

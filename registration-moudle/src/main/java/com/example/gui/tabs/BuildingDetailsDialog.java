@@ -21,6 +21,7 @@ import java.awt.event.MouseEvent;
 import java.awt.event.MouseMotionAdapter;
 import java.util.List;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
 import static java.awt.BorderLayout.*;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
@@ -78,7 +79,7 @@ public class BuildingDetailsDialog extends JDialog {
         // Button Panel
         JPanel buttonPanel = new JPanel(new BorderLayout());
         buttonPanel.setBorder(BorderFactory.createEmptyBorder(10, 20, 10, 20));
-        JButton addRoomButton = createStyledButton("Add Room");
+        JButton addRoomButton = createStyledButton("Add Room", new Color(39, 174, 96));
         buttonPanel.add(addRoomButton, CENTER);
 
         headerPanel.add(headerTitle, NORTH);
@@ -248,30 +249,5 @@ public class BuildingDetailsDialog extends JDialog {
                     null
             );
         }
-    }
-
-    private JButton createStyledButton(String text) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(new Color(46, 204, 113));
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(new CompoundBorder(
-                new LineBorder(new Color(39, 174, 96), 1, true),
-                new EmptyBorder(10, 20, 10, 20)
-        ));
-
-        // Hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(39, 174, 96)); // Darker green
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(46, 204, 113)); // Default green
-            }
-        });
-
-        return button;
     }
 }

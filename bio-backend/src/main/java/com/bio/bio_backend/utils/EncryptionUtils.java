@@ -57,9 +57,6 @@ public class EncryptionUtils {
      * @throws Exception W przypadku problemów z deszyfrowaniem.
      */
     public static byte[] decrypt(byte[] combinedData) throws Exception {
-        System.out.println("Received data length: " + combinedData.length);
-        System.out.println("First 16 bytes (IV): " + Arrays.toString(Arrays.copyOf(combinedData, IV_LENGTH)));
-
         SecretKeySpec secretKey = generateKey(SECRET_KEY);
         Cipher cipher = Cipher.getInstance(ALGORITHM);
 

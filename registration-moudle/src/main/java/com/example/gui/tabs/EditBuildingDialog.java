@@ -5,12 +5,10 @@ import com.example.client.dto.BuildingDTO;
 import com.example.client.dto.UpdateBuildingRequest;
 
 import javax.swing.*;
-import javax.swing.border.CompoundBorder;
 import javax.swing.border.EmptyBorder;
-import javax.swing.border.LineBorder;
 import java.awt.*;
 
-import static java.awt.Cursor.TEXT_CURSOR;
+import static com.example.gui.StyledComponentFactory.*;
 
 public class EditBuildingDialog extends JDialog {
 
@@ -96,7 +94,7 @@ public class EditBuildingDialog extends JDialog {
         statusLabel.setHorizontalAlignment(JLabel.CENTER);
 
         // Save button with green styling
-        JButton saveButton = createStyledButton();
+        JButton saveButton = createStyledButton("Save Changes", new Color(46, 204, 113));
         saveButton.addActionListener(e -> {
             String buildingNumber = buildingNumberField.getText().trim();
             String street = streetField.getText().trim();
@@ -148,48 +146,5 @@ public class EditBuildingDialog extends JDialog {
         getRootPane().setDefaultButton(saveButton);
         setResizable(false);
         setVisible(true);
-    }
-
-    private JTextField createStyledTextField(String text) {
-        JTextField textField = new JTextField(text, 20);
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        textField.setCursor(Cursor.getPredefinedCursor(TEXT_CURSOR));
-        return textField;
-    }
-
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(new Color(70, 70, 70));
-        return label;
-    }
-
-    private JButton createStyledButton() {
-        JButton button = new JButton("Save Changes");
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(new Color(46, 204, 113)); // Green
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(new CompoundBorder(
-                new LineBorder(new Color(39, 174, 96), 1, true),
-                new EmptyBorder(10, 20, 10, 20)
-        ));
-
-        // Hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(39, 174, 96)); // Darker green
-            }
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(new Color(46, 204, 113)); // Default green
-            }
-        });
-
-        return button;
     }
 }

@@ -32,7 +32,6 @@ public class Main {
         LoginPanel loginPanel = new LoginPanel();
         loginPanel.init();
 
-        // TODO: Login panel based on fingerprint and clean code test db refresh btn to assign rooms
         SwingUtilities.invokeLater(() -> {
             JFrame frame = new JFrame();
             frame.setTitle("Admin Panel");

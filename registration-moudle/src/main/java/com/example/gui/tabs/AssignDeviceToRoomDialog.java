@@ -12,12 +12,10 @@ import com.example.client.dto.RoomDTO;
 import javax.swing.*;
 import javax.swing.border.TitledBorder;
 import java.awt.*;
-import java.awt.event.MouseAdapter;
-import java.awt.event.MouseEvent;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
+import static com.example.gui.StyledComponentFactory.createStyledLabel;
 import static java.awt.BorderLayout.*;
-import static java.awt.Cursor.HAND_CURSOR;
-import static java.awt.Cursor.getPredefinedCursor;
 import static javax.swing.JOptionPane.*;
 import static javax.swing.ListSelectionModel.SINGLE_SELECTION;
 
@@ -103,8 +101,7 @@ public class AssignDeviceToRoomDialog extends JDialog {
 
 // Remove Button for Current Device
         if (room.macAddress() != null) {
-            JButton removeButton = new JButton("Remove Device");
-            styleButton(removeButton, new Color(192, 57, 43), 150, 40);
+            JButton removeButton = createStyledButton("Remove Scanner", new Color(192, 57, 43), 150, 40);
             removeButton.addActionListener(e -> {
                 int confirm = JOptionPane.showConfirmDialog(
                         this,
@@ -179,8 +176,7 @@ public class AssignDeviceToRoomDialog extends JDialog {
         // Button Panel
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.TRAILING, 5, 5));
 
-        JButton assignButton = new JButton("Assign Device");
-        styleButton(assignButton, new Color(46, 204, 113), 150, 40);
+        JButton assignButton = createStyledButton("Assign Device", new Color(46, 204, 113), 150, 40);
         assignButton.setEnabled(room.macAddress() == null);
         assignButton.addActionListener(e -> {
             DeviceDTO selectedDevice = deviceList.getSelectedValue();
@@ -211,8 +207,7 @@ public class AssignDeviceToRoomDialog extends JDialog {
             }
         });
 
-        JButton closeButton = new JButton("Cancel");
-        styleButton(closeButton, new Color(192, 57, 43), 100, 40);
+        JButton closeButton = createStyledButton("Close", new Color(192, 57, 43), 100, 40);
 
         buttonPanel.add(assignButton);
         buttonPanel.add(closeButton);
@@ -240,7 +235,7 @@ public class AssignDeviceToRoomDialog extends JDialog {
     }
 
     // Custom cell renderer for devices
-    private class DeviceListCellRenderer extends JPanel implements ListCellRenderer<DeviceDTO> {
+    private static class DeviceListCellRenderer extends JPanel implements ListCellRenderer<DeviceDTO> {
         private final JLabel deviceIdLabel;
         private final JLabel deviceTypeLabel;
 
@@ -277,34 +272,5 @@ public class AssignDeviceToRoomDialog extends JDialog {
 
             return this;
         }
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
-    }
-
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(new Color(70, 70, 70));
-        return label;
     }
 }

@@ -10,8 +10,7 @@ import javax.swing.border.EmptyBorder;
 import javax.swing.border.LineBorder;
 import java.awt.*;
 
-import static java.lang.String.valueOf;
-import static javax.swing.JOptionPane.*;
+import static com.example.gui.StyledComponentFactory.*;
 
 public class UpdateBasicRoomDialog extends JDialog {
 
@@ -37,7 +36,7 @@ public class UpdateBasicRoomDialog extends JDialog {
         setSize(650, 400); // Adjust the size to fit better
         setLayout(new BorderLayout(10, 10));
 
-        JPanel headerPanel = createHeader("Edit Room Details");
+        JPanel headerPanel = createHeader();
         JPanel inputPanel = createInputPanel();
         JButton btnSubmit = createStyledButton("Save Changes", new Color(46, 204, 113));
 
@@ -116,12 +115,12 @@ public class UpdateBasicRoomDialog extends JDialog {
                 this);
     }
 
-    private JPanel createHeader(String title) {
+    private JPanel createHeader() {
         JPanel headerPanel = new JPanel();
         headerPanel.setLayout(new BorderLayout());
         headerPanel.setBorder(new EmptyBorder(30, 10, 0, 10));
 
-        JLabel headerLabel = new JLabel(title, SwingConstants.CENTER);
+        JLabel headerLabel = new JLabel("Edit Room Details", SwingConstants.CENTER);
         headerLabel.setFont(new Font("Segoe UI", Font.BOLD, 18));
         headerLabel.setForeground(new Color(70, 70, 70));
 
@@ -135,49 +134,5 @@ public class UpdateBasicRoomDialog extends JDialog {
         headerPanel.add(headerLabel, BorderLayout.NORTH);
         headerPanel.add(headerDetails, BorderLayout.CENTER);
         return headerPanel;
-    }
-
-    private JTextField createStyledTextField(String text) {
-        JTextField textField = new JTextField(text, 20);
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        textField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        return textField;
-    }
-
-    private JLabel createStyledLabel(String text) {
-        JLabel label = new JLabel(text);
-        label.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        label.setForeground(new Color(70, 70, 70));
-        return label;
-    }
-
-    private JButton createStyledButton(String text, Color color) {
-        JButton button = new JButton(text);
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14));
-        button.setBackground(color);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
-        button.setBorder(new CompoundBorder(
-                new LineBorder(color.darker(), 1, true),
-                new EmptyBorder(10, 20, 10, 20)
-        ));
-
-        // Add hover effect
-        button.addMouseListener(new java.awt.event.MouseAdapter() {
-            public void mouseEntered(java.awt.event.MouseEvent evt) {
-                button.setBackground(color.darker());
-            }
-
-            public void mouseExited(java.awt.event.MouseEvent evt) {
-                button.setBackground(color);
-            }
-        });
-
-        return button;
     }
 }

@@ -21,6 +21,8 @@ import java.awt.event.MouseEvent;
 import java.util.ArrayList;
 import java.util.List;
 
+import static com.example.gui.StyledComponentFactory.createStyledButton;
+import static com.example.gui.StyledComponentFactory.createStyledTextField;
 import static java.awt.Cursor.HAND_CURSOR;
 import static java.awt.Cursor.getPredefinedCursor;
 
@@ -56,17 +58,15 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 10, 10));
         buttonPanel.setBackground(new Color(240, 240, 240));
 
-        JButton btnRefresh = new JButton("Refresh Data");
+        JButton btnRefresh = createStyledButton("Refresh Data", new Color(46, 204, 113), 150, 40);
         btnRefresh.addActionListener(this);
-        styleButton(btnRefresh, new Color(23, 162, 184), 150, 40);
 
         buttonPanel.add(btnRefresh);
 
         JTextField searchBar = createStyledTextField("");
         searchBar.setPreferredSize(new Dimension(300, 40));
 
-        JButton searchButton = new JButton("Search");
-        styleButton(searchButton, new Color(52, 152, 219), 150, 40);
+        JButton searchButton = createStyledButton("Search", new Color(52, 152, 219), 150, 40);
         searchButton.setEnabled(false);
         searchButton.addActionListener(e -> getUsers(searchBar.getText().trim()));
 
@@ -235,40 +235,5 @@ public class ManageUsersTab extends BasePanel implements ActionListener {
                 roomService,
                 buildingService
         );
-    }
-
-    private void styleButton(JButton button, Color backgroundColor, int width, int height) {
-        button.setFont(new Font("Segoe UI", Font.BOLD, 14)); // Bigger font size for buttons
-        button.setBackground(backgroundColor);
-        button.setForeground(Color.WHITE);
-        button.setFocusPainted(false);
-        button.setBorderPainted(false);
-        button.setCursor(getPredefinedCursor(HAND_CURSOR));
-        button.setPreferredSize(new Dimension(width, height)); // Set button size
-
-        button.addMouseListener(new MouseAdapter() {
-            @Override
-            public void mouseEntered(MouseEvent e) {
-                button.setBackground(backgroundColor.darker());
-            }
-
-            @Override
-            public void mouseExited(MouseEvent e) {
-                button.setBackground(backgroundColor);
-            }
-        });
-
-        button.addActionListener(this);
-    }
-
-    private JTextField createStyledTextField(String text) {
-        JTextField textField = new JTextField(text, 20);
-        textField.setFont(new Font("Segoe UI", Font.PLAIN, 14));
-        textField.setBorder(new CompoundBorder(
-                new LineBorder(Color.LIGHT_GRAY, 1, true),
-                new EmptyBorder(5, 5, 5, 5)
-        ));
-        textField.setCursor(Cursor.getPredefinedCursor(Cursor.TEXT_CURSOR));
-        return textField;
     }
 }
