@@ -1,4 +1,4 @@
-package com.bio.bio_backend.config;
+package com.example.utils;
 
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -14,7 +14,7 @@ import static java.lang.System.getProperty;
  * używanych przez aplikację.
  */
 public final class LibraryManager {
-    private final static String NATIVE_FOLDER_NAME = "native\\linux-x86-64"; // Nazwa folderu z bibliotekami natywnymi oraz jar
+    private final static String NATIVE_FOLDER_NAME = "native"; // Nazwa folderu z bibliotekami natywnymi oraz jar
 
     /**
      * Inicjalizuje ścieżki do bibliotek natywnych w systemie.

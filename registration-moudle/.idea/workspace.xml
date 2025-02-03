@@ -1,0 +1,260 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project version="4">
+  <component name="AutoImportSettings">
+    <option name="autoReloadType" value="SELECTIVE" />
+  </component>
+  <component name="ChangeListManager">
+    <list default="true" id="57939b8a-d78d-46e6-8b4e-9e2ba16c9b11" name="Changes" comment="">
+      <change beforePath="$PROJECT_DIR$/../bio-backend/install-jars.sh" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bio-backend/pom.xml" beforeDir="false" afterPath="$PROJECT_DIR$/../bio-backend/pom.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bio-backend/src/main/java/com/bio/bio_backend/config/LibraryManager.java" beforeDir="false" afterPath="$PROJECT_DIR$/../bio-backend/src/main/java/com/bio/bio_backend/config/LibraryManager.java" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../bio-backend/src/main/resources/application.properties" beforeDir="false" afterPath="$PROJECT_DIR$/../bio-backend/src/main/resources/application.properties" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/.gitignore" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/encodings.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/misc.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/uiDesigner.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/vcs.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/dependency-reduced-pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/pom.xml" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/FingersTools.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/Main.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/BaseResourceWorker.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/BuildingClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/BuildingService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/DeviceClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/DeviceService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/EnrollmentClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/EnrollmentService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/MyHttpClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/MyObjectMapper.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/RoomClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/RoomService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/UserClient.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/UserService.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/AddRoomRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/AssignDeviceToRoomRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/BiometricsLoginRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/BuildingDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/CreateBuildingRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/CreateRoomRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/DeviceDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/FingerprintDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/LateControlDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/LoginResponse.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/PasswordLoginRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/RoomDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/RoomEntranceDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/UnconfirmedEntranceDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/UpdateBuildingRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/UpdateFingerprintRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/UpdateRoomRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/UpdateUserRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/UserDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/dto/UserEnrollmentConfirmationDTO.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/client/request/UserCreationRequest.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/BasePanel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/LicensingPanel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/LoginPanel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/MainPanel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/ScannersListPanel.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/StyledComponentFactory.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/AddBuildingDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/AddOrUpdateRoomInBuildingDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/AddRoomToUserDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/AddUserTab.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/AssignDeviceToRoomDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/BuildingDetailsDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/ButtonRenderer.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/EditBuildingDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/EditUserDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/EnrollmentTab.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/FingerScanForm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/FingerprintViewDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/ManageBuildingsRoomsTab.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/ManageUsersTab.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/RoomAssignmentForm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/UpdateBasicRoomDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/UserDetailsDialog.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/UserInputForm.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/gui/tabs/tables/MyTable.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/model/FingerType.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/model/Fingerprint.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/model/Role.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/utils/EncryptionUtils.java" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/main/java/com/example/utils/LibraryManager.java" beforeDir="false" />
+    </list>
+    <option name="SHOW_DIALOG" value="false" />
+    <option name="HIGHLIGHT_CONFLICTS" value="true" />
+    <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
+    <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="FileTemplateManagerImpl">
+    <option name="RECENT_TEMPLATES">
+      <list>
+        <option value="Enum" />
+        <option value="Record" />
+        <option value="Class" />
+      </list>
+    </option>
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/.." />
+  </component>
+  <component name="JsbtTreeLayoutManager">
+    <layout place="tools.popupGrunt">
+      <scroll-view-position x="0" y="0" />
+    </layout>
+  </component>
+  <component name="KubernetesApiPersistence">{}</component>
+  <component name="KubernetesApiProvider">{
+  &quot;isMigrated&quot;: true
+}</component>
+  <component name="ProjectColorInfo">{
+  &quot;associatedIndex&quot;: 1
+}</component>
+  <component name="ProjectId" id="2ovubAeiEfCgsPFIiQqLJ9hASi5" />
+  <component name="ProjectViewState">
+    <option name="hideEmptyMiddlePackages" value="true" />
+    <option name="showLibraryContents" value="true" />
+  </component>
+  <component name="PropertiesComponent">{
+  &quot;keyToString&quot;: {
+    &quot;Application.Main.executor&quot;: &quot;Run&quot;,
+    &quot;Maven.registration-moudle [clean].executor&quot;: &quot;Run&quot;,
+    &quot;Maven.registration-moudle [package].executor&quot;: &quot;Run&quot;,
+    &quot;RunOnceActivity.ShowReadmeOnStart&quot;: &quot;true&quot;,
+    &quot;RunOnceActivity.git.unshallow&quot;: &quot;true&quot;,
+    &quot;SHARE_PROJECT_CONFIGURATION_FILES&quot;: &quot;true&quot;,
+    &quot;git-widget-placeholder&quot;: &quot;feature/template&quot;,
+    &quot;ignore.virus.scanning.warn.message&quot;: &quot;true&quot;,
+    &quot;kotlin-language-version-configured&quot;: &quot;true&quot;,
+    &quot;last_opened_file_path&quot;: &quot;C:/Users/Filip/Desktop/STUDIA/PracaInzynierska/kod/BiometricSystemThesis/registration-moudle/license&quot;,
+    &quot;node.js.detected.package.eslint&quot;: &quot;true&quot;,
+    &quot;node.js.detected.package.tslint&quot;: &quot;true&quot;,
+    &quot;node.js.selected.package.eslint&quot;: &quot;(autodetect)&quot;,
+    &quot;node.js.selected.package.tslint&quot;: &quot;(autodetect)&quot;,
+    &quot;nodejs_package_manager_path&quot;: &quot;npm&quot;,
+    &quot;settings.editor.selected.configurable&quot;: &quot;preferences.updates&quot;,
+    &quot;vue.rearranger.settings.migration&quot;: &quot;true&quot;
+  }
+}</component>
+  <component name="RecentsManager">
+    <key name="CreateClassDialog.RecentsKey">
+      <recent name="com.example.client.dto" />
+    </key>
+    <key name="CopyFile.RECENT_KEYS">
+      <recent name="C:\Users\Filip\Desktop\STUDIA\PracaInzynierska\kod\BiometricSystemThesis\registration-moudle\license" />
+      <recent name="C:\Users\Filip\Desktop\STUDIA\PracaInzynierska\kod\BiometricSystemThesis\registration-moudle\src\main\resources\native" />
+    </key>
+  </component>
+  <component name="RunManager">
+    <configuration name="Main" type="Application" factoryName="Application" temporary="true" nameIsGenerated="true">
+      <option name="MAIN_CLASS_NAME" value="com.example.Main" />
+      <module name="registration-module" />
+      <extension name="coverage">
+        <pattern>
+          <option name="PATTERN" value="com.example.*" />
+          <option name="ENABLED" value="true" />
+        </pattern>
+      </extension>
+      <method v="2">
+        <option name="Make" enabled="true" />
+      </method>
+    </configuration>
+    <recent_temporary>
+      <list>
+        <item itemvalue="Application.Main" />
+      </list>
+    </recent_temporary>
+  </component>
+  <component name="SharedIndexes">
+    <attachedChunks>
+      <set>
+        <option value="bundled-jdk-9823dce3aa75-125ca727e0f0-intellij.indexing.shared.core-IU-243.23654.153" />
+        <option value="bundled-js-predefined-d6986cc7102b-822845ee3bb5-JavaScript-IU-243.23654.153" />
+      </set>
+    </attachedChunks>
+  </component>
+  <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
+  <component name="TaskManager">
+    <task active="true" id="Default" summary="Default task">
+      <changelist id="57939b8a-d78d-46e6-8b4e-9e2ba16c9b11" name="Changes" comment="" />
+      <created>1731762441350</created>
+      <option name="number" value="Default" />
+      <option name="presentableId" value="Default" />
+      <updated>1731762441350</updated>
+      <workItem from="1731762442444" duration="8726000" />
+      <workItem from="1731779075663" duration="4853000" />
+      <workItem from="1731838053280" duration="37000" />
+      <workItem from="1731838110084" duration="596000" />
+      <workItem from="1731838956353" duration="267000" />
+      <workItem from="1731839251807" duration="628000" />
+      <workItem from="1731840123571" duration="12660000" />
+      <workItem from="1731942489153" duration="6764000" />
+      <workItem from="1732013174734" duration="655000" />
+      <workItem from="1732014143963" duration="2450000" />
+      <workItem from="1732095954709" duration="8520000" />
+      <workItem from="1732116559834" duration="6615000" />
+      <workItem from="1732176489142" duration="3533000" />
+      <workItem from="1732186247890" duration="897000" />
+      <workItem from="1732197044685" duration="2275000" />
+      <workItem from="1732205648331" duration="4814000" />
+      <workItem from="1732270534283" duration="505000" />
+      <workItem from="1732271115782" duration="787000" />
+      <workItem from="1732278480914" duration="1995000" />
+      <workItem from="1732298966756" duration="4763000" />
+      <workItem from="1732354273337" duration="16516000" />
+      <workItem from="1732438046186" duration="10255000" />
+      <workItem from="1732544584543" duration="6920000" />
+      <workItem from="1732631016284" duration="9776000" />
+      <workItem from="1732723760781" duration="528000" />
+      <workItem from="1732736869563" duration="3775000" />
+      <workItem from="1732744102742" duration="454000" />
+      <workItem from="1732744565128" duration="3400000" />
+      <workItem from="1732979051623" duration="18775000" />
+      <workItem from="1733053551815" duration="9162000" />
+      <workItem from="1733155300873" duration="23000" />
+      <workItem from="1733214817145" duration="1265000" />
+      <workItem from="1733248167018" duration="3119000" />
+      <workItem from="1733511051130" duration="641000" />
+      <workItem from="1733663601179" duration="4302000" />
+      <workItem from="1733745806888" duration="632000" />
+      <workItem from="1733838691211" duration="23160000" />
+      <workItem from="1733910451469" duration="29687000" />
+      <workItem from="1733996428723" duration="6140000" />
+      <workItem from="1734006869162" duration="4168000" />
+      <workItem from="1734029510785" duration="14133000" />
+      <workItem from="1734075055716" duration="1968000" />
+      <workItem from="1734081856332" duration="1234000" />
+      <workItem from="1735985010566" duration="7578000" />
+      <workItem from="1736615349448" duration="3819000" />
+      <workItem from="1736698182811" duration="41000" />
+      <workItem from="1736700562646" duration="1203000" />
+      <workItem from="1736770003495" duration="1382000" />
+      <workItem from="1736781274168" duration="200000" />
+      <workItem from="1736952154863" duration="56000" />
+      <workItem from="1737041474978" duration="5851000" />
+      <workItem from="1737559989544" duration="7793000" />
+      <workItem from="1737629226764" duration="5399000" />
+      <workItem from="1737972456868" duration="4040000" />
+      <workItem from="1738142319711" duration="953000" />
+      <workItem from="1738169317439" duration="3434000" />
+      <workItem from="1738311000614" duration="1119000" />
+      <workItem from="1738435227330" duration="677000" />
+      <workItem from="1738487721831" duration="3459000" />
+      <workItem from="1738526939957" duration="4535000" />
+      <workItem from="1738535937219" duration="1082000" />
+      <workItem from="1738537495972" duration="5246000" />
+      <workItem from="1738566324801" duration="698000" />
+    </task>
+    <servers />
+  </component>
+  <component name="TypeScriptGeneratedFilesManager">
+    <option name="version" value="3" />
+  </component>
+  <component name="XSLT-Support.FileAssociations.UIState">
+    <expand />
+    <select />
+  </component>
+</project>

@@ -62,73 +62,6 @@
             <version>2.6.0</version>
         </dependency>
 
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-biometrics</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-biometrics-client</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-biometrics-gui</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-core</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-devices</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-gui</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-licensing</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-media</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>neurotec-media-processing</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>utils</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-<!--        <dependency>-->
-<!--            <groupId>com.example.libs</groupId>-->
-<!--            <artifactId>xpp3</artifactId>-->
-<!--            <version>1.0</version>-->
-<!--            <scope>compile</scope>-->
-<!--        </dependency>-->
-
         <dependency>
             <groupId>com.example.libs</groupId>
             <artifactId>neurotec-biometrics</artifactId>
@@ -141,14 +74,16 @@
             <artifactId>neurotec-biometrics-client</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/native/linux-x86-64/neurotec-biometrics-client.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/native/linux-x86-64/neurotec-biometrics-client.jar
+            </systemPath>
         </dependency>
         <dependency>
             <groupId>com.example.libs</groupId>
             <artifactId>neurotec-biometrics-gui</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/native/linux-x86-64/neurotec-biometrics-gui.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/native/linux-x86-64/neurotec-biometrics-gui.jar
+            </systemPath>
         </dependency>
         <dependency>
             <groupId>com.example.libs</groupId>
@@ -190,7 +125,8 @@
             <artifactId>neurotec-media-processing</artifactId>
             <version>1.0</version>
             <scope>system</scope>
-            <systemPath>${project.basedir}/src/main/resources/native/linux-x86-64/neurotec-media-processing.jar</systemPath>
+            <systemPath>${project.basedir}/src/main/resources/native/linux-x86-64/neurotec-media-processing.jar
+            </systemPath>
         </dependency>
         <dependency>
             <groupId>com.example.libs</groupId>
