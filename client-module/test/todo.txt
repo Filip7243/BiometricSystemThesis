@@ -1,3 +1,0 @@
-Client:
-- dodac funckje losujaca palec,
-- zlaczyc kod ze skanera z kodem z wysylaniem palca,

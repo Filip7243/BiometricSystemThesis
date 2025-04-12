@@ -1,9 +1,0 @@
-#!/bin/bash
-
-export PATH=/home/slyeung/Downloads/toolchain/tools-master/arm-bcm2708/gcc-linaro-arm-linux-gnueabihf-raspbian/bin:$PATH
-
-export CC=arm-linux-gnueabihf-gcc
-
-make -f ftrScanApi_Ex_test.mak clean
-make -f ftrScanApi_Ex_test.mak
-
