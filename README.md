@@ -1,7 +1,12 @@
 # 🧑‍💻 Biometric System 
 
-## 📋 Requirements
+## 📂 Project Structure
+- **bio-backend**: The Spring Boot server responsible for biometric data processing, user authentication, and communication with the MySQL database.
+- **client-module**: Software for the physical device that captures fingerprints and communicates with the server.
+- **registration-module**: The admin panel for managing users, devices, buildings, and rooms, as well as monitoring and analyzing access logs.
 
+
+## 📋 Requirements
 Before setting up and running the system, the following requirements must be met:
 
 - **MegaMatcher SDK**: A valid license for MegaMatcher SDK is required for biometric data processing.
